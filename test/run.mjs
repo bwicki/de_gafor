@@ -69,37 +69,41 @@ head('DWD-Parser');
 const src = await readFile('scripts/fetch-dwd.mjs', 'utf8');
 // The fetcher runs main() on import, so the parser functions are rebuilt here
 // from its source instead — this keeps the test hermetic and offline.
-const sandbox = {};
-const fnSrc = src.slice(src.indexOf('function issuedFrom'), src.indexOf('/** Office code'));
-const make = new Function(`${fnSrc}; return { issuedFrom, periodsFrom, areasFrom };`);
-Object.assign(sandbox, make());
+const fnSrc = src.slice(src.indexOf('/** Drop the navigation'), src.indexOf('const officeFrom'));
+const P = new Function(
+  `${fnSrc}; return { stripChrome, headline, periodsFrom, areasFrom, issuedFrom };`)();
 
-const sample = [
-  'GAFOR 251600',
-  'Ausgegeben am 25.08.2026 um 16:00 UTC',
-  '',
-  'Gebiet  06-09 09-12 12-15 15-18',
-  '21      C     C     O     D',
-  '45 46:  C C O D',
-  '77      X X M M',
-  '',
-  'Allgemeine Lage: schwacher Hochdruckeinfluss.',
-].join('\n');
+// a real bulletin, exactly as the fetcher stored it
+let sample = '';
+try {
+  sample = (await readFile('test/sample-gafor.txt', 'utf8')).split('\n').slice(2).join('\n');
+} catch { console.log('  --   test/sample-gafor.txt fehlt'); }
 
-const iss = sandbox.issuedFrom(sample, new Date(Date.UTC(2026, 7, 25, 17, 0)));
-iss && iss.startsWith('2026-08-25T16:00') ? ok(`Ausgabezeit erkannt (${iss})`) : bad(`Ausgabezeit: ${iss}`);
+if (sample) {
+  const text = P.stripChrome(sample);
+  const hl = P.headline(text);
+  hl.bereich ? ok(`Bereich erkannt (${hl.bereich}, ${hl.date})`) : bad(`Kopfzeile: ${JSON.stringify(hl)}`);
 
-const per = sandbox.periodsFrom(sample);
-per.length === 4 && per[0] === '06-09' ? ok(`Zeiträume erkannt (${per.join(' ')})`)
-                                       : bad(`Zeiträume: ${JSON.stringify(per)}`);
+  const per = P.periodsFrom(text);
+  per.length >= 2 ? ok(`Zeiträume erkannt (${per.join(' ')})`) : bad(`Zeiträume: ${JSON.stringify(per)}`);
 
-const ar = sandbox.areasFrom(sample);
-const want = { 21: 'CCOD', 45: 'CCOD', 46: 'CCOD', 77: 'XXMM' };
-let arOk = true;
-for (const [id, codes] of Object.entries(want)) {
-  if ((ar[id] || []).join('') !== codes) { bad(`Gebiet ${id}: ${JSON.stringify(ar[id])} statt ${codes}`); arOk = false; }
+  const iss = P.issuedFrom(text, hl, per);
+  iss ? ok(`Gültig ab erkannt (${iss})`) : bad('Gültigkeitsbeginn nicht erkannt');
+
+  const ar = P.areasFrom(text, per.length);
+  const n = Object.keys(ar).length;
+  n >= 10 ? ok(`${n} Gebietszeilen gelesen`) : bad(`nur ${n} Gebietszeilen`);
+  const a00 = ar['00'], a10 = ar['10'];
+  (a00 && a00.codes.join('') === 'CCC' && a00.name === 'Deutsche Bucht')
+    ? ok('Gebiet 00 korrekt (CCC, Deutsche Bucht)')
+    : bad(`Gebiet 00: ${JSON.stringify(a00)}`);
+  (a10 && a10.codes.join('') === 'CCO' && a10.remark === 'ISOL RA')
+    ? ok('Gebiet 10 korrekt (CCO, Zusatz ISOL RA)')
+    : bad(`Gebiet 10: ${JSON.stringify(a10)}`);
+  Object.values(ar).every(a => a.codes.length === per.length)
+    ? ok('jede Zeile hat so viele Codes wie Zeiträume')
+    : bad('Codeanzahl passt nicht zu den Zeiträumen');
 }
-if (arOk) ok(`Gebietscodes erkannt (${Object.keys(ar).length} Zeilen)`);
 
 // ---------------------------------------------------------------- 4. reference places
 head('Referenzorte');

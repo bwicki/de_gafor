@@ -129,7 +129,9 @@ main.content{padding:12px 14px 0;}
 .fc-table td.now{color:var(--amber);}
 
 /* freshness */
-.age{font-family:var(--mono);font-size:10px;color:var(--text-dim);white-space:nowrap;}
+.age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;}
+@media (max-width:520px){ .card-head{flex-wrap:wrap;gap:2px 10px;}
+  .card-head .section-title{flex:1 0 100%;} .age{flex:1 0 100%;text-align:left;} }
 .age.stale{color:var(--gafor-d);}
 .age.old{color:var(--temp);}
 

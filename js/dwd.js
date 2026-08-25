@@ -35,13 +35,14 @@ const DWD = (() => {
   function gaforFor(area) {
     if (!data || !data.gafor || !area) return null;
     const id = String(area.id);
+    const withArea = (b) => ({ ...b, codes: b.areas[id], detail: (b.details || {})[id] || null });
     const direct = area.office && data.gafor[area.office];
-    if (direct && direct.areas && direct.areas[id]) return { ...direct, codes: direct.areas[id] };
+    if (direct && direct.areas && direct.areas[id]) return withArea(direct);
     for (const k of Object.keys(data.gafor)) {
       const b = data.gafor[k];
-      if (b.areas && b.areas[id]) return { ...b, codes: b.areas[id] };
+      if (b.areas && b.areas[id]) return withArea(b);
     }
-    return direct ? { ...direct, codes: null } : null;
+    return direct ? { ...direct, codes: null, detail: null } : null;
   }
 
   /** Balloon area forecast for an area — by its balloon region, else the first. */

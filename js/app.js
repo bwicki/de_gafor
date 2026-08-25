@@ -277,7 +277,7 @@
   }
 
   // ------------------------------------------------------------------ reports
-  function renderReports() { renderGafor(); renderBalloon(); }
+  function renderReports() { renderAreaHead(); renderGafor(); renderBalloon(); }
 
   function renderGafor() {
     const body = U.clear(U.$('gaforBody'));
@@ -298,8 +298,17 @@
       return;
     }
 
-    age.textContent = b.issued ? `ausgegeben ${U.ago(b.issued)}` : '';
-    age.className = U.ageClass(b.issued, 240, 480);
+    const span = (b.periods && b.periods.length)
+      ? `${b.periods[0].slice(0, 2)}–${b.periods[b.periods.length - 1].slice(3)} UTC` : '';
+    age.textContent = [b.bereich, span, b.issued ? U.ago(b.issued) : ''].filter(Boolean).join(' · ');
+    age.className = U.ageClass(b.issued, 300, 600);
+
+    if (b.detail && b.detail.remark) {
+      const r = U.el('div', 'note');
+      r.style.marginBottom = '10px';
+      r.innerHTML = `Zusatz für Gebiet ${a.id}: <strong>${b.detail.remark}</strong>`;
+      body.appendChild(r);
+    }
 
     if (b.codes && b.codes.length && b.periods && b.periods.length) {
       const wrap = U.el('div', 'fc-scroll');
