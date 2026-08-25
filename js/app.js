@@ -293,8 +293,22 @@
     }
     if (!a) { age.textContent = ''; body.appendChild(note('Zuerst einen Ort in Deutschland wählen.')); return; }
     if (!b) {
-      age.textContent = '';
-      body.appendChild(note(`Für Gebiet ${a.id} liegt derzeit kein GAFOR-Bulletin vor.`));
+      const ov = DWD.overviewFor(a);
+      age.textContent = ov && ov.bereich ? `Bereich ${ov.bereich}` : '';
+      body.appendChild(note(`Für Gebiet ${a.id} liegt derzeit keine GAFOR-Codetabelle vor` +
+        (ov ? ' — die Flugwetterübersicht des Bereichs steht darunter.' : '.')));
+      if (ov) {
+        const meta = U.el('div', 'note');
+        meta.style.margin = '12px 0 8px';
+        meta.innerHTML = [
+          ov.bulletin ? `<strong>${ov.bulletin}</strong>` : '',
+          ov.validFrom && ov.validTo
+            ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
+        ].filter(Boolean).join(' · ');
+        body.appendChild(meta);
+        body.appendChild(Object.assign(U.el('pre', 'report'), { textContent: ov.text }));
+        body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
+      }
       return;
     }
 
@@ -339,13 +353,26 @@
       body.appendChild(legend);
     }
 
-    if (b.text) {
-      const pre = U.el('pre', 'report');
-      pre.style.marginTop = b.codes ? '12px' : '0';
-      pre.textContent = b.text;
-      body.appendChild(pre);
+    // the prose Flugwetterübersicht for the Bereich this area belongs to
+    const ov = DWD.overviewFor(a);
+    if (ov) {
+      const h = U.el('div', 'section-title');
+      h.style.margin = '16px 0 6px';
+      h.textContent = `Flugwetterübersicht Bereich ${ov.bereich || ''}`.trim();
+      body.appendChild(h);
+      const meta = U.el('div', 'note');
+      meta.style.marginBottom = '8px';
+      meta.innerHTML = [
+        ov.bulletin ? `<strong>${ov.bulletin}</strong>` : '',
+        ov.validFrom && ov.validTo
+          ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
+      ].filter(Boolean).join(' · ');
+      body.appendChild(meta);
+      body.appendChild(Object.assign(U.el('pre', 'report'), { textContent: ov.text }));
+      body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
+    } else if (b.source) {
+      body.appendChild(sourceLine(b.title || 'DWD', b.source));
     }
-    if (b.source) body.appendChild(sourceLine(b.title || 'DWD', b.source));
   }
 
   function renderBalloon() {

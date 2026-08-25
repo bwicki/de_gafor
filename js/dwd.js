@@ -45,6 +45,19 @@ const DWD = (() => {
     return direct ? { ...direct, codes: null, detail: null } : null;
   }
 
+  /** Flugwetterübersicht (the prose bulletin) covering an area. */
+  function overviewFor(area) {
+    if (!data || !data.overview || !area) return null;
+    const id = String(area.id);
+    const direct = area.office && data.overview[area.office];
+    if (direct && (!direct.areas || direct.areas.includes(id))) return direct;
+    for (const k of Object.keys(data.overview)) {
+      const o = data.overview[k];
+      if (o.areas && o.areas.includes(id)) return o;
+    }
+    return null;
+  }
+
   /** Balloon area forecast for an area — by its balloon region, else the first. */
   function balloonFor(area) {
     if (!data || !data.balloon) return null;
@@ -59,6 +72,6 @@ const DWD = (() => {
   const balloonRegions = () => (data && data.balloon ? Object.keys(data.balloon) : []);
   const balloon = (key) => (data && data.balloon ? data.balloon[key] : null);
 
-  return { load, generated, errors, gaforFor, balloonFor, balloonRegions, balloon,
-           raw: () => data };
+  return { load, generated, errors, gaforFor, overviewFor, balloonFor,
+           balloonRegions, balloon, raw: () => data };
 })();

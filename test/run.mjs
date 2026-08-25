@@ -70,8 +70,8 @@ const src = await readFile('scripts/fetch-dwd.mjs', 'utf8');
 // The fetcher runs main() on import, so the parser functions are rebuilt here
 // from its source instead — this keeps the test hermetic and offline.
 const fnSrc = src.slice(src.indexOf('/** Drop the navigation'), src.indexOf('const officeFrom'));
-const P = new Function(
-  `${fnSrc}; return { stripChrome, headline, periodsFrom, areasFrom, issuedFrom };`)();
+const P = new Function(`${fnSrc}; return { stripChrome, headline, periodsFrom, areasFrom,
+  issuedFrom, overviewHeader, overviewBody, expandAreaList };`)();
 
 // a real bulletin, exactly as the fetcher stored it
 let sample = '';
@@ -103,6 +103,37 @@ if (sample) {
   Object.values(ar).every(a => a.codes.length === per.length)
     ? ok('jede Zeile hat so viele Codes wie Zeiträume')
     : bad('Codeanzahl passt nicht zu den Zeiträumen');
+}
+
+// a real Flugwetterübersicht
+let ovSample = '';
+try {
+  ovSample = (await readFile('test/sample-overview.txt', 'utf8')).split('\n').slice(2).join('\n');
+} catch { console.log('  --   test/sample-overview.txt fehlt'); }
+
+if (ovSample) {
+  const t = P.stripChrome(ovSample);
+  const h = P.overviewHeader(t);
+  h.office === 'EDZM' && h.bereich === 'Süd'
+    ? ok(`Übersicht erkannt (${h.bulletin}, Bereich ${h.bereich})`)
+    : bad(`Übersichtskopf: ${JSON.stringify({ o: h.office, b: h.bereich })}`);
+  h.validFrom && h.validTo ? ok(`Gültigkeit ${h.validFrom} … ${h.validTo}`) : bad('Gültigkeit fehlt');
+  h.areas.length === 18 && h.areas[0] === '54' && h.areas.at(-1) === '84'
+    ? ok(`Vorhersagebereich gelesen (${h.areas.length} Gebiete)`)
+    : bad(`Vorhersagebereich: ${JSON.stringify(h.areas)}`);
+  const body = P.overviewBody(t);
+  !/Vorhersagebereich|Deutscher Wetterdienst/.test(body.split('\n')[0])
+    ? ok('Kopfblock aus dem Fliesstext entfernt')
+    : bad(`Fliesstext beginnt mit: ${body.split('\n')[0]}`);
+  // the five Bereiche together have to cover all 68 areas exactly once
+  const spec = { Nord: '00 bis 10', Ost: '11 bis 28', West: '31 bis 39',
+                 Mitte: '41 bis 47, 50 bis 53, 61',
+                 Sued: '54 - 58, 62 - 64, 71 - 76, 81 - 84' };
+  const all = Object.values(spec).flatMap(v => P.expandAreaList(v));
+  const meta = JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas.map(a => a.id);
+  (all.length === 68 && new Set(all).size === 68 && meta.every(i => all.includes(i)))
+    ? ok('DWD-Bereichsangaben decken alle 68 Gebiete genau einmal ab')
+    : bad(`Bereichsabdeckung: ${all.length} Einträge, ${new Set(all).size} eindeutig`);
 }
 
 // ---------------------------------------------------------------- 4. reference places

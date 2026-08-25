@@ -216,6 +216,70 @@ function issuedFrom(text, hl, periods) {
   return null;
 }
 
+/**
+ * Header der Flugwetterübersicht:
+ *   FBEU40 EDZF 251800
+ *   Flugwetterübersicht Bereich Mitte
+ *   gültig vom 25.08.2026, 18.00 UTC bis 26.08.2026, 15.00 UTC
+ *   Vorhersagebereich: GAFOR-Gebiete 41 bis 47, 50 bis 53, 61
+ */
+function overviewHeader(text) {
+  const out = { bulletin: null, office: null, bereich: null,
+                issued: null, validFrom: null, validTo: null, areas: [] };
+
+  const b = text.match(/^\s*(FBEU\d{2})\s+([A-Z]{4})\s+(\d{2})(\d{2})(\d{2})\s*$/im);
+  if (b) {
+    out.bulletin = `${b[1]} ${b[2]} ${b[3]}${b[4]}${b[5]}`;
+    out.office = b[2];
+    out.issued = dayHourToISO(+b[3], +b[4], +b[5]);
+  }
+  const r = text.match(/Flugwetter(?:übersicht|uebersicht)\s+Bereich\s+(.+?)\s*$/im);
+  if (r) out.bereich = r[1].trim();
+
+  const v = text.match(/g[üu]ltig\s+vom\s+(\d{2})\.(\d{2})\.(\d{4}),\s*(\d{2})[.:](\d{2})\s*UTC\s*bis\s*(\d{2})\.(\d{2})\.(\d{4}),\s*(\d{2})[.:](\d{2})\s*UTC/i);
+  if (v) {
+    out.validFrom = new Date(Date.UTC(+v[3], +v[2] - 1, +v[1], +v[4], +v[5])).toISOString();
+    out.validTo = new Date(Date.UTC(+v[8], +v[7] - 1, +v[6], +v[9], +v[10])).toISOString();
+  }
+
+  const a = text.match(/Vorhersagebereich:\s*GAFOR-Gebiete\s*([^\n]+)/i);
+  if (a) out.areas = expandAreaList(a[1]);
+  return out;
+}
+
+/** "00 bis 10" / "54 - 58, 62 - 64, 71 - 76" → ["00","01",…] */
+function expandAreaList(spec) {
+  const ids = [];
+  for (const part of spec.split(',')) {
+    const m = part.trim().match(/^(\d{2})\s*(?:bis|-|–)\s*(\d{2})$/i);
+    if (m) {
+      for (let i = +m[1]; i <= +m[2]; i++) ids.push(String(i).padStart(2, '0'));
+      continue;
+    }
+    const one = part.trim().match(/^(\d{2})$/);
+    if (one) ids.push(one[1]);
+  }
+  return [...new Set(ids)];
+}
+
+/** Everything after the header block — the header is shown as fields, not prose. */
+function overviewBody(text) {
+  const lines = text.split('\n');
+  let i = lines.findIndex(l => /Vorhersagebereich:/i.test(l));
+  if (i < 0) {
+    i = lines.findIndex(l => /^g[üu]ltig\s+vom/i.test(l.trim()));
+  }
+  if (i < 0) return text.replace(/^\s*\d{1,4}\s*$/m, '').trim();
+  return lines.slice(i + 1).join('\n').replace(/^\n+/, '').trim();
+}
+
+/** DDHHMM in the current month → ISO. */
+function dayHourToISO(dd, hh, mi, now = new Date()) {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), dd, hh, mi));
+  if (d - now > 3 * 86400e3) d.setUTCMonth(d.getUTCMonth() - 1);
+  return d.toISOString();
+}
+
 const officeFrom = (url) => (url.match(/fbeu\d{2}_([a-z]{4})_node/i) || [])[1]?.toUpperCase() || null;
 const keyFrom = (url) => (url.split('/').pop() || url).replace(/_node\.html$|\.html$/i, '');
 
@@ -227,22 +291,26 @@ async function writeRaw(key, text) {
 }
 
 async function collectGafor() {
-  const out = {};
+  const gafor = {};        // the code table, keyed by Bereich
+  const overview = {};     // the prose Flugwetterübersicht, keyed by office
   const seen = new Set();
-  const discovered = [];
 
   let hubHtml = null;
   try {
     hubHtml = await get(HUB.gafor);
-    discovered.push(...links(hubHtml, HUB.gafor).filter(u => /dwd\.de/.test(u)));
   } catch (e) {
     note('gafor', HUB.gafor, `Übersichtsseite nicht erreichbar: ${e.message}`);
   }
+  if (hubHtml) {
+    await writeRaw('_links-gafor', links(hubHtml, HUB.gafor).join('\n') + '\n');
+    await writeRaw('_map-gafor', [...hubHtml.matchAll(/<area[^>]*>/gi)].map(m => m[0]).join('\n') + '\n');
+  }
 
-  const urls = [HUB.gafor, ...GAFOR_PAGES,
-                ...discovered.filter(u => /fbeu\d{2}[a-z0-9_]*_node\.html$/i.test(u))];
+  const discovered = hubHtml
+    ? links(hubHtml, HUB.gafor).filter(u => /fbeu\d{2}[a-z0-9_]*_node\.html$/i.test(u))
+    : [];
 
-  for (const url of urls) {
+  for (const url of [HUB.gafor, ...GAFOR_PAGES, ...discovered]) {
     if (seen.has(url)) continue;
     seen.add(url);
     let html;
@@ -250,34 +318,44 @@ async function collectGafor() {
     catch (e) { note('gafor', url, e.message); continue; }
 
     const text = stripChrome(bulletinText(html));
+    await writeRaw(`gafor-${(officeFrom(url) || keyFrom(url)).toLowerCase()}`, `${url}\n\n${text}\n`);
+
+    // (a) the prose Flugwetterübersicht — one per Bereich, carries the
+    //     authoritative list of areas it covers
+    const oh = overviewHeader(text);
+    if (oh.office && oh.areas.length) {
+      overview[oh.office] = {
+        bulletin: oh.bulletin, bereich: oh.bereich, office: oh.office,
+        source: url, issued: oh.issued,
+        validFrom: oh.validFrom, validTo: oh.validTo,
+        areas: oh.areas, fetched: new Date().toISOString(),
+        text: overviewBody(text), fullText: text,
+      };
+      console.log(`✓ übersicht ${oh.office} (${oh.bereich}): ${oh.areas.length} Gebiete, ` +
+                  `gültig bis ${oh.validTo || '?'}`);
+    }
+
+    // (b) the GAFOR code table, wherever it shows up
     const hl = headline(text);
     const periods = periodsFrom(text);
     const areas = areasFrom(text, periods.length);
-    if (!Object.keys(areas).length) {
-      note('gafor', url, 'keine Gebietszeilen erkannt');
-      await writeRaw(`gafor-${(officeFrom(url) || keyFrom(url)).toLowerCase()}`, `${url}\n\n${text}\n`);
-      continue;
+    if (Object.keys(areas).length) {
+      const key = hl.bereich ? hl.bereich.replace(/\s+/g, '-') : (officeFrom(url) || keyFrom(url));
+      if (!gafor[key]) {
+        gafor[key] = {
+          title: hl.title || 'GAFOR', bereich: hl.bereich || null, source: url,
+          issued: issuedFrom(text, hl, periods), fetched: new Date().toISOString(),
+          periods,
+          areas: Object.fromEntries(Object.entries(areas).map(([id, a]) => [id, a.codes])),
+          details: areas, text,
+        };
+        console.log(`✓ gafor ${key}: ${Object.keys(areas).length} Gebiete, ${periods.length} Zeiträume`);
+      }
+    } else if (!oh.office) {
+      note('gafor', url, 'weder Gebietstabelle noch Übersichtskopf erkannt');
     }
-
-    // the hub renders one Bereich without saying which URL it came from, so key
-    // it by the Bereich name it prints
-    const key = officeFrom(url) || (hl.bereich ? hl.bereich.replace(/\s+/g, '-') : keyFrom(url));
-    if (out[key]) continue;                      // hub duplicates a Bereich page
-    out[key] = {
-      title: hl.title || 'GAFOR',
-      bereich: hl.bereich || null,
-      source: url,
-      issued: issuedFrom(text, hl, periods),
-      fetched: new Date().toISOString(),
-      periods,
-      areas: Object.fromEntries(Object.entries(areas).map(([id, a]) => [id, a.codes])),
-      details: areas,
-      text,
-    };
-    console.log(`✓ gafor ${key}: ${Object.keys(areas).length} Gebiete, ${periods.length} Zeiträume`);
-    await writeRaw(`gafor-${key.toLowerCase()}`, `${url}\n\n${text}\n`);
   }
-  return out;
+  return { gafor, overview };
 }
 
 async function collectBalloon() {
@@ -316,23 +394,28 @@ async function collectBalloon() {
   // always keep the hub itself, and dump every link so the region pages can be
   // found by looking at the committed file
   if (hubHtml) {
-    await writeRaw('_links', [
-      HUB.gafor, ...links(hubHtml, HUB.balloon).filter(u => /dwd\.de/.test(u)),
-    ].join('\n') + '\n');
+    await writeRaw('_links-balloon', links(hubHtml, HUB.balloon).join('\n') + '\n');
+    // the region picker is an image map — dump it, that is where the URLs are
+    const snippets = [
+      ...[...hubHtml.matchAll(/<area[^>]*>/gi)].map(m => m[0]),
+      ...[...hubHtml.matchAll(/<map[^>]*>/gi)].map(m => m[0]),
+      ...[...hubHtml.matchAll(/[^\n"']*ballonsport[^\n"']*/gi)].map(m => m[0].trim()),
+    ];
+    await writeRaw('_map-balloon', [...new Set(snippets)].join('\n') + '\n');
   }
   return out;
 }
 
 async function main() {
-  const gafor = await collectGafor();
+  const { gafor, overview } = await collectGafor();
   const balloon = await collectBalloon();
-  const index = { generated: new Date().toISOString(), gafor, balloon, errors };
+  const index = { generated: new Date().toISOString(), gafor, overview, balloon, errors };
 
-  if (!Object.keys(gafor).length && !Object.keys(balloon).length) {
+  if (!Object.keys(gafor).length && !Object.keys(overview).length && !Object.keys(balloon).length) {
     try {
       const prev = JSON.parse(await readFile(`${OUT_DIR}/index.json`, 'utf8'));
       if (prev && (Object.keys(prev.gafor || {}).length || Object.keys(prev.balloon || {}).length)) {
-        index.gafor = prev.gafor; index.balloon = prev.balloon;
+        index.gafor = prev.gafor; index.overview = prev.overview || {}; index.balloon = prev.balloon;
         index.stale = prev.generated;
         note('run', '', 'Kein Bericht abrufbar — vorheriger Stand beibehalten.');
         index.errors = errors;
@@ -342,7 +425,8 @@ async function main() {
 
   await mkdir(OUT_DIR, { recursive: true });
   await writeFile(`${OUT_DIR}/index.json`, JSON.stringify(index, null, 1), 'utf8');
-  console.log(`\nGAFOR-Bulletins: ${Object.keys(index.gafor).length} · ` +
+  console.log(`\nGAFOR-Tabellen: ${Object.keys(index.gafor).length} · ` +
+              `Flugwetterübersichten: ${Object.keys(index.overview).length} · ` +
               `Ballonberichte: ${Object.keys(index.balloon).length} · Fehler: ${errors.length}`);
 }
 
