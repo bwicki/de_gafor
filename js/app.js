@@ -241,8 +241,7 @@
     name.textContent = a.name || `Gebiet ${a.id}`;
     const bits = [];
     if (a.regionName || a.region) bits.push(`Bereich ${a.regionName || a.region}`);
-    if (a.refAltFt != null) bits.push(`Bezugshöhe ${a.refAltFt} ft`);
-    if (a.officeName) bits.push(a.officeName);
+    if (a.refAltFt != null) bits.push(`Bezugshöhe ${a.refAltFt} ft MSL`);
     if (a.method === 'nearest') bits.push(`nächstes Gebietszentrum, ${a.distKm.toFixed(0)} km`);
     sub.textContent = bits.join(' · ');
 

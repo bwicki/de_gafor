@@ -43,7 +43,10 @@ js/app.js                   Zustand, Bedienung, Rendering aller Karten
 data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe unten
 data/dwd/index.json         von der Action erzeugt: Bulletins als JSON
 data/dwd/raw/*.txt          derselbe Text unparsed, damit der Parser nachgebessert werden kann
+data/gafor-meta.json        die 68 Gebiete: Nummer, Bezeichnung, Bezugshöhe, Bereich
 scripts/fetch-dwd.mjs       der Fetcher (Node 20, ohne Abhängigkeiten)
+scripts/digitize/           die Digitalisierung der Gebietskarte (OpenCV)
+tools/digitize.html         Karte von Hand nachziehen und korrigieren, exportiert GeoJSON
 .github/workflows/fetch-dwd.yml   holt die Berichte dreimal pro Stunde und committet sie
 test/run.mjs                Prüfungen ohne Browser
 sw.js                       Offline: Shell cache-first, Daten network-first mit Cache-Fallback
@@ -76,24 +79,57 @@ Stand stehen.
 
 ```json
 { "type": "Feature",
-  "properties": { "id": "45", "name": "Sauerland", "region": "Mitte",
-                  "office": "EDZF", "balloon": "Mitte-West",
-                  "center": [51.23, 8.10] },
+  "properties": { "id": "36", "name": "Sauerland", "region": "West",
+                  "refAltFt": 2400, "center": [51.23, 8.10] },
   "geometry": { "type": "Polygon", "coordinates": [ [ [8.0,51.1], … ] ] } }
 ```
 
 * `id` — zweistellige Gebietsnummer, wie sie im Bulletin steht (die Verknüpfung zum Text)
-* `office` — ausgebende DWD-Stelle, wählt das richtige GAFOR-Bulletin
-* `balloon` — Region der Ballon-Gebietsvorhersage
-* `center` — optional; sonst wird der Schwerpunkt gerechnet (Kartenbeschriftung, Nächster-Nachbar-Fallback)
+* `region` — GAFOR-Bereich Nord · Ost · West · Mitte · Süd; daraus kommt die ausgebende DWD-Stelle
+* `refAltFt` — Bezugshöhe des Gebiets in ft MSL
+* `center` — Schwerpunkt; Kartenbeschriftung und Nächster-Nachbar-Ersatzregel
 
 Findet die App keinen Treffer, sucht sie das nächstgelegene Gebietszentrum innerhalb von 60 km und
 kennzeichnet das im Kopf als Näherung. Ist die Datei leer, funktioniert alles ausser der
 Gebietszuordnung weiter.
 
-Für **öffentlich verfügbare GAFOR-Polygone gibt es keine Quelle** — der DWD veröffentlicht die
-Gebiete als Karte, nicht als Datensatz. Der Weg hier: Karte georeferenzieren, Flächen vektorisieren,
-Ergebnis gegen Referenzorte prüfen (`test/reference-places.json`).
+Nummer, Bezeichnung, Bezugshöhe und Bereich stehen getrennt in `data/gafor-meta.json` und werden
+beim Laden über die `id` dazugemischt — die Geometrie lässt sich also neu erzeugen, ohne die Liste
+anzufassen, und umgekehrt.
+
+Die Polygone in diesem Repository sind aus der DFS-Karte **„GAFOR-Gebiete / GAFOR Areas"
+(Stand 11 FEB 2021)** digitalisiert. Der Ablauf steht in `scripts/digitize/` und ist
+reproduzierbar:
+
+```
+python3 scripts/digitize/fit-projection.py     # Kartengitter -> Kegelprojektion
+python3 scripts/digitize/extract-areas.py      # Flächen zwischen den Grenzlinien
+python3 scripts/digitize/number-montage.py     # Gebietsnummern zum Ablesen
+python3 scripts/digitize/build-areas.py        # Watershed -> gafor-areas.geojson
+```
+
+1. **Georeferenzierung.** Die Karte trägt ein Gradnetz (7°–14° O, 47°–55° N). Aus den
+   Gitterschnitten am Kartenrahmen werden Kegelkonstante, Zentralmeridian, Apex und
+   Breitenmassstab bestimmt; das eingepasste Gitter deckt sich mit dem gedruckten, und die
+   eingezeichneten Verkehrsflughäfen liegen an ihren realen Koordinaten.
+2. **Flächen.** Die schwarzen Grenzlinien trennen die Gebiete. Die deutsche Staatsgrenze ist
+   auf der Karte nur hellgrau gedruckt, deshalb wird sie zusätzlich aus
+   [deutschlandGeoJSON](https://github.com/isellsoap/deutschlandGeoJSON) in dieselbe Projektion
+   gerechnet und als Sperre gelegt — sonst laufen die Randgebiete ins Ausland aus.
+3. **Nummern.** Jede Fläche bekommt ihre gedruckte Nummer als Bildausschnitt in einer Montage;
+   daraus entsteht die Tabelle `BLOB2ID` in `build-areas.py`.
+4. **Watershed.** Fünf Gebiete (31, 38, 52, 71, 83) haben Lücken in ihren Grenzlinien und
+   werden von Hand angesät. Anschliessend wächst jedes Gebiet bis an die gedruckten Linien —
+   das ergibt eine Aufteilung ohne Löcher, wie sie eine Punktabfrage braucht.
+
+**Genauigkeit.** Der Kartenmassstab liegt bei rund 0,6 km je Pixel, die Grenzen sitzen auf
+etwa **±2 km**. Über Landpunkten fällt rund 1,5 % ohne Gebiet aus (dafür greift die
+Nächster-Nachbar-Ersatzregel) und rund 5 % liegt in zwei überlappenden Gebieten — beides
+entlang der Grenzlinien. Für die Zuordnung eines Startplatzes reicht das; für alles, was auf
+den Kilometer genau sein muss, gilt die amtliche Karte.
+
+Die Kartenvorlage selbst liegt **nicht** im Repository (© DFS Deutsche Flugsicherung GmbH).
+`scripts/digitize/*.py` erwartet sie als `maps/dfs.jpg`.
 
 ## Tests
 
