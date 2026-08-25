@@ -358,6 +358,37 @@ async function collectGafor() {
   return { gafor, overview };
 }
 
+/**
+ * The balloon forecast exists per GAFOR area, and the site selects it through
+ * the clickable map rather than a link. Probe a few plausible URL shapes for
+ * one area and write down what answered — one run of this pins the pattern.
+ */
+async function probeBalloon(sampleArea = '45') {
+  const cands = [
+    `${BASE_BALLOON}${sampleArea}_node.html`,
+    `${BASE_BALLOON}gebiet_${sampleArea}_node.html`,
+    `${BASE_BALLOON}ballon_${sampleArea}_node.html`,
+    `${BASE_BALLOON}bvhs_${sampleArea}_node.html`,
+    `${BASE_BALLOON}node_${sampleArea}.html`,
+    `${BASE_BALLOON}node_uebersicht.html?gebiet=${sampleArea}`,
+    `${BASE_BALLOON}node_uebersicht.html?nn=${sampleArea}`,
+    `${BASE_GAFOR}ballon_${sampleArea}_node.html`,
+  ];
+  const lines = [];
+  for (const url of cands) {
+    try {
+      const text = stripChrome(bulletinText(await get(url)));
+      const hit = /Ballon|Thermik|Bodenwind|Gebietsvorhersage/i.test(text) && text.length > 200;
+      lines.push(`${hit ? 'TREFFER' : 'ok     '}  ${text.length.toString().padStart(6)}  ${url}`);
+      if (hit) lines.push(text.split('\n').slice(0, 12).map(l => `        | ${l}`).join('\n'));
+    } catch (e) {
+      lines.push(`${e.message.padEnd(7)}  ${''.padStart(6)}  ${url}`);
+    }
+  }
+  await writeRaw('_probe-balloon', `Sondierung für GAFOR-Gebiet ${sampleArea}\n\n` + lines.join('\n') + '\n');
+  console.log(`Ballon-Sondierung geschrieben (${cands.length} Kandidaten)`);
+}
+
 async function collectBalloon() {
   const out = {};
   let hubHtml = null;
@@ -409,6 +440,7 @@ async function collectBalloon() {
 async function main() {
   const { gafor, overview } = await collectGafor();
   const balloon = await collectBalloon();
+  if (!Object.keys(balloon).length) await probeBalloon('45');
   const index = { generated: new Date().toISOString(), gafor, overview, balloon, errors };
 
   if (!Object.keys(gafor).length && !Object.keys(overview).length && !Object.keys(balloon).length) {
