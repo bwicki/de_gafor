@@ -25,7 +25,7 @@
   <header class="topbar">
     <div class="title-block">
       <div class="eyebrow">GAFOR · Flugwetter</div>
-      <h1>GaforCast</h1>
+      <h1>GaforCast <button class="ver" id="appVersion" title="Version und Datenstand">–</button></h1>
       <p id="subtitle">Ort wählen — Gebiet und Berichte folgen</p>
     </div>
     <img class="header-logo" alt="Wicki Partners Ballonteam" src="img/wicki-logo.png">
@@ -148,9 +148,22 @@
     <div id="footerText"></div>
   </footer>
 
+  <div class="modal hidden" id="aboutOverlay">
+    <div class="modal-box">
+      <button class="modal-close" id="aboutClose" aria-label="Schliessen">×</button>
+      <h2 id="aboutTitle">GaforCast</h2>
+      <div id="aboutBody"></div>
+      <div class="modal-actions">
+        <button class="btn" id="aboutUpdate">App aktualisieren</button>
+        <button class="btn primary" id="aboutOk">Schliessen</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="js/vendor/leaflet/leaflet.js"></script>
+<script src="js/version.js"></script>
 <script src="js/util.js"></script>
 <script src="js/gafor.js"></script>
 <script src="js/geo.js"></script>

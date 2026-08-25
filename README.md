@@ -23,8 +23,25 @@ damit beide Werkzeuge als eine Familie erkennbar sind.
    Homescreen: iPad/iPhone Safari → Teilen → *Zum Home-Bildschirm*; Android Chrome → *App installieren*.
 
 Alle Pfade sind relativ, ein Unterpfad oder eine eigene Domain (`CNAME`) funktioniert also ohne
-Änderung. Bei jedem Deploy `VERSION` in `sw.js` und `APP_VERSION` in `js/app.js` hochzählen, damit
-installierte Clients die neue Shell ziehen.
+Änderung.
+
+## Versionierung
+
+Die Version steht an einer einzigen Stelle: `js/version.js`. Sie erscheint als Chip neben dem
+Titel; ein Klick darauf öffnet Version, Build-Datum, Anzahl der Gebiete, Stand der DWD-Berichte,
+Abrufprobleme und die Quellenliste — plus **App aktualisieren**, das den Service-Worker-Cache
+verwirft und neu lädt (für den Fall, dass ein Gerät auf einer alten Fassung klebt).
+
+Beim Release drei Dinge anfassen:
+
+1. `APP.version`, `APP.date` und `APP.cache` in `js/version.js`
+2. `VERSION` in `sw.js` auf denselben Wert wie `APP.cache`
+3. den Eintrag in `CHANGELOG.md`
+
+`node test/run.mjs` prüft, dass 1 und 2 zusammenpassen, dass die Version dem Muster
+`MAJOR.MINOR.PATCH` folgt und dass jede in `sw.js` gelistete Shell-Datei existiert. Ohne
+Versionswechsel behalten installierte Clients die alte Shell — das ist der häufigste Fehler
+bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 
 ## Aufbau
 
@@ -32,6 +49,7 @@ installierte Clients die neue Shell ziehen.
 index.html                  eine Seite: Suche · Karte · Ortszeile · Gebietskopf · vier Karten
 css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
+js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
 js/util.js                  Helfer: Geometrie (point-in-polygon), Distanz, Formatierung, Storage
 js/gafor.js                 Gebietsgeometrie laden, Punkt → Gebiet, Code-Legende C/O/D/M/X
 js/geo.js                   Ortssuche (Open-Meteo), Koordinateneingabe, ICAO, Reverse-Geocoding
@@ -49,6 +67,8 @@ scripts/digitize/           die Digitalisierung der Gebietskarte (OpenCV)
 tools/digitize.html         Karte von Hand nachziehen und korrigieren, exportiert GeoJSON
 .github/workflows/fetch-dwd.yml   holt die Berichte dreimal pro Stunde und committet sie
 test/run.mjs                Prüfungen ohne Browser
+test/sample-*.txt           echte DWD-Bulletins, gegen die der Parser geprüft wird
+CHANGELOG.md                was sich je Version geändert hat
 sw.js                       Offline: Shell cache-first, Daten network-first mit Cache-Fallback
 ```
 

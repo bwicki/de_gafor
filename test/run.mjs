@@ -29,6 +29,31 @@ for (const f of await readdir('js')) {
 try { execFileSync(process.execPath, ['--check', 'scripts/fetch-dwd.mjs']); ok('scripts/fetch-dwd.mjs'); }
 catch (e) { bad(`scripts/fetch-dwd.mjs: ${e.message}`); }
 
+// ---------------------------------------------------------------- 1b. version
+head('Version');
+const verSrc = await readFile('js/version.js', 'utf8');
+const swSrc = await readFile('sw.js', 'utf8');
+const appVer = (verSrc.match(/version:\s*'([^']+)'/) || [])[1];
+const appCache = (verSrc.match(/cache:\s*'([^']+)'/) || [])[1];
+const appDate = (verSrc.match(/date:\s*'([^']+)'/) || [])[1];
+const swVer = (swSrc.match(/const VERSION = '([^']+)'/) || [])[1];
+
+/^\d+\.\d+\.\d+$/.test(appVer || '') ? ok(`APP.version ${appVer}`) : bad(`APP.version: ${appVer}`);
+/^\d{4}-\d{2}-\d{2}$/.test(appDate || '') ? ok(`APP.date ${appDate}`) : bad(`APP.date: ${appDate}`);
+appCache === swVer
+  ? ok(`Cache-Name stimmt überein (${swVer})`)
+  : bad(`js/version.js hat "${appCache}", sw.js hat "${swVer}" — installierte Clients bekämen die alte Shell`);
+appCache === `gaforcast-v${appVer}`
+  ? ok('Cache-Name enthält die Version')
+  : bad(`Cache-Name "${appCache}" passt nicht zu Version ${appVer}`);
+
+// jede Datei der Shell muss es auch geben
+const shell = [...swSrc.matchAll(/'\.\/([^']+)'/g)].map(m => m[1]).filter(f => f.includes('.'));
+const missing = [];
+for (const f of shell) { try { await readFile(f); } catch { missing.push(f); } }
+missing.length ? bad(`in sw.js gelistet, aber nicht vorhanden: ${missing.join(', ')}`)
+               : ok(`${shell.length} Shell-Dateien vorhanden`);
+
 // ---------------------------------------------------------------- 2. geometry
 head('GAFOR-Gebiete');
 const fc = JSON.parse(await readFile('data/gafor-areas.geojson', 'utf8'));

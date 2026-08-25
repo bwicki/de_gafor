@@ -2,7 +2,6 @@
 (() => {
   'use strict';
 
-  const APP_VERSION = '1.0.0';
 
   const state = {
     lat: 51.10, lon: 10.40,
@@ -21,6 +20,7 @@
 
   async function boot() {
     applyTheme(U.load('theme', prefersDark() ? 'dark' : 'light'));
+    U.$('appVersion').textContent = APP.version;
     U.$('mUnitsBtn').textContent = `Windeinheit: ${U.unitLabel[state.unit]}`;
 
     const start = startPosition();
@@ -99,6 +99,12 @@
       menu.classList.add('hidden');
     };
     U.$('mAboutBtn').onclick = () => { menu.classList.add('hidden'); showAbout(); };
+    U.$('appVersion').onclick = showAbout;
+    U.$('aboutClose').onclick = hideAbout;
+    U.$('aboutOk').onclick = hideAbout;
+    U.$('aboutOverlay').onclick = (e) => { if (e.target === U.$('aboutOverlay')) hideAbout(); };
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideAbout(); });
+    U.$('aboutUpdate').onclick = updateApp;
 
     // map buttons
     U.$('areasBtn').onclick = () => {
@@ -630,7 +636,7 @@
 
   function footer() {
     U.$('footerText').innerHTML =
-      `GaforCast v${APP_VERSION} · GAFOR, Flugwetterübersicht und Ballonwetterbericht: ` +
+      `${APP.name} ${APP.version} · GAFOR, Flugwetterübersicht und Ballonwetterbericht: ` +
       `<a href="https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/luftsportberichte_node.html" target="_blank" rel="noopener">DWD Luftsportberichte</a> · ` +
       `METAR/TAF: <a href="https://aviationweather.gov" target="_blank" rel="noopener">NOAA AWC</a> · ` +
       `Modell: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · ` +
@@ -641,12 +647,62 @@
 
   function showAbout() {
     const g = DWD.generated();
-    alert(
-      `GaforCast v${APP_VERSION}\n\n` +
-      `GAFOR-Gebiete geladen: ${GAFOR.count()}\n` +
-      `Berichtsdatei erzeugt: ${g ? new Date(g).toLocaleString('de-DE') : 'nicht geladen'}\n\n` +
-      `Quellen:\n· DWD Luftsportberichte (GAFOR, Flugwetterübersicht, Ballonsport)\n` +
-      `· NOAA Aviation Weather Center (METAR/TAF)\n· Open-Meteo (Modellprognose)\n· OpenStreetMap (Karte)\n\n` +
-      `Keine amtliche Flugwetterberatung.`);
+    const raw = DWD.raw() || {};
+    const fc = GAFOR.collection() || {};
+    const box = U.clear(U.$('aboutBody'));
+    U.$('aboutTitle').textContent = `${APP.name} ${APP.version}`;
+
+    const dl = U.el('dl', 'kv');
+    const row = (k, v, warn) => {
+      dl.appendChild(U.el('dt', '', k));
+      const d = U.el('dd', warn ? 'warn' : '');
+      d.innerHTML = v;
+      dl.appendChild(d);
+    };
+    row('Version', `${APP.version} <span class="dim">vom ${APP.date}</span>`);
+    row('Gebietsdaten', `${GAFOR.count()} Gebiete` +
+      (fc.updated ? ` <span class="dim">· Stand ${fc.updated}</span>` : ''));
+    const nG = Object.keys(raw.gafor || {}).length;
+    const nO = Object.keys(raw.overview || {}).length;
+    const nB = Object.keys(raw.balloon || {}).length;
+    row('DWD-Berichte', g
+      ? `${nG} Codetabelle(n), ${nO} Übersicht(en), ${nB} Ballonbericht(e)<br>` +
+        `<span class="dim">geholt ${new Date(g).toLocaleString('de-DE')} (${U.ago(g)})</span>`
+      : 'noch nicht geladen', !g);
+    const errs = DWD.errors();
+    if (errs.length) row('Abrufprobleme', `${errs.length} — siehe data/dwd/index.json`, true);
+    row('Repository', `<a href="${APP.repo}" target="_blank" rel="noopener">bwicki/de_gafor</a>`);
+    box.appendChild(dl);
+
+    box.appendChild(note(
+      '<strong>Datenquellen:</strong> DWD Luftsportberichte (GAFOR, Flugwetterübersicht, ' +
+      'Ballonsport) · NOAA Aviation Weather Center (METAR/TAF) · Open-Meteo (Modellprognose) · ' +
+      'OpenStreetMap (Karte und Ortsnamen).'));
+    const d2 = note('<strong>Keine amtliche Flugwetterberatung.</strong> Die Gebietsgrenzen sind ' +
+      'aus der DFS-Karte digitalisiert und auf etwa ±2 km genau. Für den Flug gilt allein die ' +
+      'offizielle Beratung des DWD.');
+    d2.style.marginTop = '8px';
+    box.appendChild(d2);
+
+    U.$('aboutOverlay').classList.remove('hidden');
   }
+
+  const hideAbout = () => U.$('aboutOverlay').classList.add('hidden');
+
+  /** Service-Worker-Cache verwerfen und neu laden — für "hängt auf alter Version". */
+  async function updateApp() {
+    U.$('aboutUpdate').textContent = 'lädt…';
+    try {
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+    } catch { /* egal, es folgt ohnehin ein harter Reload */ }
+    location.reload();
+  }
+
 })();

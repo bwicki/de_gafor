@@ -16,6 +16,28 @@ header.topbar{
 .title-block h1{font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em;
   color:var(--text-strong);}
 .title-block p{margin:2px 0 0;font-size:11.5px;color:var(--text-dim);}
+.ver{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;
+  color:var(--text-dim);background:transparent;border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;vertical-align:3px;cursor:pointer;}
+.ver:hover{color:var(--amber);border-color:var(--amber);}
+.ver.stale{color:var(--gafor-d);border-color:var(--gafor-d);}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;padding:18px;}
+.modal-box{position:relative;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;max-width:520px;width:100%;max-height:86vh;overflow-y:auto;
+  padding:22px 20px 18px;box-shadow:0 18px 50px rgba(0,0,0,.5);}
+.modal-box h2{margin:0 30px 4px 0;font-size:17px;color:var(--text-strong);}
+.modal-close{position:absolute;top:10px;right:12px;background:transparent;border:none;
+  color:var(--text-dim);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;}
+.modal-close:hover{color:var(--amber);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-family:var(--mono);
+  font-size:11.5px;margin:12px 0;}
+.kv dt{color:var(--text-dim);white-space:nowrap;}
+.kv dd{margin:0;color:var(--text);}
+.kv dd.warn{color:var(--gafor-d);}
 .header-logo{height:34px;width:auto;opacity:.94;object-fit:contain;flex:0 0 auto;}
 .header-tools{display:flex;gap:6px;flex:0 0 auto;}
 
@@ -37,7 +59,10 @@ header.topbar{
 /* ---------- map ---------- */
 .map-block{padding:12px 14px 0;}
 .map-wrap{position:relative;height:46vh;min-height:260px;max-height:520px;
-  border:1px solid var(--line);border-radius:var(--r);overflow:hidden;}
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  /* Leaflet vergibt intern z-index bis 800; ohne eigenen Stapelkontext läge die
+     Karte über Suchliste, Menü und Dialog */
+  isolation:isolate;z-index:0;}
 @media (min-width:900px){ .map-wrap{height:400px;} }
 #map{position:absolute;inset:0;background:var(--panel-2);}
 .crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
