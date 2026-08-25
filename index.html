@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GaforCast — GAFOR-Gebiet, Flugwetter und Ballonwetter</title>
+<meta name="description" content="Ort auf der Karte oder per Suche wählen und sofort das zuständige GAFOR-Gebiet mit aktueller Flugwettermeldung und Ballonwetterbericht sehen.">
+<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GaforCast">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+<link rel="icon" type="image/x-icon" sizes="32x32 16x16" href="icons/favicon.ico">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="js/vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="title-block">
+      <div class="eyebrow">GAFOR · Flugwetter · Ballon</div>
+      <h1>GaforCast</h1>
+      <p id="subtitle">Ort wählen — Gebiet und Berichte folgen</p>
+    </div>
+    <img class="header-logo" alt="Wicki Partners Ballonteam" src="img/wicki-logo.png">
+    <button class="btn icon" id="menuBtn" title="Menü" aria-label="Menü">≡</button>
+  </header>
+
+  <div class="menu hidden" id="menu">
+    <button id="mThemeBtn">Hell / dunkel umschalten</button>
+    <button id="mUnitsBtn">Windeinheit: kt</button>
+    <div class="sep"></div>
+    <button id="mReloadBtn">Berichte neu laden</button>
+    <button id="mShareBtn">Link zu diesem Ort teilen</button>
+    <div class="sep"></div>
+    <button id="mAboutBtn">Über / Datenquellen</button>
+  </div>
+
+  <!-- ---------- place input ---------- -->
+  <div class="search-block">
+    <div class="search-row">
+      <div class="search-wrap">
+        <input id="searchInput" type="search" placeholder="Ort, Flugplatz oder Koordinaten…"
+               autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+        <div id="searchResults" class="search-results hidden"></div>
+      </div>
+      <button class="btn icon" id="favBtn" title="Gespeicherte Orte">★</button>
+      <button class="btn icon" id="gpsBtn" title="Mein Standort">◎</button>
+    </div>
+  </div>
+
+  <!-- ---------- map ---------- -->
+  <div class="map-block">
+    <div class="map-wrap">
+      <div id="map"></div>
+      <div class="crosshair" aria-hidden="true">
+        <svg viewBox="0 0 52 52" width="46" height="46">
+          <g fill="none" stroke="#fff" stroke-opacity=".96" stroke-width="5.2" stroke-linecap="round">
+            <circle cx="26" cy="26" r="12"/><path d="M26 12v-10M26 40v10M12 26h-10M40 26h10"/></g>
+          <g fill="none" stroke="#b8650f" stroke-width="2.6" stroke-linecap="round">
+            <circle cx="26" cy="26" r="12"/><path d="M26 12v-10M26 40v10M12 26h-10M40 26h10"/></g>
+        </svg>
+      </div>
+      <div class="map-btns">
+        <button class="btn icon" id="areasBtn" title="GAFOR-Gebiete ein-/ausblenden">▦</button>
+        <button class="btn icon" id="zoomDeBtn" title="Ganz Deutschland">⤢</button>
+      </div>
+      <div class="map-hint" id="mapHint">Karte verschieben — Fadenkreuz = Ort</div>
+    </div>
+  </div>
+
+  <div class="legend" id="regionLegend"></div>
+
+  <!-- ---------- selected place ---------- -->
+  <div class="place-bar">
+    <div class="place-main">
+      <div id="placeName" class="place-name">Kartenmitte</div>
+      <div id="placeCoords" class="place-coords">—</div>
+    </div>
+    <button class="btn icon" id="savePlaceBtn" title="Ort merken">☆</button>
+  </div>
+
+  <!-- ---------- GAFOR area headline ---------- -->
+  <div class="area-head" id="areaHead">
+    <div class="area-num" id="areaNum">—</div>
+    <div class="area-txt">
+      <div class="area-name" id="areaName">Gebiet wird bestimmt…</div>
+      <div class="area-sub" id="areaSub"></div>
+    </div>
+    <div class="area-state" id="areaState"></div>
+  </div>
+
+  <main class="content">
+
+    <!-- GAFOR -->
+    <section class="card wide" id="cardGafor">
+      <div class="card-head">
+        <span class="section-title">GAFOR / Flugwetterübersicht</span>
+        <span class="age" id="gaforAge"></span>
+      </div>
+      <div class="card-body" id="gaforBody">
+        <div class="note">Noch keine Daten geladen.</div>
+      </div>
+    </section>
+
+    <!-- Ballon -->
+    <section class="card wide" id="cardBalloon">
+      <div class="card-head">
+        <span class="section-title">Ballonwetterbericht</span>
+        <span class="age" id="balloonAge"></span>
+      </div>
+      <div class="card-body" id="balloonBody">
+        <div class="note">Noch keine Daten geladen.</div>
+      </div>
+    </section>
+
+    <!-- METAR / TAF -->
+    <section class="card" id="cardMetar">
+      <div class="card-head">
+        <span class="section-title">METAR / TAF in der Nähe</span>
+        <span class="age" id="metarAge"></span>
+      </div>
+      <div class="card-body tight" id="metarBody">
+        <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
+      </div>
+    </section>
+
+    <!-- Open-Meteo -->
+    <section class="card" id="cardModel">
+      <div class="card-head">
+        <span class="section-title">Modellprognose am Ort</span>
+        <span class="age" id="modelAge"></span>
+      </div>
+      <div class="card-body tight" id="modelBody">
+        <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div id="footerText"></div>
+  </footer>
+
+</div>
+
+<script src="js/vendor/leaflet/leaflet.js"></script>
+<script src="js/util.js"></script>
+<script src="js/gafor.js"></script>
+<script src="js/geo.js"></script>
+<script src="js/dwd.js"></script>
+<script src="js/metar.js"></script>
+<script src="js/openmeteo.js"></script>
+<script src="js/mapview.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
