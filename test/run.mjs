@@ -304,9 +304,9 @@ head('METAR / TAF');
       ? ok('9999 im METAR wird als ≥10 km gelesen, nicht als 16 km')
       : bad(`Sicht: ${JSON.stringify(v)}`);
     const ifr = near.find(m => m.icaoId === 'ETHL');
-    (M.ceiling(ifr) === 700 && M.classify(ifr) === 'M')
-      ? ok('Hauptwolkenuntergrenze und GAFOR-Einstufung (OVC007 → Mike)')
-      : bad(`ETHL: Basis ${M.ceiling(ifr)}, Klasse ${M.classify(ifr)}`);
+    M.ceiling(ifr) === 700
+      ? ok('Hauptwolkenuntergrenze gelesen (OVC007 → 700 ft)')
+      : bad(`ETHL: Basis ${M.ceiling(ifr)}`);
 
     // Auffrischung hebt still auf live
     const fresh = await M.refresh(49.10, 9.75, 100, 8);
@@ -423,6 +423,90 @@ head('METAR-Zweitquelle (tgftp)');
   tbl.size === 1 && tbl.get('EDDS').lat === 48.69
     ? ok('Platztabelle übernimmt nur Einträge mit Koordinaten')
     : bad(`stationTable: ${tbl.size}`);
+}
+
+// ------------------------------------------------- 3a3. GAFOR-Codes
+head('GAFOR-Codes');
+{
+  const F = await import('../scripts/fetch-dwd.mjs');
+  let hub = '';
+  try {
+    hub = (await readFile('test/sample-gafor-hub.txt', 'utf8')).split('\n').slice(2).join('\n');
+  } catch { console.log('  --   test/sample-gafor-hub.txt fehlt'); }
+
+  if (hub) {
+    const text = F.stripChrome(hub);
+    const secs = F.splitSections(text);
+    secs.length === 5
+      ? ok('Übersichtsseite in fünf Bereichstabellen zerlegt')
+      : bad(`splitSections: ${secs.length} Abschnitte`);
+
+    const all = {};
+    const bereiche = [];
+    for (const sec of secs) {
+      const hl = F.headline(sec);
+      const per = F.periodsFrom(sec);
+      const ar = F.areasFrom(sec, per.length);
+      bereiche.push(`${hl.bereich}:${Object.keys(ar).length}`);
+      Object.assign(all, ar);
+    }
+    Object.keys(all).length === 68
+      ? ok(`alle 68 Gebiete gelesen (${bereiche.join(' ')})`)
+      : bad(`nur ${Object.keys(all).length} von 68 Gebieten — ${bereiche.join(' ')}`);
+
+    // Codes mit Ziffer: bis 1.7.0 fielen genau diese Zeilen durch
+    const a41 = all['41'];
+    a41 && a41.codes.join(' ') === 'M2 D1 D1' && a41.name === 'Hunsrück'
+      ? ok('Gebiet 41: Codes mit Ziffer gelesen (M2 D1 D1)')
+      : bad(`Gebiet 41: ${JSON.stringify(a41)}`);
+    const a51 = all['51'];
+    a51 && a51.codes.length === 3 && !/[CODMX]\d/.test(a51.name)
+      ? ok('Gebiet 51: der Code landet nicht mehr im Gebietsnamen')
+      : bad(`Gebiet 51: ${JSON.stringify(a51)}`);
+
+    // Zusätze stehen je Zeitraum, nicht am Zeilenende
+    const a75 = all['75'];
+    a75 && a75.remarks.join('|') === '|ISOL SHRA|ISOL TSRA'
+      ? ok('Gebiet 75: Zusätze dem richtigen Zeitraum zugeordnet')
+      : bad(`Gebiet 75: ${JSON.stringify(a75 && a75.remarks)}`);
+    const a84 = all['84'];
+    a84 && a84.remarks[0] === 'ISOL SHRA' && a84.codes.join(' ') === 'D1 O C'
+      ? ok('Gebiet 84: Zusatz im ersten Zeitraum')
+      : bad(`Gebiet 84: ${JSON.stringify(a84)}`);
+
+    Object.values(all).every(a => a.codes.length === 3)
+      ? ok('jede der 68 Zeilen hat genau drei Codes')
+      : bad('Codeanzahl passt nicht zu den Zeiträumen');
+  }
+
+  // Entschlüsselung
+  const utilSrc = await readFile('js/util.js', 'utf8');
+  const U = new Function(`${utilSrc}; return U;`)();
+  const G = new Function('U', `${await readFile('js/gafor.js', 'utf8')}; return GAFOR;`)(U);
+
+  const d4 = G.codeInfo('D4');
+  d4.letter === 'D' && d4.digit === '4' && d4.key === 'd' &&
+  d4.vis === '5 – 8 km' && d4.base === '1000 – 2000 ft'
+    ? ok('D4 = Sicht 5–8 km, Untergrenze 1000–2000 ft über Bezugshöhe')
+    : bad(`D4: ${JSON.stringify(d4)}`);
+  const m5 = G.codeInfo('M5');
+  m5.vis === '5 – 8 km' && m5.base === '500 – 1000 ft'
+    ? ok('M5 = Sicht 5–8 km, Untergrenze 500–1000 ft (wörtlich im DWD-Merkblatt)')
+    : bad(`M5: ${JSON.stringify(m5)}`);
+  const c = G.codeInfo('C');
+  c.vis === '≥ 10 km' && c.base === '≥ 5000 ft'
+    ? ok('C = mindestens 10 km und 5000 ft — nicht 2000 ft wie bis 1.7.0')
+    : bad(`C: ${JSON.stringify(c)}`);
+  G.CODE_ORDER.length === 11 && G.CODE_ORDER.every(k => G.codeInfo(k).vis)
+    ? ok('alle elf gebräuchlichen Codes sind hinterlegt')
+    : bad(`CODE_ORDER: ${G.CODE_ORDER.join(' ')}`);
+  const d2 = G.codeInfo('D2');
+  d2.key === 'd' && d2.letter === 'D' && !d2.vis
+    ? ok('unbekannte Feinstufe fällt sauber auf die Buchstabenklasse zurück')
+    : bad(`D2: ${JSON.stringify(d2)}`);
+  G.codeInfo('').key === 'none' && G.codeInfo('Quatsch').key === 'none'
+    ? ok('Unsinn ergibt „keine Angabe", nicht eine erfundene Stufe')
+    : bad('codeInfo akzeptiert Unsinn');
 }
 
 // ------------------------------------------------- 3b. Modell, Nebel, Profil

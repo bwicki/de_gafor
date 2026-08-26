@@ -11,6 +11,20 @@ damit beide Werkzeuge als eine Familie erkennbar sind.
 
 > **Keine amtliche Flugwetterberatung.** Für den Flug gilt allein die offizielle Beratung des DWD
 > (flugwetter.de / pc_met).
+>
+> **Nur zur individuellen Flugvorbereitung.** Die Luftsportberichte des DWD dürfen nach dessen
+> Nutzungsbedingungen nicht weitergegeben oder weiterverarbeitet werden. Diese Installation ist
+> privat betrieben; die Kennwortabfrage weist darauf hin.
+
+## Kennwortabfrage
+
+Beim ersten Laden fragt die App ein Kennwort ab (`js/app.js`, Konstante `GATE_PW`). Menü →
+**Sperren** setzt das zurück.
+
+Das ist **kein Zugangsschutz.** Die Seite ist statisch und ihr Quelltext öffentlich, das Kennwort
+steht dort im Klartext, und wer die Daten will, holt sie ohnehin direkt aus `data/dwd/`. Der Zweck
+ist ein sichtbarer Hinweis, dass die Seite privat ist. Wer wirklich aussperren muss, braucht einen
+Server mit echter Anmeldung — GitHub Pages kann das nicht.
 
 ## Auf GitHub Pages veröffentlichen
 
@@ -49,13 +63,40 @@ angezeigten Plätze, Windeinheit (kt · km/h · m/s), hell/dunkel, TAF an/aus, O
 Höhenprofils (700/500/400/300 hPa), Höhen in Fuss oder Meter und die Ensemble-Streubreite
 an/aus. Alles liegt im `localStorage` des Geräts, nichts wird übertragen.
 
-**Aktualisieren:** das ⟳ in der Kopfzeile holt alles neu — DWD-Index, Ballonbericht,
-METAR/TAF, Modell und Ensemble. Wer nur eine Karte auffrischen will, klickt auf deren
-Altersanzeige rechts in der Kartenkopfzeile.
+## Die vier Knöpfe in der Kopfzeile
+
+Sie stehen links vom Logo.
+
+**⟳ Aktualisieren** holt alles neu — DWD-Index, Ballonbericht, METAR/TAF, Modell und Ensemble.
+Wer nur eine Karte auffrischen will, klickt auf deren Altersanzeige rechts in der Kartenkopfzeile.
+
+**⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Kacheln und
+Flugwetterübersicht auf die erste, Ballonbericht, Höhenwind, METAR/TAF und Modellprognose auf die
+zweite. Bedienelemente und Erklärtexte fallen weg, die Übersicht wird dreispaltig gesetzt, die
+Farben der GAFOR-Stufen bleiben. Ob es wirklich zwei Seiten bleiben, hängt an der Länge der
+Berichte — bei einem sehr langen Ballonbericht kommt eine dritte dazu. `node test/browser.mjs`
+erzeugt das PDF und zählt die Seiten nach.
+
+**⤴ Teilen** bietet zweierlei: ein **PNG der ganzen Seite** (gerendert mit dem mitgelieferten
+html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in die Zwischenablage.
+
+**≡ Menü** enthält Hell/Dunkel, Einstellungen, Neuladen, Über und Sperren.
+
+## Karte beim Öffnen
+
+Die App startet immer mit ganz Deutschland im Bild (Zoom 6, Mitte bei 51,1 N / 10,4 E), damit die
+Gebiete und die abgegraute Umgebung sichtbar sind. Ein Link mit Koordinaten im Fragment
+(`#49.2200,8.8000,10`) überschreibt das. Auf den eigenen Standort springt die App nicht mehr von
+selbst — dafür ist der Knopf ◎ da.
 
 ## Woher die METAR kommen
 
-Seit 1.7.0 gilt die umgekehrte Reihenfolge von früher, und zwar mit Absicht:
+METAR und TAF werden **nicht entschlüsselt** — sie stehen im Rohformat da, so wie in pc_met.
+Das einzige, was die App hinzufügt, ist der Platzname im Klartext: `EDDS` wird zu
+„Stuttgart Flughafen · BW · DE". Die Namen kommen aus der NOAA-Antwort, abgekürzte Zusätze wie
+*Arpt*, *Intl* oder *AB* werden ausgeschrieben.
+
+Bei der Herkunft gilt seit 1.7.0 die umgekehrte Reihenfolge von früher, und zwar mit Absicht:
 
 1. **`data/dwd/metar.json` aus dem eigenen Repo.** Same-Origin — daran scheitert weder CORS
    noch eine Firewall noch ein Anbieter, der Rechenzentren aussperrt. Der Workflow füllt die
@@ -74,6 +115,35 @@ Der Fetcher selbst hat ebenfalls zwei Wege: die AWC-API, und falls die nichts li
 stündlichen Sammeldateien auf `tgftp.nws.noaa.gov`, deren Rohtext er selbst parst. Geht beides
 nicht, bleibt die vorherige Datei stehen, statt leer zu werden.
 
+## Die GAFOR-Codes
+
+Ein GAFOR-Code ist Buchstabe plus — bei Delta und Mike — eine Ziffer. Der Buchstabe ist die
+Einstufung, die Ziffer sagt, *welche* Kombination aus Bodensicht und Wolkenuntergrenze
+dahintersteckt:
+
+| Code | Bodensicht | Untergrenze über Bezugshöhe |
+|---|---|---|
+| C — Charlie, frei | ≥ 10 km | ≥ 5000 ft |
+| O — Oscar, offen | ≥ 8 km | ≥ 2000 ft |
+| D1 — Delta | ≥ 8 km | 1000 – 2000 ft |
+| D3 — Delta | 5 – 8 km | ≥ 2000 ft |
+| D4 — Delta | 5 – 8 km | 1000 – 2000 ft |
+| M2 — Mike | ≥ 8 km | 500 – 1000 ft |
+| M5 — Mike | 5 – 8 km | 500 – 1000 ft |
+| M6 — Mike | 1,5 – 5 km | ≥ 2000 ft |
+| M7 — Mike | 1,5 – 5 km | 1000 – 2000 ft |
+| M8 — Mike | 1,5 – 5 km | 500 – 1000 ft |
+| X — X-Ray, geschlossen | < 1,5 km | oder < 500 ft |
+
+Zwei Dinge daran werden gern übersehen: die Untergrenze zählt **über der Bezugshöhe des Gebiets**
+(`refAltFt` in `data/gafor-meta.json`), nicht über Grund und nicht über NN — und sie zählt erst ab
+5/8 Bedeckung, also BKN oder OVC.
+
+D2, M1, M3 und M4 kommen in der Tabelle nicht vor. Die Matrix ist aus zwei wörtlichen Definitionen
+des DWD-Merkblatts (D1 und M5) und zwei unabhängigen Wiedergaben der vollständigen Tabelle
+rekonstruiert; unbekannte Feinstufen fallen in der App sauber auf die Buchstabenklasse zurück.
+Verbindlich ist die GAFOR-Legende des DWD.
+
 ## Höhenwind, Bewölkung, Nebel, Streubreite
 
 Die Karte **Höhenwind am Ort** zeigt oben ein Diagramm und darunter dieselben Werte als
@@ -82,6 +152,12 @@ Tabelle. Im Diagramm steht die Geschwindigkeit waagrecht und die Höhe senkrecht
 ganz 10, Wimpel 50). Der **Pfeil in der Tabelle** zeigt umgekehrt die Richtung, in die es
 treibt — für die Fahrtplanung ist das die brauchbarere Angabe. Nullgradgrenze und
 Grenzschichtobergrenze sind in beiden markiert. Die Chips wählen die Stunde, jetzt bis +12 h.
+
+Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben; auf dem Handy stapeln
+sie sich. Über beiden lässt sich das **Wettermodell** wählen — Auto (nahtloser Mix), ICON-D2,
+ICON-EU, ICON global, ECMWF IFS, GFS, ARPEGE, UKMO. Angeboten wird nur, was den gewählten
+Zeitpunkt noch abdeckt: ICON-D2 reicht 48 Stunden, ARPEGE 96, ECMWF 144, GFS 384. Was zu kurz
+reicht, ist durchgestrichen und nicht wählbar.
 
 Die Werte kommen aus den Druckflächen 1000 bis 300 hPa desselben Open-Meteo-Abrufs, ergänzt
 um 10, 80 und 180 m über Grund; Flächen unterhalb des Geländes fallen heraus. Die Höhe stammt
@@ -158,6 +234,7 @@ js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ba
 js/metar.js                 METAR/TAF: erst die Repo-Kopie, dann still die NOAA; Ceiling/Sicht/Einstufung
 js/openmeteo.js             Punktprognose, Druckflächen-Windprofil, Nebel- und Basisschätzung, Ensemble
 js/wind.js                  das Höhenwinddiagramm: Windfahnen, Achsen, Marker (reines SVG)
+js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
 js/mapview.js               Leaflet-Karte, drei Grenzebenen, festes Fadenkreuz in der Mitte
 js/app.js                   Zustand, Bedienung, Rendering aller Karten
 data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe unten

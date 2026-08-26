@@ -48,18 +48,39 @@ const OM = (() => {
     return key ? `&apikey=${encodeURIComponent(key)}` : '';
   }
 
+  /* ------------------------------------------------------------------ Modelle
+   * Nur Modelle, die Druckflächen liefern — sonst bliebe das Höhenprofil leer.
+   * `hours` ist der Vorhersagehorizont; die Auswahl über dem Höhenwind blendet
+   * aus, was die gewählte Stunde nicht mehr abdeckt.
+   */
+  const MODELS = [
+    { key: '',                  name: 'Auto',        note: 'nahtloser Mix', hours: 384 },
+    { key: 'icon_d2',           name: 'ICON-D2',     note: 'DWD, 2 km',     hours: 48 },
+    { key: 'icon_eu',           name: 'ICON-EU',     note: 'DWD, 7 km',     hours: 120 },
+    { key: 'icon_global',       name: 'ICON global', note: 'DWD, 11 km',    hours: 180 },
+    { key: 'ecmwf_ifs025',      name: 'ECMWF IFS',   note: 'ECMWF, 25 km',  hours: 144 },
+    { key: 'gfs_global',        name: 'GFS',         note: 'NOAA, 13 km',   hours: 384 },
+    { key: 'meteofrance_arpege_europe', name: 'ARPEGE', note: 'Météo-France, 11 km', hours: 96 },
+    { key: 'ukmo_global_deterministic_10km', name: 'UKMO', note: 'Met Office, 10 km', hours: 168 },
+  ];
+  /** Modelle, die eine Vorhersage für +hours noch abdecken. */
+  const modelsFor = (hours) => MODELS.filter(m => m.hours >= (hours || 0));
+  const modelName = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[0]).name;
+
   /** Hourly forecast for the point, in the point's own time zone. */
-  async function forecast(lat, lon, days, topHpa) {
+  async function forecast(lat, lon, days, topHpa, model) {
     const levels = levelsUpTo(topHpa);
     const lvl = [];
     for (const p of levels) for (const v of LEVEL_VARS) lvl.push(`${v}_${p}hPa`);
     const url = `${base()}/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
       `&hourly=${HOURLY.concat(lvl).join(',')}` +
       `&daily=sunrise,sunset` +
-      `&wind_speed_unit=ms&timezone=auto&forecast_days=${days || 2}${keyParam()}`;
+      (model ? `&models=${encodeURIComponent(model)}` : '') +
+      `&wind_speed_unit=ms&timezone=auto&forecast_days=${days || 3}${keyParam()}`;
     const j = await U.getJSON(url);
     if (j.error) throw new Error(j.reason || 'Open-Meteo error');
     j._levels = levels;
+    j._model = model || '';
     return j;
   }
 
@@ -176,21 +197,6 @@ const OM = (() => {
     return Math.max(100, Math.round((rec.temp - rec.dew) * 400 / 100) * 100);
   }
 
-  /**
-   * Rough GAFOR-style class from model visibility and low cloud.
-   * Marked as a model estimate everywhere it is shown — it is not the DWD code.
-   */
-  function classify(rec) {
-    if (rec.vis == null) return null;
-    const visKm = rec.vis / 1000;
-    const cig = cloudBaseFt(rec) == null ? 99999 : cloudBaseFt(rec);
-    if (visKm >= 10 && cig >= 2000) return 'C';
-    if (visKm >= 8  && cig >= 1500) return 'O';
-    if (visKm >= 5  && cig >= 1000) return 'D';
-    if (visKm >= 5  && cig >= 500)  return 'M';
-    return 'X';
-  }
-
   // ------------------------------------------------------------ ensemble
   const ENS_HOURLY = ['wind_speed_10m', 'wind_gusts_10m', 'precipitation',
                       'cloud_cover', 'temperature_2m'];
@@ -234,7 +240,7 @@ const OM = (() => {
     return { hit: vals.filter(v => v < limit).length, n: vals.length };
   }
 
-  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, classify,
+  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, MODELS, modelsFor, modelName,
            ensemble, spread, shareBelow, members, levelsUpTo, stdHeight,
            HOURLY, LEVELS, ENS_HOURLY, M_TO_FT };
 })();

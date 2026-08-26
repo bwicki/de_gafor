@@ -20,6 +20,22 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+
+<!-- Einfache Zugangssperre. Kein Sicherheitsmechanismus: die Seite ist statisch
+     und ihr Quelltext öffentlich, das Kennwort steht in js/app.js. Es hält die
+     Seite aus dem Weg von Zufallsbesuchern, mehr nicht. -->
+<div class="gate" id="gate" hidden>
+  <form class="gate-box" id="gateForm" autocomplete="off">
+    <img class="gate-logo" alt="Wicki Partners Ballonteam" src="img/wicki-logo.png">
+    <h1>GaforCast</h1>
+    <p>Private Flugwettervorbereitung.<br>Bitte Kennwort eingeben.</p>
+    <input id="gatePw" type="password" inputmode="numeric" enterkeyhint="go"
+           aria-label="Kennwort" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="gate-err" id="gateErr" hidden>Kennwort stimmt nicht.</div>
+    <button class="btn primary" type="submit">Öffnen</button>
+  </form>
+</div>
+
 <div class="app">
 
   <header class="topbar">
@@ -28,19 +44,28 @@
       <h1>GaforCast <button class="ver" id="appVersion" title="Version und Datenstand">–</button></h1>
       <p id="subtitle">Ort wählen — Gebiet und Berichte folgen</p>
     </div>
+    <div class="header-tools">
+      <button class="btn icon" id="reloadBtn" title="Alle Berichte aktualisieren" aria-label="Aktualisieren">⟳</button>
+      <button class="btn icon" id="printBtn" title="Drucken (zwei Seiten)" aria-label="Drucken">⎙</button>
+      <button class="btn icon" id="shareBtn" title="Bild oder Link" aria-label="Teilen">⤴</button>
+      <button class="btn icon" id="menuBtn" title="Menü" aria-label="Menü">≡</button>
+    </div>
     <img class="header-logo" alt="Wicki Partners Ballonteam" src="img/wicki-logo.png">
-    <button class="btn icon" id="reloadBtn" title="Alle Berichte aktualisieren" aria-label="Aktualisieren">⟳</button>
-    <button class="btn icon" id="menuBtn" title="Menü" aria-label="Menü">≡</button>
   </header>
+
+  <div class="menu hidden" id="shareMenu">
+    <button id="sharePngBtn">Bild der Seite (PNG) speichern</button>
+    <button id="shareLinkBtn">Link zu diesem Ort kopieren</button>
+  </div>
 
   <div class="menu hidden" id="menu">
     <button id="mThemeBtn">Hell / dunkel umschalten</button>
     <button id="mSettingsBtn">Einstellungen…</button>
     <div class="sep"></div>
     <button id="mReloadBtn">Berichte neu laden</button>
-    <button id="mShareBtn">Link zu diesem Ort teilen</button>
     <div class="sep"></div>
     <button id="mAboutBtn">Über / Datenquellen</button>
+    <button id="mLockBtn">Sperren</button>
   </div>
 
   <!-- ---------- place input ---------- -->
@@ -132,7 +157,7 @@
       </div>
     </section>
 
-    <!-- METAR / TAF -->
+    <!-- METAR / TAF (Rohformat) -->
     <section class="card" id="cardMetar">
       <div class="card-head">
         <span class="section-title">METAR / TAF in der Nähe</span>
@@ -262,6 +287,7 @@
 </div>
 
 <script src="js/vendor/leaflet/leaflet.js"></script>
+<script src="js/vendor/html2canvas.min.js" defer></script>
 <script src="js/version.js"></script>
 <script src="js/util.js"></script>
 <script src="js/gafor.js"></script>

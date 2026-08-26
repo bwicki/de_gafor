@@ -140,11 +140,25 @@ const DWD_INDEX = {
       // jedes Gebiet bekommt dieselbe Reihe, damit der Test nicht davon abhängt,
       // in welchem Gebiet der Startpunkt gerade liegt
       areas: Object.fromEntries((JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas || [])
-        .map(a => [String(a.id), ['C', 'O', 'D', 'X']])),
-      details: { 52: { codes: ['C', 'O', 'D', 'X'], name: 'Kraichgau', remark: 'ISOL TS' } },
+        .map(a => [String(a.id), ['C', 'O', 'D4', 'M8']])),
+      details: Object.fromEntries((JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas || [])
+        .map(a => [String(a.id), { codes: ['C', 'O', 'D4', 'M8'], name: a.name,
+                                   remarks: ['', 'ISOL SHRA', '', 'ISOL TSRA'] }])),
     },
   },
-  overview: {}, balloon: {}, errors: [],
+  overview: {
+    EDZM: {
+      bulletin: 'FBEU40 EDZM', bereich: 'Süd', office: 'EDZM',
+      source: 'https://www.dwd.de/',
+      validFrom: new Date(Date.now() - 3 * 3600e3).toISOString(),
+      validTo: new Date(Date.now() + 18 * 3600e3).toISOString(),
+      areas: (JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas || [])
+        .map(a => String(a.id)),
+      text: (await readFile('test/sample-overview.txt', 'utf8')).split('\n').slice(2).join('\n')
+        .replace(/^[\s\S]*?Wetterlage/, 'Wetterlage'),
+    },
+  },
+  balloon: {}, errors: [],
 };
 const METAR_REPO = {
   generated: new Date(Date.now() - 11 * 60e3).toISOString(), via: 'awc',
@@ -176,12 +190,28 @@ const ok = (m) => console.log(`  ok   ${m}`);
 const bad = (m) => { console.log(`  FAIL ${m}`); fails++; };
 
 await page.goto(base + '#49.1000,9.7500,9', { waitUntil: 'domcontentloaded' });
+
+console.log('\nBrowser');
+// Zugangssperre
+await page.waitForSelector('#gate:not([hidden])', { timeout: 8000 }).catch(() => {});
+(await page.locator('#gate').count()) === 1 && await page.locator('#gate').isVisible()
+  ? ok('Zugangssperre erscheint beim ersten Laden') : bad('keine Zugangssperre');
+await page.locator('#gatePw').fill('9999');
+await page.locator('#gateForm button[type=submit]').click();
+await page.waitForTimeout(150);
+await page.locator('#gateErr').isVisible()
+  ? ok('falsches Kennwort wird abgewiesen') : bad('falsches Kennwort kommt durch');
+await page.locator('#gatePw').fill('1234');
+await page.locator('#gateForm button[type=submit]').click();
+await page.waitForTimeout(200);
+(await page.locator('#gate').count()) === 0
+  ? ok('richtiges Kennwort öffnet die App') : bad('Sperre bleibt trotz richtigem Kennwort');
+
 await page.waitForFunction(() => {
   const n = document.querySelector('#windBody .wp-table');
   return n && n.querySelectorAll('tbody tr').length > 3;
 }, null, { timeout: 20000 }).catch(() => {});
 
-console.log('\nBrowser');
 // Höhenwind
 const rows = await page.locator('#windBody .wp-table tbody tr').count();
 rows >= 8 ? ok(`Höhenwind: ${rows} Zeilen`) : bad(`Höhenwind: nur ${rows} Zeilen`);
@@ -191,12 +221,69 @@ barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahne
   ? ok('Nullgradgrenze im Profil markiert') : bad('Nullgradgrenze fehlt');
 (await page.locator('#windBody .wp-mrow.pbl').count()) >= 1
   ? ok('Grenzschicht im Profil markiert') : bad('Grenzschicht fehlt');
-(await page.locator('#windBody .chips .chip').count()) === 7
-  ? ok('sieben Stunden-Chips') : bad('Stunden-Chips fehlen');
+{
+  const models = await page.locator('#windBody .chips.models .chip').count();
+  models === 8 ? ok('acht Modelle zur Wahl') : bad(`Modell-Chips: ${models}`);
+  (await page.locator('#windBody .chips.models .chip.on').innerText()) === 'Auto'
+    ? ok('„Auto" ist vorgewählt') : bad('kein Modell vorgewählt');
+  const hours = await page.locator('#windBody .chips:not(.models) .chip').count();
+  hours >= 7 ? ok(`${hours} Stunden-Chips`) : bad(`Stunden-Chips: ${hours}`);
+  // Tabelle links, Grafik rechts
+  const split = page.locator('#windBody .wp-split');
+  (await split.locator('.wp-col-table').count()) === 1 &&
+  (await split.locator('.wp-col-chart').count()) === 1
+    ? ok('Tabelle und Grafik stehen in einem gemeinsamen Block')
+    : bad('Höhenwind ist nicht zweispaltig aufgebaut');
+  (await split.locator('.wp-svg .wp-grid.minor line').count()) > 4
+    ? ok('Zwischenlinien in der Grafik') : bad('keine Zwischenlinien');
+}
+
+// ---- auf dem Desktop nebeneinander ----
+await page.setViewportSize({ width: 1280, height: 2400 });
+await page.waitForTimeout(300);
+{
+  const split = page.locator('#windBody .wp-split');
+  const tBox = await split.locator('.wp-col-table').boundingBox();
+  const gBox = await split.locator('.wp-col-chart').boundingBox();
+  tBox && gBox && gBox.x >= tBox.x + tBox.width - 2
+    ? ok('Desktop: die Grafik steht rechts neben der Tabelle')
+    : bad(`Anordnung: Tabelle x=${tBox && Math.round(tBox.x)} b=${tBox && Math.round(tBox.width)}, Grafik x=${gBox && Math.round(gBox.x)}`);
+  gBox && gBox.width <= 300
+    ? ok(`Grafik bleibt kompakt (${Math.round(gBox.width)} px)`)
+    : bad(`Grafik zu breit: ${gBox && Math.round(gBox.width)} px`);
+
+  const cols = page.locator('#gaforBody .report-cols .report-col');
+  if (await cols.count() === 2) {
+    const a = await cols.nth(0).boundingBox(), b2 = await cols.nth(1).boundingBox();
+    b2.x > a.x + 10
+      ? ok('Flugwetterübersicht steht in zwei Spalten nebeneinander')
+      : bad('Übersichtsspalten stehen untereinander');
+    Math.abs(a.height - b2.height) / Math.max(a.height, b2.height) < 0.45
+      ? ok(`Spalten etwa gleich hoch (${Math.round(a.height)} / ${Math.round(b2.height)} px)`)
+      : bad(`Spaltenhöhen: ${Math.round(a.height)} / ${Math.round(b2.height)} px`);
+    (await page.locator('#gaforBody .report-h').count()) >= 2
+      ? ok('Abschnittstitel sind eigene, fette Überschriften')
+      : bad('keine Abschnittstitel');
+  } else {
+    console.log('  --   keine Flugwetterübersicht im Testindex, Spaltenprüfung entfällt');
+  }
+
+  // Knöpfe links vom Logo
+  const tools = await page.locator('.header-tools').boundingBox();
+  const logo = await page.locator('.header-logo').boundingBox();
+  tools && logo && tools.x + tools.width <= logo.x + 2
+    ? ok('Funktionsknöpfe stehen links vom Logo')
+    : bad(`Kopfzeile: Knöpfe x=${tools && Math.round(tools.x)}, Logo x=${logo && Math.round(logo.x)}`);
+  (await page.locator('.header-tools .btn').count()) === 4
+    ? ok('vier Knöpfe: Aktualisieren, Drucken, Teilen, Menü')
+    : bad(`Knöpfe: ${await page.locator('.header-tools .btn').count()}`);
+}
+await page.setViewportSize({ width: 430, height: 3200 });
+await page.waitForTimeout(250);
 
 // Stundenwechsel
 const firstAlt = await page.locator('#windBody .wp-table tbody tr td.spd').first().innerText();
-await page.locator('#windBody .chips .chip').nth(4).click();
+await page.locator('#windBody .chips:not(.models) .chip').nth(4).click();
 await page.waitForTimeout(150);
 const secondAlt = await page.locator('#windBody .wp-table tbody tr td.spd').first().innerText();
 firstAlt !== secondAlt ? ok('Stundenwahl ändert das Profil')
@@ -222,29 +309,54 @@ tiles === 4 ? ok(`GAFOR-Zeitreihe als ${tiles} Kacheln`) : bad(`GAFOR-Kacheln: $
 (await page.locator('#gaforBody .gtile.now').count()) === 1
   ? ok('laufender Zeitraum ist markiert') : bad('kein laufender Zeitraum markiert');
 (await page.locator('#gaforBody .gtile.c').count()) === 1 &&
-(await page.locator('#gaforBody .gtile.x').count()) === 1
+(await page.locator('#gaforBody .gtile.m').count()) === 1
   ? ok('Kacheln tragen die Farbe ihrer Stufe') : bad('Kachelfarben fehlen');
+(await page.locator('#gaforBody .gtile .gc .d').allInnerTexts()).join('') === '48'
+  ? ok('die Ziffer des Codes wird mitgezeigt (D4, M8)')
+  : bad(`Ziffern: ${(await page.locator('#gaforBody .gtile .gc .d').allInnerTexts()).join(',')}`);
+(await page.locator('#gaforBody .gtile .gr').count()) === 2
+  ? ok('Zusätze stehen an ihrem eigenen Zeitraum')
+  : bad(`Zusätze: ${await page.locator('#gaforBody .gtile .gr').count()}`);
+/Bezugshöhe/.test(await page.locator('#gaforBody .gafor-unit').innerText())
+  ? ok('Bezugshöhe des Gebiets wird genannt') : bad('Bezugshöhe fehlt');
 const legend = page.locator('#gaforBody details.code-legend');
 (await legend.count()) === 1 ? ok('Legende ist vorhanden') : bad('Legende fehlt');
 !(await legend.evaluate(n => n.open))
   ? ok('Legende startet zugeklappt') : bad('Legende ist aufgeklappt');
-!(await legend.locator('dd').first().isVisible())
+!(await legend.locator('.code-table').first().isVisible())
   ? ok('zugeklappt nimmt sie keinen Platz im Textfluss ein')
   : bad('Legendeninhalt ist sichtbar, obwohl zugeklappt');
 await legend.locator('summary').click();
 await page.waitForTimeout(120);
-(await legend.locator('dd').count()) === 5
-  ? ok('aufgeklappt stehen alle fünf Stufen da') : bad('Legendeninhalt unvollständig');
+(await legend.locator('.code-table tbody tr').count()) === 11
+  ? ok('aufgeklappt steht die vollständige Codetabelle da')
+  : bad(`Legende: ${await legend.locator('.code-table tbody tr').count()} Zeilen`);
 
 if (shotArg > 0) {
   const p = process.argv[shotArg + 1];
   await page.locator('#gaforBody').screenshot({ path: p.replace('.png', '-gafor.png') });
   await legend.locator('summary').click();      // wieder zu
+  await page.locator('#cardMetar').screenshot({ path: p.replace('.png', '-metar.png') });
 }
 
 // METAR — die eigene Kopie trägt die Karte
 (await page.locator('#metarBody .metar-row').count()) >= 2
   ? ok('METAR-Karte gefüllt') : bad('METAR-Karte leer');
+{
+  const names = await page.locator('#metarBody .metar-name').allInnerTexts();
+  const ids = await page.locator('#metarBody .metar-id').allInnerTexts();
+  names.length === ids.length && names.every((n, i) => n && n !== ids[i])
+    ? ok(`Platznamen im Klartext: ${names.join(' | ')}`)
+    : bad(`Platznamen: ${names.join(' | ')}`);
+  names.some(n => n.includes('Flughafen'))
+    ? ok('Abkürzung „Arpt" wird ausgeschrieben')
+    : bad(`keine Abkürzung ausgeschrieben: ${names.join(' | ')}`);
+}
+(await page.locator('#metarBody .metar-sum').count()) === 0
+  ? ok('kein entschlüsselter Klartext mehr, nur Rohmeldung')
+  : bad('die alte Entschlüsselungszeile steht noch da');
+(await page.locator('#metarBody pre.raw').count()) >= 2
+  ? ok('Rohmeldungen werden angezeigt') : bad('keine Rohmeldungen');
 {
   const mIdx = seen.findIndex(u => u.includes('data/dwd/metar.json'));
   const aIdx = seen.findIndex(u => u.includes('aviationweather.gov'));
@@ -288,10 +400,68 @@ await page.waitForTimeout(2500);
 (await page.locator('#areaNum').innerText()).trim() === '—'
   ? ok('keine Gebietsnummer erfunden') : bad('Gebietsnummer trotz Ausland');
 
+// ---- Drucken: wirklich zwei Seiten? ----
+await page.goto(base + '?print=1#49.1000,9.7500,9', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(3200);
+{
+  for (const d of await page.locator('details').all()) await d.evaluate(n => { n.open = true; });
+  const pdf = await page.pdf({ format: 'A4', printBackground: true,
+                               margin: { top: '9mm', bottom: '9mm', left: '8mm', right: '8mm' } });
+  if (shotArg > 0) {
+    const { writeFile } = await import('node:fs/promises');
+    await writeFile(process.argv[shotArg + 1].replace('.png', '-druck.pdf'), pdf);
+  }
+  const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
+  if (pages === 2) ok('Druck ergibt genau zwei A4-Seiten');
+  else {
+    // Bei Abweichung gleich zeigen, welcher Block den Platz frisst
+    await page.emulateMedia({ media: 'print' });
+    await page.setViewportSize({ width: 794, height: 1123 });
+    await page.waitForTimeout(400);
+    const parts = [];
+    for (const sel of ['header.topbar', '.place-bar', '.area-head', '.map-block', '#cardGafor',
+                       '#cardBalloon', '#cardWind', '#cardMetar', '#cardModel', 'footer']) {
+      const bx = await page.locator(sel).boundingBox().catch(() => null);
+      if (bx) parts.push(`${sel} ${Math.round(bx.height / 1055 * 100)}%`);
+    }
+    await page.emulateMedia({ media: 'screen' });
+    bad(`Druck ergibt ${pages} Seiten — Anteile: ${parts.join(', ')}`);
+  }
+  await page.emulateMedia({ media: 'print' });
+  await page.waitForTimeout(120);
+  !(await page.locator('.search-block').isVisible()) && !(await page.locator('.header-tools').isVisible())
+    ? ok('Bedienelemente sind im Druck ausgeblendet')
+    : bad('Suche oder Knöpfe stehen im Ausdruck');
+  const nTiles = await page.locator('#gaforBody .gtile').count();
+  nTiles > 0 && (await page.locator('#gaforBody .gtile').first().isVisible())
+    ? ok('die GAFOR-Kacheln stehen im Ausdruck')
+    : bad(`Kacheln im Ausdruck: ${nTiles} vorhanden, sichtbar ${nTiles > 0 && await page.locator('#gaforBody .gtile').first().isVisible()}`);
+  await page.emulateMedia({ media: 'screen' });
+}
+
+// ---- Seitenbild ----
+{
+  const dl = page.waitForEvent('download', { timeout: 25000 }).catch(() => null);
+  await page.locator('#shareBtn').click();
+  await page.waitForTimeout(120);
+  await page.locator('#sharePngBtn').click();
+  const d = await dl;
+  d && /^gaforcast_.*\.png$/.test(d.suggestedFilename())
+    ? ok(`Seitenbild wird angeboten (${d.suggestedFilename()})`)
+    : bad('kein PNG-Download ausgelöst');
+}
+
 errors.length ? bad(`JS-Fehler: ${errors.slice(0, 3).join(' | ')}`) : ok('keine JS-Fehler');
 
 if (shotArg > 0) {
   const path = process.argv[shotArg + 1];
+  // ein Blick auf die Desktop-Breite, dort steht das Höhenwind-Duo nebeneinander
+  await page.setViewportSize({ width: 1280, height: 2600 });
+  await page.waitForTimeout(500);
+  await page.locator('#cardWind').screenshot({ path: path.replace('.png', '-wind-desktop.png') });
+  await page.locator('#cardGafor').screenshot({ path: path.replace('.png', '-gafor-desktop.png') });
+  await page.setViewportSize({ width: 430, height: 3200 });
+  await page.waitForTimeout(300);
   // ganz Deutschland, damit die Maske ausserhalb der Gebiete zu sehen ist
   await page.locator('#zoomDeBtn').click();
   await page.waitForTimeout(1200);

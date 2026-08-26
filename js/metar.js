@@ -187,22 +187,6 @@ const METAR = (() => {
     return { km: m.visib * 1.609, plus: false };
   }
 
-  /** GAFOR-style classification of an observation — a cross-check, not a forecast. */
-  function classify(m) {
-    const v = visKm(m);
-    const c = ceiling(m);
-    if (!v) return null;
-    const vis = v.km, cig = c == null ? 99999 : c;      // no ceiling reported = unlimited
-    if (vis >= 10 && cig >= 2000) return 'C';
-    if (vis >= 8  && cig >= 1500) return 'O';
-    if (vis >= 5  && cig >= 1000) return 'D';
-    if (vis >= 5  && cig >= 500)  return 'M';
-    return 'X';
-  }
-
-  /** NOAA flight category → Farbklasse der Badge. */
-  const CAT_CLASS = { VFR: 'c', MVFR: 'o', IFR: 'm', LIFR: 'x' };
-
-  return { near, refresh, taf, station, reload, ceiling, cloudText, visKm, classify,
-           COVER, CAT_CLASS, lastSource, box, pick };
+  return { near, refresh, taf, station, reload, ceiling, cloudText, visKm,
+           COVER, lastSource, box, pick };
 })();

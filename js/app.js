@@ -19,14 +19,24 @@
     lastFetchLat: null, lastFetchLon: null,
     om: null, ens: null, metars: null, tafs: null,
     windOffset: 0,                            // gewählte Stunde relativ zu „jetzt"
+    model: U.load('model', ''),               // '' = Auto-Mix, sonst ein Open-Meteo-Modell
     busy: {},
   };
+
+  /* Zugangssperre. Ausdrücklich **kein** Sicherheitsmechanismus: die Seite ist
+     statisch, jeder kann den Quelltext lesen, und dort steht das Kennwort.
+     Der Zweck ist, die Seite aus dem Weg von Zufallsbesuchern zu halten —
+     sie ist für die private Flugvorbereitung gedacht und die DWD-Produkte
+     dürfen nicht weitergegeben werden. Wer wirklich aussperren will, braucht
+     einen Server mit echter Anmeldung. */
+  const GATE_PW = '1234';
 
   // ------------------------------------------------------------------ boot
   document.addEventListener('DOMContentLoaded', boot);
 
   async function boot() {
     applyTheme(U.load('theme', prefersDark() ? 'dark' : 'light'));
+    initGate();
     U.$('appVersion').textContent = APP.version;
 
     const start = startPosition();
@@ -58,23 +68,22 @@
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 
-    if (!start.explicit && navigator.geolocation) {
-      // no place in the URL and nothing saved: offer the current position quietly
-      navigator.geolocation.getCurrentPosition(
-        p => { if (Date.now() - state.lastFetchAt < 15000) return; goTo(p.coords.latitude, p.coords.longitude, null, 9); },
-        () => {}, { timeout: 8000, maximumAge: 600000 });
-    }
+    // Kein automatischer Sprung auf den Standort mehr: die App öffnet bewusst
+    // mit ganz Deutschland im Bild. Der Knopf ◎ holt den Standort auf Wunsch.
   }
 
   const prefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  /* Mitte Deutschlands, ungefähr bei Niederdorla. Zoom 6 zeigt das Land ganz —
+     damit sieht man beim Öffnen die Gebiete und die abgegraute Umgebung, statt
+     in einem Ausschnitt zu landen, in dem nichts davon vorkommt. */
+  const HOME = { lat: 51.10, lon: 10.40, zoom: 6 };
 
   function startPosition() {
     const h = (location.hash || '').replace(/^#/, '');
     const m = h.match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+))?$/);
     if (m) return { lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 9, explicit: true };
-    const last = U.load('lastPlace', null);
-    if (last) return { lat: last.lat, lon: last.lon, name: last.name, zoom: 9, explicit: true };
-    return { lat: 51.10, lon: 10.40, zoom: 6, explicit: false };
+    return { ...HOME, explicit: false };
   }
 
   // ------------------------------------------------------------------ UI wiring
@@ -102,14 +111,23 @@
     cardReload('metarAge', () => { METAR.reload(); loadPointData(true, ['metar']); });
     cardReload('modelAge', () => loadPointData(true, ['model', 'ens']));
     cardReload('windAge', () => loadPointData(true, ['model']));
-    U.$('mShareBtn').onclick = () => {
-      const url = `${location.origin}${location.pathname}#${state.lat.toFixed(4)},${state.lon.toFixed(4)},9`;
-      if (navigator.share) navigator.share({ title: 'GaforCast', url }).catch(() => {});
-      else if (navigator.clipboard) navigator.clipboard.writeText(url)
-        .then(() => flash('Link kopiert'), () => {});
-      menu.classList.add('hidden');
-    };
     U.$('mAboutBtn').onclick = () => { menu.classList.add('hidden'); showAbout(); };
+
+    // Drucken und Teilen
+    const shareMenu = U.$('shareMenu');
+    U.$('printBtn').onclick = () => { menu.classList.add('hidden'); shareMenu.classList.add('hidden'); doPrint(); };
+    U.$('shareBtn').onclick = (e) => {
+      e.stopPropagation();
+      menu.classList.add('hidden');
+      shareMenu.classList.toggle('hidden');
+    };
+    document.addEventListener('click', (e) => {
+      if (!shareMenu.contains(e.target) && e.target !== U.$('shareBtn')) shareMenu.classList.add('hidden');
+    });
+    U.$('sharePngBtn').onclick = () => { shareMenu.classList.add('hidden'); savePng(); };
+    U.$('shareLinkBtn').onclick = () => { shareMenu.classList.add('hidden'); copyLink(); };
+
+    U.$('mLockBtn').onclick = () => { menu.classList.add('hidden'); lockAgain(); };
     U.$('appVersion').onclick = showAbout;
     U.$('aboutClose').onclick = hideAbout;
     U.$('aboutOk').onclick = hideAbout;
@@ -151,6 +169,33 @@
     });
   }
 
+  // ------------------------------------------------------------------ Sperre
+  function initGate() {
+    const g = U.$('gate');
+    if (!g) return;
+    if (U.load('unlocked', 0) === 1) { g.remove(); return; }
+    g.hidden = false;
+    U.$('gateForm').onsubmit = (e) => {
+      e.preventDefault();
+      if (U.$('gatePw').value.trim() === GATE_PW) {
+        U.save('unlocked', 1);
+        g.remove();
+        const map = MAPVIEW.get();
+        if (map) setTimeout(() => map.invalidateSize(), 30);
+      } else {
+        U.$('gateErr').hidden = false;
+        U.$('gatePw').value = '';
+        U.$('gatePw').focus();
+      }
+    };
+    setTimeout(() => U.$('gatePw').focus(), 60);
+  }
+
+  function lockAgain() {
+    U.save('unlocked', 0);
+    location.reload();
+  }
+
   // ------------------------------------------------------------------ reload
   /** Macht eine Altersanzeige zum Nachlade-Knopf für genau ihre Karte. */
   function cardReload(id, fn) {
@@ -185,6 +230,118 @@
     b.classList.remove('spinning');
     b.classList.add('ok');
     setTimeout(() => b.classList.remove('ok'), 1400);
+  }
+
+  // ------------------------------------------------------------- Drucken
+  /**
+   * Zwei A4-Seiten: Kopf, Ort, Gebiet und die GAFOR-Kacheln auf Seite 1, die
+   * Berichte auf Seite 2. Das Meiste macht der Druckteil von css/app.css; hier
+   * werden nur die aufklappbaren Blöcke geöffnet, damit nichts fehlt, und die
+   * Karte muss vorher ihre Kacheln fertig geladen haben.
+   */
+  function doPrint() {
+    const opened = [];
+    for (const d of document.querySelectorAll('details')) {
+      if (!d.open) { d.open = true; opened.push(d); }
+    }
+    const done = () => { for (const d of opened) d.open = false; };
+    window.addEventListener('afterprint', done, { once: true });
+    setTimeout(() => window.print(), 120);
+  }
+
+  // ------------------------------------------------------------- Teilen
+  const placeSlug = () => (state.place || U.fmtCoord(state.lat, state.lon))
+    .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ort';
+
+  const shareUrl = () =>
+    `${location.origin}${location.pathname}#${state.lat.toFixed(4)},${state.lon.toFixed(4)},` +
+    `${MAPVIEW.get() ? MAPVIEW.get().getZoom() : 9}`;
+
+  function copyLink() {
+    const url = shareUrl();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(() => flash('Link kopiert'),
+        () => fallbackCopy(url));
+    } else fallbackCopy(url);
+  }
+
+  function fallbackCopy(text) {
+    const ta = U.el('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:-1000px;left:0;opacity:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); flash('Link kopiert'); }
+    catch { flash('Kopieren nicht möglich'); }
+    document.body.removeChild(ta);
+  }
+
+  /* Das Stylesheet mischt Farben mit color-mix(). Der Browser löst das in
+   * getComputedStyle zu `color(srgb r g b / a)` auf — eine Schreibweise, die
+   * html2canvas (Stand 1.4.1) nicht kennt und mit einer Ausnahme quittiert.
+   * Deshalb werden im Klon alle so geschriebenen Farben vorher in rgba()
+   * umgesetzt. Betrifft nur das Seitenbild, nicht die Seite selbst.
+   */
+  const SRGB_PROPS = ['color', 'background-color', 'border-top-color', 'border-right-color',
+    'border-bottom-color', 'border-left-color', 'outline-color', 'fill', 'stroke',
+    'text-decoration-color', 'column-rule-color'];
+
+  function srgbToRgb(doc) {
+    const win = doc.defaultView || window;
+    const conv = (v) => {
+      const m = /^color\(srgb\s+([\d.eE+-]+)\s+([\d.eE+-]+)\s+([\d.eE+-]+)(?:\s*\/\s*([\d.eE+-]+))?\s*\)$/i
+        .exec(String(v || '').trim());
+      if (!m) return null;
+      const ch = [1, 2, 3].map(i => Math.round(U.clamp(parseFloat(m[i]), 0, 1) * 255));
+      const a = m[4] == null ? 1 : U.clamp(parseFloat(m[4]), 0, 1);
+      return a >= 1 ? `rgb(${ch.join(',')})` : `rgba(${ch.join(',')},${a})`;
+    };
+    for (const el of doc.querySelectorAll('*')) {
+      let cs;
+      try { cs = win.getComputedStyle(el); } catch { continue; }
+      for (const p of SRGB_PROPS) {
+        const nv = conv(cs.getPropertyValue(p));
+        if (nv) el.style.setProperty(p, nv, 'important');
+      }
+    }
+  }
+
+  /** Bild der ganzen Seite. Braucht html2canvas — ohne das gibt es den Link. */
+  async function savePng() {
+    if (typeof html2canvas !== 'function') { flash('Bildfunktion nicht geladen'); copyLink(); return; }
+    const b = U.$('shareBtn');
+    b.classList.add('spinning');
+    document.body.classList.add('shooting');
+    try {
+      const canvas = await html2canvas(document.querySelector('.app'), {
+        backgroundColor: getComputedStyle(document.body).backgroundColor,
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        useCORS: true, logging: false,
+        ignoreElements: (el) => el.classList &&
+          (el.classList.contains('menu') || el.classList.contains('map-btns') ||
+           el.classList.contains('modal')),
+        onclone: srgbToRgb,
+      });
+      const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+      // Blob statt data:-URL — ein Seitenbild wird schnell zweistellig in MB,
+      // und als data:-URL scheitert der Download in manchen Browsern still
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      if (!blob) throw new Error('leeres Bild');
+      const url = URL.createObjectURL(blob);
+      const a = U.el('a');
+      a.href = url;
+      a.download = `gaforcast_${placeSlug()}_${stamp}.png`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      flash('Bild gespeichert');
+    } catch (e) {
+      console.warn('PNG fehlgeschlagen:', e);
+      flash('Bild fehlgeschlagen — Link stattdessen');
+      copyLink();
+    } finally {
+      document.body.classList.remove('shooting');
+      b.classList.remove('spinning');
+    }
   }
 
   function flash(msg) {
@@ -264,7 +421,6 @@
   }
 
   function remember() {
-    U.save('lastPlace', { lat: state.lat, lon: state.lon, name: state.place });
     history.replaceState(null, '', `#${state.lat.toFixed(4)},${state.lon.toFixed(4)},${MAPVIEW.get().getZoom()}`);
   }
 
@@ -319,7 +475,8 @@
     const code = b && b.codes && b.codes.length ? b.codes[0] : null;
     if (code) {
       const ci = GAFOR.codeInfo(code);
-      const badge = U.el('span', `badge ${ci.key}`, ci.letter);
+      const badge = U.el('span', `badge ${ci.key}`, ci.code);
+      badge.title = ci.desc;
       st.appendChild(badge);
       st.appendChild(U.el('div', 't', ci.word || ''));
     }
@@ -377,7 +534,7 @@
             ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
         ].filter(Boolean).join(' · ');
         body.appendChild(meta);
-        body.appendChild(Object.assign(U.el('pre', 'report'), { textContent: ov.text }));
+        renderReport(body, ov.text);
         body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
       }
       return;
@@ -403,13 +560,23 @@
         const ci = GAFOR.codeInfo(b.codes[i] || '');
         const tile = U.el('div', `gtile ${ci.key}${inPeriod(p, nowUtc) ? ' now' : ''}`);
         tile.appendChild(U.el('div', 'gt', p.replace('-', '–')));
-        tile.appendChild(U.el('div', 'gc', ci.letter));
+        const code = U.el('div', 'gc');
+        code.appendChild(U.el('span', 'l', ci.letter));
+        if (ci.digit) code.appendChild(U.el('span', 'd', ci.digit));
+        tile.appendChild(code);
         tile.appendChild(U.el('div', 'gw', ci.word || '—'));
-        tile.title = ci.desc ? `${ci.word} — ${ci.desc}` : ci.label;
+        if (ci.vis) {
+          tile.appendChild(U.el('div', 'gv', `${ci.vis} · ${ci.base}`));
+        }
+        const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
+        if (rem) tile.appendChild(U.el('div', 'gr', rem));
+        tile.title = ci.desc;
         tiles.appendChild(tile);
       }
       body.appendChild(tiles);
-      body.appendChild(U.el('div', 'gafor-unit', 'Zeiten in UTC · laufender Zeitraum hervorgehoben'));
+      const ref = a.refAltFt != null ? ` · Bezugshöhe Gebiet ${a.id}: ${a.refAltFt} ft MSL` : '';
+      body.appendChild(U.el('div', 'gafor-unit',
+        `Zeiten in UTC · laufender Zeitraum hervorgehoben${ref}`));
       body.appendChild(codeLegend());
     }
 
@@ -428,11 +595,77 @@
           ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
       ].filter(Boolean).join(' · ');
       body.appendChild(meta);
-      body.appendChild(Object.assign(U.el('pre', 'report'), { textContent: ov.text }));
+      renderReport(body, ov.text);
       body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
     } else if (b.source) {
       body.appendChild(sourceLine(b.title || 'DWD', b.source));
     }
+  }
+
+  /* -------------------------------------------------------- Berichtstext
+   * Die Flugwetterübersicht ist ein langer Fliesstext mit Abschnitten wie
+   * „Wetterlage und -entwicklung:", „Wettergeschehen:", „Wind:". Als eine
+   * Spalte ist das auf dem Desktop eine Bleiwüste — deshalb wird der Text in
+   * seine Abschnitte zerlegt und auf zwei etwa gleich hohe Spalten verteilt.
+   */
+  function reportBlocks(text) {
+    const lines = String(text || '').split('\n');
+    const blocks = [];
+    let cur = { title: '', body: [] };
+    const isHeading = (l) => {
+      const t = l.trim();
+      return t.length > 2 && t.length <= 64 && /:$/.test(t) && !/[.!?]/.test(t.slice(0, -1));
+    };
+    for (const l of lines) {
+      if (isHeading(l)) {
+        if (cur.title || cur.body.join('').trim()) blocks.push(cur);
+        cur = { title: l.trim().replace(/:$/, ''), body: [] };
+      } else {
+        cur.body.push(l);
+      }
+    }
+    if (cur.title || cur.body.join('').trim()) blocks.push(cur);
+    return blocks.map(b => {
+      const body = b.body.join('\n').replace(/^\n+|\n+$/g, '');
+      /* Der DWD-Text ist auf etwa 68 Zeichen hart umbrochen, und die
+         Leerzeilen sitzen mitten im Satz — ein Artefakt der HTML-Umwandlung.
+         In einer schmalen Spalte gäbe das lauter halbleere Zeilen, deshalb
+         wird Fliesstext wieder zusammengefügt. Tabellarische Abschnitte
+         (Höhenwind, mit "|") bleiben, wie sie sind. */
+      const tabular = /\|/.test(body);
+      return { title: b.title, tabular,
+               body: tabular ? body : body.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim() };
+    }).filter(b => b.title || b.body);
+  }
+
+  /** Zwei Spalten, an der Stelle geteilt, wo beide etwa gleich lang werden. */
+  function renderReport(parent, text) {
+    const blocks = reportBlocks(text);
+    if (blocks.length < 2) {
+      parent.appendChild(Object.assign(U.el('pre', 'report'), { textContent: text }));
+      return;
+    }
+    const len = blocks.map(b => b.title.length + 2 + b.body.length);
+    const total = len.reduce((a, v) => a + v, 0);
+    let best = 1, bestDiff = Infinity, run = 0;
+    for (let i = 0; i < blocks.length - 1; i++) {
+      run += len[i];
+      const diff = Math.abs(run - (total - run));
+      if (diff < bestDiff) { bestDiff = diff; best = i + 1; }
+    }
+    const wrap = U.el('div', 'report-cols');
+    for (const part of [blocks.slice(0, best), blocks.slice(best)]) {
+      const col = U.el('div', 'report-col');
+      for (const b of part) {
+        if (b.title) col.appendChild(U.el('h4', 'report-h', b.title));
+        if (!b.body) continue;
+        col.appendChild(b.tabular
+          ? Object.assign(U.el('pre', 'report'), { textContent: b.body })
+          : U.el('p', 'report-p', b.body));
+      }
+      wrap.appendChild(col);
+    }
+    parent.appendChild(wrap);
   }
 
   /** Liegt die Uhrzeit (UTC, als Dezimalstunde) in einem Zeitraum "15-17"? */
@@ -446,18 +679,36 @@
   /** Die Stufenerklärung — zugeklappt, damit sie den Lesefluss nicht zerschneidet. */
   function codeLegend() {
     const d = U.el('details', 'code-legend');
-    d.appendChild(Object.assign(U.el('summary'), { textContent: 'Was bedeuten C, O, D, M und X?' }));
-    const list = U.el('dl', 'code-list');
-    for (const c of Object.values(GAFOR.CODES)) {
-      const dt = U.el('dt');
-      dt.appendChild(U.el('span', `cell ${c.key}`, c.letter));
-      dt.appendChild(U.el('span', 'w', c.word));
-      list.appendChild(dt);
-      const dd = U.el('dd');
-      dd.innerHTML = `<em>${c.label}</em> — ${c.desc}`;
-      list.appendChild(dd);
+    d.appendChild(Object.assign(U.el('summary'),
+      { textContent: 'Was bedeuten C, O, D1 … M8 und X?' }));
+
+    const wrap = U.el('div', 'fc-scroll');
+    const t = U.el('table', 'code-table');
+    const thead = U.el('thead'), hr = U.el('tr');
+    for (const h of ['Code', '', 'Bodensicht', 'Untergrenze ü. Bezugshöhe'])
+      hr.appendChild(U.el('th', '', h));
+    thead.appendChild(hr); t.appendChild(thead);
+    const tb = U.el('tbody');
+    for (const code of GAFOR.CODE_ORDER) {
+      const ci = GAFOR.codeInfo(code);
+      const tr = U.el('tr');
+      const c0 = U.el('td', 'c0');
+      c0.appendChild(U.el('span', `cell ${ci.key}`, ci.code));
+      tr.appendChild(c0);
+      tr.appendChild(U.el('td', 'c1', `${ci.word} — ${ci.label}`));
+      tr.appendChild(U.el('td', 'c2', ci.vis));
+      tr.appendChild(U.el('td', 'c3', ci.base));
+      tb.appendChild(tr);
     }
-    d.appendChild(list);
+    t.appendChild(tb); wrap.appendChild(t); d.appendChild(wrap);
+
+    d.appendChild(note(
+      'Der Buchstabe ist die Einstufung, die Ziffer sagt, <em>welche</em> Kombination aus ' +
+      'Sicht und Wolkenuntergrenze dahintersteckt. Die Untergrenze zählt <strong>über der ' +
+      'Bezugshöhe des Gebiets</strong> — nicht über Grund und nicht über NN — und erst ab ' +
+      '5/8 Bedeckung, also BKN oder OVC. Verbindlich ist die ' +
+      '<a href="https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/luftsportberichte_node.html" ' +
+      'target="_blank" rel="noopener">GAFOR-Legende des DWD</a>.'));
     return d;
   }
 
@@ -604,10 +855,10 @@
     if (want('model')) {
       U.$('modelAge').textContent = 'lädt…';
       U.$('windAge').textContent = 'lädt…';
-      jobs.push(OM.forecast(lat, lon, 2, state.profileTop).then(j => {
+      jobs.push(OM.forecast(lat, lon, 3, state.profileTop, state.model).then(j => {
         if (lat !== state.lat || lon !== state.lon) return;
         state.om = j;
-        state.windOffset = 0;
+        if (state.windOffset >= j.hourly.time.length) state.windOffset = 0;
         renderModel();
         renderWind();
       }).catch(e => {
@@ -658,55 +909,37 @@
       const row = U.el('div', 'metar-row');
       const top = U.el('div', 'metar-top');
       top.appendChild(U.el('span', 'metar-id', m.icaoId));
-      top.appendChild(U.el('span', 'metar-name', m.name || ''));
       top.appendChild(U.el('span', 'metar-dist', `${m.distKm.toFixed(0)} km`));
       row.appendChild(top);
+      row.appendChild(U.el('div', 'metar-name', stationName(m)));
 
-      const v = METAR.visKm(m), cig = METAR.ceiling(m), cls = METAR.classify(m);
-      const sum = U.el('div', 'metar-sum');
-      const add = (k, val) => { const s = U.el('span'); s.innerHTML = `${k} <b>${val}</b>`; sum.appendChild(s); };
-      add('Wind', m.wdir == null ? '—'
-        : `${m.wdir === 0 && m.wspd === 0 ? 'CALM' : U.pad(m.wdir) + '°'} ${windTxt(m.wspd)}` +
-          (m.wgst ? ` G${windTxt(m.wgst)}` : ''));
-      add('Sicht', v ? `${v.plus ? '≥' : ''}${v.km.toFixed(v.km < 10 ? 1 : 0)} km` : '—');
-      add('Basis', cig == null ? 'keine' : `${cig} ft`);
-      add('Wolken', METAR.cloudText(m));
-      add('T/Td', `${fmt(m.temp)}/${fmt(m.dewp)} °C`);
-      add('QNH', m.altim ? `${Math.round(m.altim)}` : '—');
-      row.appendChild(sum);
-
-      const flags = U.el('div');
-      flags.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;';
-      if (cls) {
-        const ci = GAFOR.codeInfo(cls);
-        const badge = U.el('span', `badge ${ci.key}`, `${ci.letter} · ${ci.word}`);
-        badge.title = 'aus der Beobachtung abgeleitet, kein DWD-GAFOR-Code';
-        flags.appendChild(badge);
-      }
-      if (m.fltCat) {
-        const f = U.el('span', `badge ${METAR.CAT_CLASS[m.fltCat] || 'none'}`, m.fltCat);
-        f.title = 'Flight category laut NOAA';
-        flags.appendChild(f);
-      }
-      if (flags.childNodes.length) row.appendChild(flags);
-
+      // Rohtext, unentschlüsselt — so wie er beim DWD und in pc_met steht
       if (m.rawOb) row.appendChild(Object.assign(U.el('pre', 'raw'), { textContent: m.rawOb }));
       const t = state.showTaf && state.tafs && state.tafs[m.icaoId];
       if (t && t.rawTAF) {
-        const p = Object.assign(U.el('pre', 'raw'), { textContent: t.rawTAF });
-        p.style.marginTop = '6px';
+        const p = Object.assign(U.el('pre', 'raw taf'), { textContent: t.rawTAF });
         row.appendChild(p);
       }
       body.appendChild(row);
     }
   }
 
-  const fmt = (v) => (v == null || !isFinite(v)) ? '—' : Math.round(v);
-  function windTxt(kt) {
-    if (kt == null) return '—';
-    const ms = kt * 0.514444;
-    return `${U.wind(ms, state.unit)} ${U.unitLabel[state.unit]}`;
+  /* Die NOAA schreibt "Stuttgart Arpt, BW, DE". Die Abkürzungen ausschreiben,
+     den Rest so lassen — erfinden wäre schlechter als abkürzen. */
+  const SITE_ABBR = [
+    [/\bArpt\b/gi, 'Flughafen'], [/\bIntl\b/gi, 'International'],
+    [/\bAB\b/g, 'Air Base'], [/\bAFB\b/g, 'Air Force Base'],
+    [/\bAAF\b/g, 'Army Airfield'], [/\bNAS\b/g, 'Naval Air Station'],
+    [/\bMil\b/gi, 'Militär'], [/\bAP\b/g, 'Flughafen'],
+  ];
+  function stationName(m) {
+    let n = String(m.name || '').trim();
+    if (!n) return m.icaoId;
+    for (const [re, to] of SITE_ABBR) n = n.replace(re, to);
+    return n.replace(/\s*,\s*/g, ' · ');
   }
+
+  const fmt = (v) => (v == null || !isFinite(v)) ? '—' : Math.round(v);
 
   function renderModel() {
     const body = U.clear(U.$('modelBody'));
@@ -714,7 +947,7 @@
     if (!j) return;
     const i0 = OM.nowIndex(j);
     const now = OM.at(j, i0);
-    U.$('modelAge').textContent = `${j.timezone_abbreviation || ''} · Open-Meteo`;
+    U.$('modelAge').textContent = `${OM.modelName(j._model)} · ${j.timezone_abbreviation || ''} · Open-Meteo`;
     U.$('modelAge').className = 'age';
 
     // headline stats
@@ -794,7 +1027,7 @@
     }
     t.appendChild(tb); wrap.appendChild(t); body.appendChild(wrap);
 
-    body.appendChild(wrapNote(
+    body.appendChild(explainNote(
       'Wolken in Prozent Bedeckung je Schicht · <strong>Basis</strong> und ' +
       '<strong>Nebelrisiko</strong> sind aus Temperatur, Taupunkt, Wind und Modellsicht ' +
       'abgeleitete Schätzwerte, keine DWD-Aussage.'));
@@ -885,51 +1118,32 @@
       .map(l => Object.assign({}, l, { ft: metres ? Math.round(l.m) : l.ft }));
 
     U.$('windAge').textContent =
-      `bis ${state.profileTop} hPa · ${j.hourly.time[idx].slice(11, 16)} ${j.timezone_abbreviation || ''}`;
+      `${OM.modelName(j._model)} · bis ${state.profileTop} hPa · ` +
+      `${j.hourly.time[idx].slice(11, 16)} ${j.timezone_abbreviation || ''}`;
     U.$('windAge').className = 'age';
 
+    // ---- Modell- und Stundenwahl ----
+    body.appendChild(modelChips());
+    body.appendChild(hourChips(j, i0));
+
     if (!levels.length) {
-      body.appendChild(wrapNote('Für diesen Ort liefert das Modell kein Höhenprofil.'));
+      body.appendChild(wrapNote(
+        `<strong>${OM.modelName(j._model)}</strong> liefert für diesen Ort und diese Stunde ` +
+        'kein Höhenprofil. Ein anderes Modell oder „Auto" wählen.'));
       return;
     }
 
-    // ---- Stundenwahl ----
-    const chips = U.el('div', 'chips');
-    for (const off of [0, 1, 2, 3, 6, 9, 12]) {
-      const i = i0 + off;
-      if (i >= j.hourly.time.length) break;
-      const b = U.el('button', 'chip' + (off === state.windOffset ? ' on' : ''),
-        off === 0 ? 'jetzt' : j.hourly.time[i].slice(11, 16));
-      b.onclick = () => { state.windOffset = off; renderWind(); };
-      chips.appendChild(b);
-    }
-    body.appendChild(chips);
-
-    // ---- Grafik ----
     const rec = OM.at(j, idx);
     const ground = state.elev != null ? state.elev : (j.elevation || 0);
     const toAlt = (m) => (m == null ? null : (metres ? Math.round(m) : Math.round(m * OM.M_TO_FT)));
-    const svg = WINDVIEW.chart(levels, {
-      unit: U.unitLabel[state.unit],
-      unitFactor: MS(1),
-      altUnit: metres ? 'm' : 'ft',
-      groundFt: toAlt(ground),
-      fzlFt: toAlt(rec.fzl),
-      pblFt: rec.pbl == null ? null : toAlt(ground + rec.pbl),
-    });
-    if (svg) {
-      const wrap = U.el('div', 'wp-wrap');
-      wrap.appendChild(svg);
-      body.appendChild(wrap);
-      body.appendChild(wrapNote(
-        'Die <strong>Windfahne</strong> zeigt wie in der Luftfahrtkarte in den Wind, ' +
-        'die Federn geben die Stärke in Knoten (halb 5, ganz 10, Wimpel 50). ' +
-        'Waagrecht steht die Geschwindigkeit, senkrecht die Höhe. ' +
-        'Der <strong>Pfeil in der Tabelle</strong> zeigt dagegen die Richtung, in die es treibt.'));
-    }
+    const fzlA = toAlt(rec.fzl), pblA = rec.pbl == null ? null : toAlt(ground + rec.pbl);
+
+    /* Tabelle links, Grafik rechts — nebeneinander, sobald Platz da ist.
+       Auf dem Handy stapelt der Umbruch sie automatisch. */
+    const split = U.el('div', 'wp-split');
 
     // ---- Tabelle ----
-    const wrap2 = U.el('div', 'fc-scroll');
+    const wrapT = U.el('div', 'wp-col-table fc-scroll');
     const t = U.el('table', 'wp-table');
     const th = U.el('tr');
     for (const h of [metres ? 'm AMSL' : 'ft AMSL', 'Fläche', 'Drift',
@@ -940,7 +1154,6 @@
     // Flächen und Marker in eine gemeinsame, nach Höhe fallende Liste
     const unitTxt = metres ? ' m' : ' ft';
     const entries = levels.map(l => ({ alt: l.ft, lvl: l }));
-    const fzlA = toAlt(rec.fzl), pblA = rec.pbl == null ? null : toAlt(ground + rec.pbl);
     if (fzlA != null) entries.push({ alt: fzlA, mark: 'Nullgradgrenze ' + fzlA.toLocaleString('de-CH') + unitTxt, cls: 'fzl' });
     if (pblA != null) entries.push({ alt: pblA, mark: 'Grenzschicht bis ' + pblA.toLocaleString('de-CH') + unitTxt, cls: 'pbl' });
     entries.sort((a, b) => b.alt - a.alt || (a.mark ? -1 : 1));
@@ -958,8 +1171,71 @@
       tr.appendChild(U.el('td', 'tmp', l.temp == null ? '·' : String(Math.round(l.temp))));
       tb.appendChild(tr);
     }
-    t.appendChild(tb); wrap2.appendChild(t); body.appendChild(wrap2);
-    body.appendChild(sourceLine('Open-Meteo · ICON', 'https://open-meteo.com'));
+    t.appendChild(tb); wrapT.appendChild(t);
+    split.appendChild(wrapT);
+
+    // ---- Grafik ----
+    const svg = WINDVIEW.chart(levels, {
+      unit: U.unitLabel[state.unit],
+      unitFactor: MS(1),
+      altUnit: metres ? 'm' : 'ft',
+      groundFt: toAlt(ground),
+      fzlFt: fzlA,
+      pblFt: pblA,
+    });
+    if (svg) {
+      const wrapG = U.el('div', 'wp-col-chart');
+      wrapG.appendChild(svg);
+      split.appendChild(wrapG);
+    }
+    body.appendChild(split);
+
+    body.appendChild(explainNote(
+      'Die <strong>Windfahne</strong> zeigt wie in der Luftfahrtkarte in den Wind, ' +
+      'die Federn geben die Stärke in Knoten (halb 5, ganz 10, Wimpel 50). ' +
+      'Waagrecht steht die Geschwindigkeit, senkrecht die Höhe. ' +
+      'Der <strong>Pfeil in der Tabelle</strong> zeigt dagegen die Richtung, in die es treibt.'));
+    body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
+  }
+
+  /** Stunden-Chips: jetzt bis ans Ende dessen, was das Modell hergibt. */
+  function hourChips(j, i0) {
+    const chips = U.el('div', 'chips');
+    for (const off of [0, 1, 2, 3, 6, 9, 12, 18, 24, 36, 48]) {
+      const i = i0 + off;
+      if (i >= j.hourly.time.length) break;
+      const b = U.el('button', 'chip' + (off === state.windOffset ? ' on' : ''),
+        off === 0 ? 'jetzt' : `+${off} h`);
+      b.title = j.hourly.time[i].replace('T', ' ');
+      b.onclick = () => { state.windOffset = off; renderWind(); };
+      chips.appendChild(b);
+    }
+    return chips;
+  }
+
+  /**
+   * Modellwahl. Angeboten wird nur, was die gewählte Stunde noch abdeckt —
+   * ICON-D2 verschwindet also, sobald man über 48 h hinausgeht.
+   */
+  function modelChips() {
+    const row = U.el('div', 'chips models');
+    row.appendChild(U.el('span', 'chips-label', 'Modell'));
+    const usable = OM.modelsFor(state.windOffset);
+    for (const m of OM.MODELS) {
+      const ok = usable.indexOf(m) >= 0;
+      const b = U.el('button', 'chip' + (m.key === state.model ? ' on' : '') + (ok ? '' : ' off'),
+        m.name);
+      b.title = ok ? `${m.note} · bis +${m.hours} h`
+                   : `${m.note} — reicht nur bis +${m.hours} h`;
+      b.disabled = !ok;
+      b.onclick = () => {
+        if (m.key === state.model) return;
+        state.model = m.key; U.save('model', m.key);
+        loadPointData(true, ['model']);
+      };
+      row.appendChild(b);
+    }
+    return row;
   }
 
   function markRow(txt, cls) {
@@ -1053,6 +1329,12 @@
     w.appendChild(note(html));
     return w;
   }
+  /** Erklärender Text — im Ausdruck weggelassen, dort zählt der Platz. */
+  function explainNote(html) {
+    const w = wrapNote(html);
+    w.classList.add('explain');
+    return w;
+  }
   function sourceLine(label, url) {
     const d = U.el('div', 'note');
     d.style.marginTop = '10px';
@@ -1105,6 +1387,20 @@
       'Ballonsport) · NOAA Aviation Weather Center (METAR/TAF) · Open-Meteo — ICON für ' +
       'Punktprognose und Höhenwind, ICON-D2-EPS für die Streubreite · ' +
       'OpenStreetMap (Karte und Ortsnamen).'));
+    const dCode = note(
+      '<strong>GAFOR-Codes.</strong> Der Buchstabe ist die Einstufung, die Ziffer die ' +
+      'Kombination aus Bodensicht und Wolkenuntergrenze. Die Untergrenze zählt über der ' +
+      '<em>Bezugshöhe des Gebiets</em> und erst ab 5/8 Bedeckung. Die Tabelle steht in der ' +
+      'GAFOR-Karte unter „Was bedeuten C, O, D1 … M8 und X?"; verbindlich ist die ' +
+      'GAFOR-Legende des DWD.');
+    dCode.style.marginTop = '8px';
+    box.appendChild(dCode);
+    const dLic = note(
+      '<strong>Nur zur individuellen Flugvorbereitung.</strong> Die Flugwetterprodukte des ' +
+      'DWD dürfen nicht weitergegeben oder weiterverarbeitet werden. Diese Installation ist ' +
+      'privat; die Kennwortabfrage ist ein Hinweis darauf, kein Zugangsschutz.');
+    dLic.style.marginTop = '8px';
+    box.appendChild(dLic);
     const d3 = note(
       '<strong>Abgeleitete Werte.</strong> <em>Wolkenbasis</em> ist das Kondensationsniveau ' +
       'aus Temperatur und Taupunkt (rund 400 ft je Grad Spread), gezeigt nur bei mindestens ' +

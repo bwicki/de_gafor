@@ -5,6 +5,57 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.9.0 — 2026-08-26
+
+* **Die Karte öffnet mit ganz Deutschland im Bild** (Zoom 6, Mitte bei 51,1 N / 10,4 E) statt
+  im letzten Ausschnitt. Damit ist auch die Abgrauung ausserhalb der GAFOR-Gebiete zu sehen —
+  sie war seit 1.7.0 drin, nur bei Zoom 9 mitten in Deutschland sieht man sie nie. Zusätzlich
+  deckt die Maske jetzt kräftiger ab (dunkel 74 %, hell 58 %). Der automatische Sprung auf den
+  eigenen Standort beim Start entfällt; der Knopf ◎ holt ihn auf Wunsch.
+* **Flugwetterübersicht zweispaltig**, mit **fetten Abschnittstiteln**. Der DWD-Text ist auf
+  68 Zeichen hart umbrochen und die Leerzeilen sitzen mitten im Satz — das wird jetzt wieder
+  zu Fliesstext zusammengefügt und auf zwei etwa gleich hohe Spalten verteilt. Tabellarische
+  Abschnitte wie „Höhenwind und -temperatur" bleiben unangetastet.
+* **Höhenwind: Tabelle links, Grafik rechts.** Die Grafik ist deutlich kompakter (236 statt
+  360 Einheiten breit, kleinere Fahnen) und hat **Zwischenlinien in beiden Achsen**.
+* **Modellwahl über dem Höhenwind:** Auto, ICON-D2, ICON-EU, ICON global, ECMWF IFS, GFS,
+  ARPEGE, UKMO. Was den gewählten Vorhersagezeitpunkt nicht mehr abdeckt, wird durchgestrichen
+  und lässt sich nicht wählen — ICON-D2 verschwindet also jenseits von +48 h. Die Stundenwahl
+  reicht jetzt bis +48 h.
+* **Funktionsknöpfe links vom Logo**, jetzt vier: Aktualisieren, Drucken, Teilen, Menü.
+* **Drucken.** Eigener Druckteil im Stylesheet: Bedienelemente raus, Erklärtexte raus, alles
+  kompakt gesetzt, die Übersicht dreispaltig. Ergebnis mit einem Bulletin normaler Länge:
+  **zwei A4-Seiten** — Kopf, Karte, Gebiet, GAFOR und Übersicht auf der ersten, Ballonbericht,
+  Höhenwind, METAR und Modellprognose auf der zweiten. Der Testlauf erzeugt das PDF und zählt
+  die Seiten nach.
+* **Teilen-Knopf** mit zwei Möglichkeiten: **Bild der ganzen Seite als PNG** (html2canvas,
+  mitgeliefert, funktioniert offline) oder **Link auf genau diesen Ort** in die Zwischenablage.
+  Beim Bild werden `color-mix()`-Farben vorher in `rgba()` umgesetzt — html2canvas kennt die
+  moderne Schreibweise nicht und wäre sonst ausgestiegen.
+
+## 1.8.0 — 2026-08-26
+
+* **GAFOR-Codes werden richtig gelesen.** Ein Code ist Buchstabe *plus Ziffer* — `M2`, `D1`,
+  `D4`, `M8`. Der Parser kannte nur nackte Buchstaben, und dadurch waren **41 der 68
+  Gebiete** falsch oder gar nicht da: 25 fielen ganz weg, 16 verloren den ersten Zeitraum,
+  bei 7 landete der Code im Gebietsnamen („Kraichgau M2"). Jetzt stimmen alle 68.
+* **Zusätze stehen am richtigen Zeitraum.** `O  O ISOL SHRA  O ISOL TSRA` heisst, dass nur
+  der mittlere Zeitraum Schauer bekommt — bisher wurden alle Zusätze ans Zeilenende gehängt.
+* **Die Übersichtsseite wird in ihre fünf Bereichstabellen zerlegt.** Vorher hingen alle
+  Gebiete unter der ersten Überschrift, sodass in Bayern „Bereich LBZ Hamburg" stand.
+* **Die Codetabelle ist hinterlegt und wird angezeigt.** Jede Kachel nennt Sicht und
+  Untergrenze zu ihrem Code, die Legende zeigt alle elf gebräuchlichen Stufen. Wichtig und
+  bisher nirgends gesagt: die Untergrenze zählt **über der Bezugshöhe des Gebiets**, nicht
+  über Grund, und erst ab 5/8 Bedeckung. Die Bezugshöhe steht jetzt unter den Kacheln.
+* **Korrigiert:** Die alten Schwellen waren falsch — Charlie verlangt 5000 ft, nicht 2000 ft,
+  und Mike beginnt bei 1,5 km Sicht, nicht bei 5 km.
+* **METAR/TAF nur noch im Rohformat**, dafür mit dem **Platznamen im Klartext**
+  („EDDS · Stuttgart Flughafen"). Die abgeleitete Zeile mit Wind, Sicht, Basis und die
+  selbst gerechnete GAFOR-Einstufung sind raus — entschlüsseln muss diese App nicht.
+* **Kennwortabfrage beim ersten Laden** (Menü → *Sperren* setzt sie zurück). Das ist
+  ausdrücklich **kein Zugangsschutz**: die Seite ist statisch, das Kennwort steht im
+  Quelltext. Es hält die private Flugvorbereitung aus dem Weg von Zufallsbesuchern.
+
 ## 1.7.0 — 2026-08-26
 
 * **METAR/TAF: Reihenfolge umgedreht.** Bisher fragte die App zuerst die NOAA und nahm die

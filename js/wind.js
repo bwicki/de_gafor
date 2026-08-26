@@ -20,11 +20,13 @@ const WINDVIEW = (() => {
     return n;
   };
 
-  const W = 360, PAD_L = 48, PAD_R = 34, PAD_T = 22, PAD_B = 44;
+  /* Kompakt gehalten: die Grafik steht auf dem Desktop rechts neben der
+     Tabelle und darf ihr keinen Platz wegnehmen. */
+  const W = 236, PAD_L = 34, PAD_R = 26, PAD_T = 16, PAD_B = 34;
 
   /** Barb path fragments in local coordinates, shaft pointing up. */
   function barb(kt) {
-    const L = 26, step = 4.4;
+    const L = 20, step = 3.4;
     const out = [];
     if (kt == null || !isFinite(kt)) return out;
     let k = Math.round(kt / 5) * 5;
@@ -32,11 +34,11 @@ const WINDVIEW = (() => {
     out.push({ d: `M0,0 L0,${-L}`, fill: false });
     let y = -L;
     let drew = false;
-    while (k >= 50) { out.push({ d: `M0,${y} L-13,${y + 3.2} L0,${y + 6.4} Z`, fill: true }); y += 7.4; k -= 50; drew = true; }
-    while (k >= 10) { out.push({ d: `M0,${y} L-13,${y - 4.4}`, fill: false }); y += step; k -= 10; drew = true; }
+    while (k >= 50) { out.push({ d: `M0,${y} L-10,${y + 2.5} L0,${y + 5} Z`, fill: true }); y += 5.8; k -= 50; drew = true; }
+    while (k >= 10) { out.push({ d: `M0,${y} L-10,${y - 3.4}`, fill: false }); y += step; k -= 10; drew = true; }
     if (k >= 5) {
       if (!drew) y += step;                       // a lone half barb sits in from the tip
-      out.push({ d: `M0,${y} L-7,${y - 2.4}`, fill: false });
+      out.push({ d: `M0,${y} L-5.5,${y - 1.9}`, fill: false });
     }
     return out;
   }
@@ -61,7 +63,7 @@ const WINDVIEW = (() => {
 
     // Die Fahnen ragen bis zu 30 px über ihren Punkt hinaus — deshalb oben und
     // unten etwas Luft, sonst schneidet der Rahmen sie ab.
-    const H = 332;
+    const H = 310;
     const padFt = ((topFt - botFt) || 1000) * 0.12;
     const lo = botFt - padFt, hi = topFt + padFt;
     const x = (v) => PAD_L + (v / maxV) * (W - PAD_L - PAD_R);
@@ -73,22 +75,35 @@ const WINDVIEW = (() => {
     });
 
     // ---- grid -------------------------------------------------------------
+    // Zwischenlinien in beiden Achsen: fein, damit sich Werte ablesen lassen,
+    // ohne dass das Raster die Fahnen erschlägt.
+    const minor = mk('g', { class: 'wp-grid minor' });
     const grid = mk('g', { class: 'wp-grid' });
-    for (let v = 0; v <= maxV; v += 10) {
-      grid.appendChild(mk('line', { x1: x(v), y1: PAD_T, x2: x(v), y2: H - PAD_B }));
-      svg.appendChild(mk('text', { x: x(v), y: H - PAD_B + 13, class: 'wp-ax', 'text-anchor': 'middle' },
-        String(v)));
+    const vStep = maxV > 60 ? 20 : 10;
+    for (let v = 0; v <= maxV; v += vStep / 2) {
+      const g = (v % vStep === 0) ? grid : minor;
+      g.appendChild(mk('line', { x1: x(v), y1: PAD_T, x2: x(v), y2: H - PAD_B }));
+      if (v % vStep === 0) {
+        svg.appendChild(mk('text', { x: x(v), y: H - PAD_B + 11, class: 'wp-ax', 'text-anchor': 'middle' },
+          String(v)));
+      }
     }
-    const stepFt = (topFt - botFt) > 14000 ? 4000 : (topFt - botFt) > 7000 ? 2000 : 1000;
-    for (let ft = Math.ceil(botFt / stepFt) * stepFt; ft <= topFt; ft += stepFt) {
-      grid.appendChild(mk('line', { x1: PAD_L, y1: y(ft), x2: W - PAD_R, y2: y(ft) }));
-      svg.appendChild(mk('text', { x: PAD_L - 6, y: y(ft) + 3.4, class: 'wp-ax', 'text-anchor': 'end' },
-        ft >= 1000 ? `${(ft / 1000).toFixed(0)}k` : String(ft)));
+    const span = topFt - botFt;
+    const stepFt = span > 14000 ? 4000 : span > 7000 ? 2000 : 1000;
+    for (let ft = Math.ceil(botFt / (stepFt / 2)) * (stepFt / 2); ft <= topFt; ft += stepFt / 2) {
+      const major = Math.abs(ft % stepFt) < 1;
+      (major ? grid : minor).appendChild(
+        mk('line', { x1: PAD_L, y1: y(ft), x2: W - PAD_R, y2: y(ft) }));
+      if (major) {
+        svg.appendChild(mk('text', { x: PAD_L - 4, y: y(ft) + 3, class: 'wp-ax', 'text-anchor': 'end' },
+          ft >= 1000 ? `${(ft / 1000).toFixed(0)}k` : String(ft)));
+      }
     }
+    svg.appendChild(minor);
     svg.appendChild(grid);
-    svg.appendChild(mk('text', { x: W - PAD_R, y: H - PAD_B + 24, class: 'wp-ax', 'text-anchor': 'end' },
+    svg.appendChild(mk('text', { x: W - PAD_R, y: H - PAD_B + 22, class: 'wp-ax', 'text-anchor': 'end' },
       o.unit || 'kt'));
-    svg.appendChild(mk('text', { x: 4, y: PAD_T - 3, class: 'wp-ax' }, o.altUnit || 'ft'));
+    svg.appendChild(mk('text', { x: 2, y: PAD_T - 4, class: 'wp-ax' }, o.altUnit || 'ft'));
 
     // ---- markers ----------------------------------------------------------
     const marker = (ft, label, cls) => {
@@ -98,6 +113,7 @@ const WINDVIEW = (() => {
     };
     marker(o.pblFt, 'Grenzschicht', 'pbl');
     marker(o.fzlFt, '0 °C', 'fzl');
+    // die Beschriftungen sind bewusst kurz — die Grafik ist schmal
 
     // ---- profile line -----------------------------------------------------
     const line = pts.map(p => `${x(p.spd * conv).toFixed(1)},${y(p.ft).toFixed(1)}`).join(' ');

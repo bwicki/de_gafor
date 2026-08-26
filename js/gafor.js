@@ -13,21 +13,66 @@
 const GAFOR = (() => {
   'use strict';
 
-  /** Official GAFOR flight-condition codes. */
-  const CODES = {
-    C: { key: 'c', letter: 'C', word: 'Charlie', label: 'offen',
-         desc: 'Sicht ≥ 10 km und Wolkenuntergrenze ≥ 2000 ft GND' },
-    O: { key: 'o', letter: 'O', word: 'Oscar', label: 'offen, eingeschränkt',
-         desc: 'Sicht ≥ 8 km und Wolkenuntergrenze ≥ 1500 ft GND' },
-    D: { key: 'd', letter: 'D', word: 'Delta', label: 'schwierig',
-         desc: 'Sicht ≥ 5 km und Wolkenuntergrenze ≥ 1000 ft GND' },
-    M: { key: 'm', letter: 'M', word: 'Mike', label: 'marginal',
-         desc: 'Sicht ≥ 5 km und Wolkenuntergrenze ≥ 500 ft GND' },
-    X: { key: 'x', letter: 'X', word: 'X-ray', label: 'geschlossen',
-         desc: 'schlechter als Mike' },
+  /* ------------------------------------------------------------------ Codes
+   * Ein GAFOR-Code besteht aus Buchstabe und — bei Delta und Mike — einer
+   * Ziffer. Der Buchstabe ist die Einstufung, die Ziffer sagt, welche
+   * Kombination aus Bodensicht und Wolkenuntergrenze dahintersteckt.
+   *
+   * Zwei Dinge, die dabei gern übersehen werden:
+   *  • Die Untergrenze zählt **über der Bezugshöhe des Gebiets** (refAltFt),
+   *    nicht über Grund und nicht über NN.
+   *  • Sie zählt erst ab einem Bedeckungsgrad von 5/8, also BKN oder OVC.
+   *
+   * Die Matrix ist aus zwei Definitionen des DWD-Merkblatts (D1 und M5, dort
+   * wörtlich) und zwei unabhängigen Wiedergaben der vollständigen Tabelle
+   * rekonstruiert; D2, M1, M3 und M4 kommen darin nicht vor. Verbindlich ist
+   * die GAFOR-Legende des DWD.
+   */
+  const CLASSES = {
+    C: { key: 'c', word: 'Charlie', label: 'frei' },
+    O: { key: 'o', word: 'Oscar', label: 'offen' },
+    D: { key: 'd', word: 'Delta', label: 'schwierig' },
+    M: { key: 'm', word: 'Mike', label: 'kritisch' },
+    X: { key: 'x', word: 'X-Ray', label: 'geschlossen' },
   };
-  const codeInfo = (c) => CODES[(c || '').toUpperCase()] ||
-    { key: 'none', letter: c || '—', word: '', label: 'keine Angabe', desc: '' };
+
+  /** Sicht × Untergrenze über Bezugshöhe, je Code. */
+  const CODES = {
+    C:  { vis: '≥ 10 km',     base: '≥ 5000 ft' },
+    O:  { vis: '≥ 8 km',      base: '≥ 2000 ft' },
+    D1: { vis: '≥ 8 km',      base: '1000 – 2000 ft' },
+    D3: { vis: '5 – 8 km',    base: '≥ 2000 ft' },
+    D4: { vis: '5 – 8 km',    base: '1000 – 2000 ft' },
+    M2: { vis: '≥ 8 km',      base: '500 – 1000 ft' },
+    M5: { vis: '5 – 8 km',    base: '500 – 1000 ft' },
+    M6: { vis: '1,5 – 5 km',  base: '≥ 2000 ft' },
+    M7: { vis: '1,5 – 5 km',  base: '1000 – 2000 ft' },
+    M8: { vis: '1,5 – 5 km',  base: '500 – 1000 ft' },
+    X:  { vis: '< 1,5 km',    base: 'oder < 500 ft' },
+  };
+
+  /** Reihenfolge von gut nach schlecht — für Legende und Sortierung. */
+  const CODE_ORDER = ['C', 'O', 'D1', 'D3', 'D4', 'M2', 'M5', 'M6', 'M7', 'M8', 'X'];
+
+  /**
+   * "D4" → alles, was die Anzeige braucht. Unbekannte Ziffern (der DWD könnte
+   * jederzeit D2 ausgeben) fallen sauber auf die Buchstabenklasse zurück.
+   */
+  function codeInfo(c) {
+    const code = String(c || '').toUpperCase().trim();
+    const m = code.match(/^([CODMX])(\d?)$/);
+    if (!m) return { key: 'none', code: code || '—', letter: code || '—', digit: '',
+                     word: '', label: 'keine Angabe', vis: '', base: '', desc: '' };
+    const cls = CLASSES[m[1]];
+    const g = CODES[code] || null;
+    return {
+      key: cls.key, code, letter: m[1], digit: m[2] || '',
+      word: cls.word, label: cls.label,
+      vis: g ? g.vis : '', base: g ? g.base : '',
+      desc: g ? `Sicht ${g.vis}, Untergrenze ${g.base} über Bezugshöhe`
+              : `${cls.word} — Feinstufe ${code} nicht hinterlegt`,
+    };
+  }
 
   let fc = null;            // the FeatureCollection, once loaded
   let regionFc = null;      // die fünf Bereichsumrisse (nur zur Darstellung)
@@ -149,6 +194,7 @@ const GAFOR = (() => {
   }
 
   return { init, lookup, near, areas, count, byId, centroids: () => centroids,
-           regions, metaFor, allMeta, CODES, codeInfo, edgeDistKm, SNAP_KM,
+           regions, metaFor, allMeta, CODES, CLASSES, CODE_ORDER, codeInfo,
+           edgeDistKm, SNAP_KM,
            collection: () => fc, regionCollection: () => regionFc, landCollection: () => landFc };
 })();

@@ -183,46 +183,83 @@ function periodsFrom(text) {
   return q.length >= 2 ? [...new Set(q)] : [];
 }
 
-const CODE = /^[CODMX]$/;
+/* Ein GAFOR-Code ist Buchstabe plus optionale Ziffer: C, O, D1, D3, D4,
+   M2, M5, M6, M7, M8, X. Bis 1.7.0 stand hier /^[CODMX]$/ — dadurch fielen
+   alle Zeilen mit Ziffer durch das Raster, das waren 41 von 68 Gebieten. */
+const CODE = /^[CODMX]\d?$/;
 
 /**
- * One table row per area:
+ * One table row per area. Zusätze stehen je Zeitraum hinter dem Code, nicht
+ * gesammelt am Zeilenende:
  *   "00  Deutsche Bucht  C  C  C"
- *   "10  Weser-Leine-Bergland  C  C  O ISOL RA"
- * Returns { "00": { codes: [...], name, remark } }.
+ *   "41  Hunsrück  M2  D1  D1"
+ *   "75  Östliche Donau  O  O ISOL SHRA  O ISOL TSRA"
+ * Returns { "00": { codes: [...], remarks: [...], name } }.
  */
 function areasFrom(text, nPeriods) {
   const areas = {};
+  if (!nPeriods) return areas;
   for (const raw of text.split('\n')) {
     const line = raw.trim();
     const m = line.match(/^(\d{2})\s+(.*)$/);
     if (!m) continue;
     const id = m[1];
     const tokens = m[2].split(/\s+/);
+    const isCode = tokens.map(t => CODE.test(t));
+    const total = isCode.reduce((n, v) => n + (v ? 1 : 0), 0);
+    if (total < nPeriods) continue;
 
-    // the codes are the trailing run of single C/O/D/M/X letters, the name is
-    // everything before the first of them
-    let first = -1;
+    // Der Name kann selbst kein Code sein, also ist der Startpunkt die Stelle,
+    // ab der bis zum Zeilenende genau nPeriods Codes stehen.
+    let start = -1, before = 0;
     for (let i = 0; i < tokens.length; i++) {
-      if (!CODE.test(tokens[i])) continue;
-      let run = 0;
-      for (let j = i; j < tokens.length && CODE.test(tokens[j]); j++) run++;
-      if (run >= 2 || (nPeriods === 1 && run >= 1)) { first = i; break; }
+      if (!isCode[i]) continue;
+      if (total - before === nPeriods) { start = i; break; }
+      before++;
     }
-    if (first < 0) continue;
+    if (start < 0) continue;
 
-    const codes = [];
-    let k = first;
-    while (k < tokens.length && CODE.test(tokens[k]) && (!nPeriods || codes.length < nPeriods)) {
-      codes.push(tokens[k]); k++;
+    const codes = [], remarks = [];
+    for (let i = start; i < tokens.length;) {
+      if (!isCode[i]) { i++; continue; }
+      codes.push(tokens[i]);
+      let j = i + 1;
+      while (j < tokens.length && !isCode[j]) j++;
+      remarks.push(tokens.slice(i + 1, j).join(' '));
+      i = j;
     }
-    if (codes.length < 1) continue;
-    const name = tokens.slice(0, first).join(' ').trim();
-    const remark = tokens.slice(k).join(' ').trim();
-    if (!areas[id]) areas[id] = { codes, name, remark: remark || undefined };
+    const name = tokens.slice(0, start).join(' ').trim();
+    if (!areas[id]) {
+      areas[id] = { codes, name, remarks,
+                    remark: remarks.filter(Boolean).join(' · ') || undefined };
+    }
   }
   return areas;
 }
+
+/**
+ * Die Übersichtsseite trägt alle fünf Bereichstabellen hintereinander. Ohne
+ * Zerlegung bekäme die erste Überschrift ("LBZ Hamburg") 68 fremde Gebiete
+ * angehängt. Geschnitten wird an jeder "GAFOR-Einstufung …"-Zeile.
+ */
+function splitSections(text) {
+  const lines = text.split('\n');
+  const starts = [];
+  lines.forEach((l, i) => { if (/^\s*GAFOR[- ]Einstufung\b/i.test(l)) starts.push(i); });
+  if (starts.length < 2) return [text];
+  const out = [];
+  for (let k = 0; k < starts.length; k++) {
+    out.push(lines.slice(starts[k], k + 1 < starts.length ? starts[k + 1] : lines.length).join('\n'));
+  }
+  return out;
+}
+
+/** "LBZ Hamburg" → EDZH. Die Seite nennt die Stelle nur im Klartext. */
+const BEREICH_OFFICE = {
+  'LBZ HAMBURG': 'EDZH', 'LBZ BERLIN': 'EDZB', 'RWZ ESSEN': 'EDZE',
+  'FWZ FRANKFURT': 'EDZF', 'LBZ MUENCHEN': 'EDZM', 'LBZ MÜNCHEN': 'EDZM',
+};
+const officeForBereich = (b) => BEREICH_OFFICE[String(b || '').toUpperCase().trim()] || null;
 
 /** Issue time: the date from the headline plus the start of the first period. */
 function issuedFrom(text, hl, periods) {
@@ -359,23 +396,28 @@ async function collectGafor() {
                   `gültig bis ${oh.validTo || '?'}`);
     }
 
-    // (b) the GAFOR code table, wherever it shows up
-    const hl = headline(text);
-    const periods = periodsFrom(text);
-    const areas = areasFrom(text, periods.length);
-    if (Object.keys(areas).length) {
-      const key = hl.bereich ? hl.bereich.replace(/\s+/g, '-') : (officeFrom(url) || keyFrom(url));
-      if (!gafor[key]) {
-        gafor[key] = {
-          title: hl.title || 'GAFOR', bereich: hl.bereich || null, source: url,
-          issued: issuedFrom(text, hl, periods), fetched: new Date().toISOString(),
-          periods,
-          areas: Object.fromEntries(Object.entries(areas).map(([id, a]) => [id, a.codes])),
-          details: areas, text,
-        };
-        console.log(`✓ gafor ${key}: ${Object.keys(areas).length} Gebiete, ${periods.length} Zeiträume`);
-      }
-    } else if (!oh.office) {
+    // (b) die GAFOR-Codetabellen — die Übersichtsseite trägt alle fünf
+    let found = 0;
+    for (const section of splitSections(text)) {
+      const hl = headline(section);
+      const periods = periodsFrom(section);
+      const areas = areasFrom(section, periods.length);
+      if (!Object.keys(areas).length) continue;
+      found += Object.keys(areas).length;
+      const office = officeForBereich(hl.bereich) || officeFrom(url);
+      const key = office || (hl.bereich ? hl.bereich.replace(/\s+/g, '-') : keyFrom(url));
+      if (gafor[key]) continue;
+      gafor[key] = {
+        title: hl.title || 'GAFOR', bereich: hl.bereich || null, office: office || null,
+        source: url, issued: issuedFrom(section, hl, periods),
+        fetched: new Date().toISOString(), periods,
+        areas: Object.fromEntries(Object.entries(areas).map(([id, a]) => [id, a.codes])),
+        details: areas, text: section,
+      };
+      console.log(`✓ gafor ${key} (${hl.bereich || '?'}): ${Object.keys(areas).length} Gebiete, ` +
+                  `${periods.length} Zeiträume`);
+    }
+    if (!found && !oh.office) {
       note('gafor', url, 'weder Gebietstabelle noch Übersichtskopf erkannt');
     }
   }
@@ -878,4 +920,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { splitCycles, stationTable, collectTgftp };
+export { splitCycles, stationTable, collectTgftp, splitSections, areasFrom, periodsFrom, headline, stripChrome };

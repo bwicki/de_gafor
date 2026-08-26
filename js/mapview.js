@@ -48,6 +48,8 @@ const MAPVIEW = (() => {
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18, attribution: '&copy; OpenStreetMap',
+      // ohne crossOrigin wäre die Leinwand beim Seitenbild (html2canvas) tainted
+      crossOrigin: true,
     }).addTo(map);
 
     // eigene Ebenen, damit die Reihenfolge feststeht
@@ -122,8 +124,8 @@ const MAPVIEW = (() => {
    * weitere Ringe desselben Polygons anzuhängen.
    */
   const maskStyle = () => (maskDark
-    ? { stroke: false, fillColor: '#05080c', fillOpacity: .60 }
-    : { stroke: false, fillColor: '#5d6773', fillOpacity: .40 });
+    ? { stroke: false, fillColor: '#05080c', fillOpacity: .74, className: 'gafor-mask' }
+    : { stroke: false, fillColor: '#59636f', fillOpacity: .58, className: 'gafor-mask' });
 
   function setMask(fc) {
     maskFc = fc || null;
