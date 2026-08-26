@@ -17,12 +17,10 @@
     altUnit: U.load('altUnit', 'ft'),
     showEns: U.load('showEns', 1),
     rhStart: U.load('rhStart', 85),        // rF-Schwelle, ab der schattiert wird
-    lastFetchAt: 0,
     lastFetchLat: null, lastFetchLon: null,
     om: null, ens: null, metars: null, tafs: null,
     windOffset: 0,                            // gewählte Stunde relativ zu „jetzt"
     model: U.load('model', ''),               // '' = Auto-Mix, sonst ein Open-Meteo-Modell
-    busy: {},
   };
 
   /* Zugangssperre. Ausdrücklich **kein** Sicherheitsmechanismus: die Seite ist
@@ -43,12 +41,11 @@
 
     const start = startPosition();
     state.lat = start.lat; state.lon = start.lon;
-    if (start.name) state.place = start.name;
 
     /* Getrennt abgesichert: geht die Karte nicht auf, sollen wenigstens Menü
        und Knöpfe verdrahtet sein — und umgekehrt. */
     try {
-      MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom || 8, onMove: onMapMove });
+      MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom, onMove: onMapMove });
     } catch (e) { console.error('Karte konnte nicht starten:', e); }
     try { wireUI(); } catch (e) { console.error('Bedienung nicht vollständig verdrahtet:', e); }
     renderPlace();
@@ -89,8 +86,8 @@
   function startPosition() {
     const h = (location.hash || '').replace(/^#/, '');
     const m = h.match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+))?$/);
-    if (m) return { lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 9, explicit: true };
-    return { ...HOME, explicit: false };
+    if (m) return { lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 9 };
+    return { ...HOME };
   }
 
   // ------------------------------------------------------------------ UI wiring
@@ -185,6 +182,10 @@
         paintProfile();
         const hs = U.$('windBody').querySelector('.hour-slider');
         if (hs && hs._place) hs._place();          // Marke folgt der neuen Breite
+        // die Spaltenaufteilung hängt an der Breite und muss mit
+        for (const w of document.querySelectorAll('.report-cols')) {
+          if (w._balance) w._balance();
+        }
       }, 220);
     });
   }
@@ -261,7 +262,6 @@
   function cardReload(id, fn) {
     const n = U.$(id);
     if (!n) return;
-    n.classList.add('clickable');
     n.title = 'Diese Karte neu laden';
     n.setAttribute('role', 'button');
     n.setAttribute('tabindex', '0');
@@ -529,8 +529,7 @@
     state.area = a;
     MAPVIEW.highlight(a ? a.id : null);
     markLegend(a ? a.region : null);
-    renderAreaHead();
-    if (changed) renderReports();
+    if (changed) renderReports(); else renderAreaHead();
     if (!a && had && GAFOR.count()) flash(OUTSIDE);
   }
 
@@ -559,15 +558,28 @@
     if (a.method === 'nearest') bits.push(`nächstes Gebietszentrum, ${a.distKm.toFixed(0)} km`);
     sub.textContent = bits.join(' · ');
 
-    const b = DWD.gaforFor(a);
-    const code = b && b.codes && b.codes.length ? b.codes[0] : null;
-    if (code) {
-      const ci = GAFOR.codeInfo(code);
-      const badge = U.el('span', `badge ${ci.key}`, ci.code);
-      badge.title = ci.desc;
+    const cur = currentPeriod(DWD.gaforFor(a));
+    if (cur) {
+      const badge = U.el('span', `badge ${cur.ci.key}`, cur.ci.code);
+      badge.title = cur.ci.desc;
       st.appendChild(badge);
-      st.appendChild(U.el('div', 't', ci.word || ''));
+      st.appendChild(U.el('div', 't', cur.ci.word || ''));
     }
+  }
+
+  /**
+   * Der Zeitraum, in dem wir gerade sind — sonst der erste des Bulletins.
+   * Kopfzeile und Zeitband fragen dieselbe Stelle, sonst zeigte der Kopf noch
+   * den Vormittag, während im Band längst der Nachmittag hervorgehoben war.
+   */
+  function currentPeriod(b) {
+    if (!b || !b.codes || !b.codes.length) return null;
+    const nowUtc = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+    let i = (b.periods || []).findIndex(p => inPeriod(p, nowUtc));
+    if (i < 0) i = 0;
+    return { i, now: (b.periods || []).some(p => inPeriod(p, nowUtc)),
+             ci: GAFOR.codeInfo(b.codes[i] || ''),
+             remark: (b.detail && b.detail.remarks && b.detail.remarks[i]) || '' };
   }
 
   function renderLegend() {
@@ -682,13 +694,13 @@
       segs.forEach((s2, k) => s2.classList.toggle('sel', k === i));
     };
 
-    let start = 0;
+    const cur = currentPeriod(b);
+    const start = cur ? cur.i : 0;
     for (let i = 0; i < b.periods.length; i++) {
       const p = b.periods[i];
       const ci = GAFOR.codeInfo(b.codes[i] || '');
-      const cur = inPeriod(p, nowUtc);
-      if (cur) start = i;
-      const seg = U.el('button', `gseg ${ci.key}${cur ? ' now' : ''}`);
+      const isNow = i === start && (!cur || cur.now);
+      const seg = U.el('button', `gseg ${ci.key}${isNow ? ' now' : ''}`);
       const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
       if (rem) seg.appendChild(U.el('span', 'gflag'));
       const code = U.el('span', 'gcd');
@@ -729,7 +741,8 @@
    * Die Flugwetterübersicht ist ein langer Fliesstext mit Abschnitten wie
    * „Wetterlage und -entwicklung:", „Wettergeschehen:", „Wind:". Als eine
    * Spalte ist das auf dem Desktop eine Bleiwüste — deshalb wird der Text in
-   * seine Abschnitte zerlegt und auf zwei etwa gleich hohe Spalten verteilt.
+   * seine Abschnitte zerlegt und auf zwei Spalten verteilt; geht es nicht auf,
+   * bekommt die linke den längeren Teil (siehe renderReport).
    */
   function reportBlocks(text) {
     const lines = String(text || '').split('\n');
@@ -762,10 +775,16 @@
   }
 
   /**
-   * Zwei Spalten, an der Stelle geteilt, wo beide etwa gleich lang werden —
-   * mit einer Regel: geht es nicht auf, bekommt die **linke** Spalte den
-   * längeren Teil. Ein Text, der links unten weiterläuft und rechts früher
-   * endet, liest sich angenehmer als umgekehrt.
+   * Zwei Spalten mit einer festen Regel: geht der Text nicht gleichmässig auf,
+   * bekommt die **linke** Spalte den längeren Teil.
+   *
+   * Der Schnitt wird nicht geschätzt, sondern gemessen. Eine Schätzung über
+   * die Zeichenzahl lag regelmässig daneben — Überschriften haben Abstände,
+   * Fliesstext bricht unterschiedlich um, und eine Tabelle wiegt pro Zeichen
+   * ein Vielfaches. Gesucht wird deshalb der **kleinste** Schnitt, bei dem die
+   * linke Spalte in Pixeln mindestens so hoch ist wie die rechte: links wächst
+   * mit jedem Abschnitt, rechts schrumpft, der erste Treffer ist also zugleich
+   * der ausgewogenste.
    */
   function renderReport(parent, text) {
     const blocks = reportBlocks(text);
@@ -773,34 +792,56 @@
       parent.appendChild(Object.assign(U.el('pre', 'report'), { textContent: text }));
       return;
     }
-    const len = blocks.map(b => b.title.length + 2 + b.body.length);
-    const total = len.reduce((a, v) => a + v, 0);
-    let best = 0, bestDiff = Infinity;     // bester Schnitt mit links ≥ rechts
-    let fall = 1, fallDiff = Infinity;     // Rückfall, falls es keinen gibt
-    let run = 0;
-    for (let i = 0; i < blocks.length - 1; i++) {
-      run += len[i];
-      const rest = total - run;
-      const diff = Math.abs(run - rest);
-      if (diff < fallDiff) { fallDiff = diff; fall = i + 1; }
-      if (run >= rest && diff < bestDiff) { bestDiff = diff; best = i + 1; }
-    }
-    /* Kein Schnitt macht links schwerer? Dann ist der letzte Abschnitt allein
-       länger als alles davor — da bleibt nur der ausgewogenste Schnitt. */
-    if (!best) best = fall;
-    const wrap = U.el('div', 'report-cols');
-    for (const part of [blocks.slice(0, best), blocks.slice(best)]) {
-      const col = U.el('div', 'report-col');
-      for (const b of part) {
-        if (b.title) col.appendChild(U.el('h4', 'report-h', b.title));
-        if (!b.body) continue;
-        col.appendChild(b.tabular
+
+    // je Abschnitt seine Knoten, einmal gebaut und beim Umsortieren umgehängt
+    const groups = blocks.map(b => {
+      const g = [];
+      if (b.title) g.push(U.el('h4', 'report-h', b.title));
+      if (b.body) {
+        g.push(b.tabular
           ? Object.assign(U.el('pre', 'report'), { textContent: b.body })
           : U.el('p', 'report-p', b.body));
       }
-      wrap.appendChild(col);
+      return g;
+    });
+
+    const wrap = U.el('div', 'report-cols');
+    const colL = U.el('div', 'report-col');
+    const colR = U.el('div', 'report-col');
+    wrap.appendChild(colL); wrap.appendChild(colR);
+
+    const split = (k) => {
+      colL.replaceChildren(...groups.slice(0, k).flat());
+      colR.replaceChildren(...groups.slice(k).flat());
+    };
+
+    /* Startaufteilung nach Zeichenzahl — nur, damit nichts flackert, bevor
+       gemessen werden kann. Die Feineinstellung macht balanceReport(). */
+    const len = blocks.map(b => b.title.length + 2 + b.body.length);
+    const total = len.reduce((a, v) => a + v, 0);
+    let run = 0, k0 = blocks.length - 1;
+    for (let i = 0; i < blocks.length - 1; i++) {
+      run += len[i];
+      if (run >= total - run) { k0 = i + 1; break; }
     }
+    split(k0);
     parent.appendChild(wrap);
+
+    wrap._balance = () => balanceReport(wrap, colL, colR, groups.length, split);
+    requestAnimationFrame(wrap._balance);
+  }
+
+  /** Schnitt so lange verschieben, bis die linke Spalte die höhere ist. */
+  function balanceReport(wrap, colL, colR, n, split) {
+    if (!wrap.isConnected || n < 2) return;
+    // einspaltig (Handy, Druck) gibt es nichts auszugleichen
+    if (getComputedStyle(wrap).gridTemplateColumns.split(/\s+/).length < 2) return;
+    let chosen = n - 1;
+    for (let k = 1; k < n; k++) {
+      split(k);
+      if (colL.offsetHeight >= colR.offsetHeight) { chosen = k; break; }
+    }
+    split(chosen);
   }
 
   /** Liegt die Uhrzeit (UTC, als Dezimalstunde) in einem Zeitraum "15-17"? */
@@ -946,7 +987,6 @@
     if (!force && !moved) return;
     const want = (k) => !only || only.indexOf(k) >= 0;
     state.lastFetchLat = state.lat; state.lastFetchLon = state.lon;
-    state.lastFetchAt = Date.now();
     const lat = state.lat, lon = state.lon;
     const jobs = [];
 
@@ -993,13 +1033,13 @@
       jobs.push(OM.forecast(lat, lon, 3, state.profileTop, state.model).then(j => {
         if (lat !== state.lat || lon !== state.lon) return;
         state.om = j;
-        if (state.windOffset >= j.hourly.time.length) state.windOffset = 0;
         renderModel();
         renderWind();
       }).catch(e => {
         state.om = null;
-        U.clear(U.$('modelBody')).appendChild(wrapNote('Open-Meteo nicht erreichbar: ' + e.message));
-        U.clear(U.$('windBody')).appendChild(wrapNote('Open-Meteo nicht erreichbar: ' + e.message));
+        const msg = 'Open-Meteo nicht erreichbar: ' + e.message;
+        U.clear(U.$('modelBody')).appendChild(wrapNote(msg));
+        U.clear(U.$('windBody')).appendChild(wrapNote(msg));
         U.$('modelAge').textContent = ''; U.$('windAge').textContent = '';
       }));
     }
@@ -1235,7 +1275,7 @@
     const FOG_CLS = ['', 'fog-1', 'fog-2', 'fog-3'];
 
     const rows = [
-      ['Zeit', i => ({ h: `<span class="${i === i0 ? 'now' : 'hour'}">${j.hourly.time[i].slice(11, 16)}</span>` })],
+      ['Zeit', i => ({ h: j.hourly.time[i].slice(11, 16) })],
       ['Wind 10 m', i => { const r = OM.at(j, i); return { h: `${U.dirArrow(r.d10)} ${U.wind(r.w10, state.unit)}` }; }],
       ['Böen', i => ({ h: U.wind(OM.at(j, i).gust, state.unit) })],
       ['Wind 180 m', i => { const r = OM.at(j, i); return { h: `${U.dirArrow(r.d180)} ${U.wind(r.w180, state.unit)}` }; }],
@@ -1348,7 +1388,8 @@
   }
 
   /** Faktor m/s → gewählte Einheit, für die Skalierung der Ensemble-Balken. */
-  const MS = (x) => x * ({ kt: 1.943844, kmh: 3.6, ms: 1 })[state.unit];
+  /** Umrechnungsfaktor m/s → gewählte Windeinheit (Tabelle liegt in util.js). */
+  const MS = (x) => x * U.MS_TO[state.unit];
 
   // ------------------------------------------------------------------ upper wind
   function renderWind() {
@@ -1381,7 +1422,8 @@
     const i0 = OM.nowIndex(j);
     const idx = Math.min(i0 + state.windOffset, j.hourly.time.length - 1);
     const metres = state.altUnit === 'm';
-    const levels = OM.profile(j, idx, state.elev != null ? state.elev : j.elevation)
+    const ground = state.elev != null ? state.elev : (j.elevation || 0);
+    const levels = OM.profile(j, idx, ground)
       .map(l => Object.assign({}, l, { ft: metres ? Math.round(l.m) : l.ft }));
 
     U.$('windAge').textContent =
@@ -1397,7 +1439,6 @@
     }
 
     const rec = OM.at(j, idx);
-    const ground = state.elev != null ? state.elev : (j.elevation || 0);
     const toAlt = (m) => (m == null ? null : (metres ? Math.round(m) : Math.round(m * OM.M_TO_FT)));
     const fzlA = toAlt(rec.fzl), pblA = rec.pbl == null ? null : toAlt(ground + rec.pbl);
 

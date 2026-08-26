@@ -63,11 +63,6 @@ const U = (() => {
   const fmtCoord = (lat, lon) =>
     `${Math.abs(lat).toFixed(4)}° ${lat < 0 ? 'S' : 'N'}  ${Math.abs(lon).toFixed(4)}° ${lon < 0 ? 'W' : 'E'}`;
 
-  function fmtLocal(d, withDate) {
-    if (!(d instanceof Date) || isNaN(d)) return '—';
-    const t = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    return withDate ? `${pad(d.getDate())}.${pad(d.getMonth() + 1)}. ${t}` : t;
-  }
   const fmtUTC = (d) => `${pad(d.getUTCDate())}. ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
 
   /** "vor 12 min" / "vor 3 h 40 min". */
@@ -90,7 +85,7 @@ const U = (() => {
   }
 
   // ---------- wind units ----------
-  const MS_TO = { kt: 1.943844, kmh: 3.6, ms: 1 };
+  const MS_TO = { kt: 1.943844, kmh: 3.6, ms: 1 };   // m/s in die gewählte Einheit
   const unitLabel = { kt: 'kt', kmh: 'km/h', ms: 'm/s' };
   function wind(ms, unit) {
     if (ms == null || !isFinite(ms)) return '—';
@@ -129,8 +124,8 @@ const U = (() => {
     return r.json();
   }
 
-  return { $, el, clear, clamp, distKm, inRing, inGeometry, centroid,
-           fmtCoord, fmtLocal, fmtUTC, ago, ageClass, pad,
+  return { $, el, clear, clamp, distKm, inGeometry, centroid,
+           fmtCoord, fmtUTC, ago, ageClass, pad, MS_TO,
            wind, unitLabel, dirName, dirArrow, bearing, bearingArrow,
            load, save, getJSON };
 })();

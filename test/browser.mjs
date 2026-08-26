@@ -138,7 +138,9 @@ const DWD_INDEX = {
       title: 'GAFOR Bereich LBZ München', bereich: 'München',
       issued: new Date(Date.now() - 40 * 60e3).toISOString(),
       source: 'https://www.dwd.de/', text: 'Testbulletin',
-      periods: [per(0), per(2), per(4), per(6)],
+      /* Der erste Zeitraum liegt bewusst in der Vergangenheit: nur so fällt auf,
+         wenn Kopfzeile oder Zeitband den ersten statt den laufenden zeigen. */
+      periods: [per(-2), per(0), per(2), per(4)],
       // jedes Gebiet bekommt dieselbe Reihe, damit der Test nicht davon abhängt,
       // in welchem Gebiet der Startpunkt gerade liegt
       areas: Object.fromEntries((JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas || [])
@@ -378,7 +380,17 @@ await page.waitForTimeout(300);
       ? ok(`Kästchen und Karte gleich hoch (${Math.round(left.height)} zu ${Math.round(map.height)} px)`)
       : bad(`Höhen: Kästchen ${left && Math.round(left.height)}, Karte ${map && Math.round(map.height)}`);
 
-    // Reihenfolge in der linken Spalte
+    // Die Bereichslegende liegt in der Karte, unten links
+  {
+    const lg = await page.locator('#regionLegend').boundingBox();
+    const mp = await page.locator('.top-grid > .map-block > .map-wrap').boundingBox();
+    lg && mp && lg.x >= mp.x && lg.x < mp.x + mp.width * 0.5 &&
+    lg.y + lg.height <= mp.y + mp.height + 1 && lg.y > mp.y + mp.height * 0.6
+      ? ok('Bereichslegende sitzt unten links in der Karte')
+      : bad(`Legende bei ${lg && Math.round(lg.x)},${Math.round(lg && lg.y)} — Karte ${mp && Math.round(mp.x)},${mp && Math.round(mp.y)} ${mp && Math.round(mp.width)}×${mp && Math.round(mp.height)}`);
+  }
+
+  // Reihenfolge in der linken Spalte
     const ys = [];
     for (const sel of ['.top-left .search-block', '.top-left .place-bar',
                        '.top-left .area-head', '.top-left #tileBox']) {
@@ -494,6 +506,14 @@ const tiles = await page.locator('#tileBody .gseg').count();
 tiles === 4 ? ok(`GAFOR-Zeitband mit ${tiles} Abschnitten`) : bad(`GAFOR-Abschnitte: ${tiles}`);
 (await page.locator('#tileBody .gseg.now').count()) === 1
   ? ok('laufender Zeitraum ist markiert') : bad('kein laufender Zeitraum markiert');
+{
+  // Kopfzeile und Zeitband müssen denselben Zeitraum meinen
+  const badge = (await page.locator('#areaState .badge').innerText()).trim();
+  const seg = (await page.locator('#tileBody .gseg.now .gcd').innerText()).replace(/\s+/g, '');
+  badge === seg
+    ? ok(`Gebietskopf und Zeitband zeigen dieselbe Stufe (${badge})`)
+    : bad(`Kopf zeigt ${badge}, Band ${seg}`);
+}
 (await page.locator('#tileBody .gseg.c').count()) === 1 &&
 (await page.locator('#tileBody .gseg.m').count()) === 1
   ? ok('Abschnitte tragen die Farbe ihrer Stufe') : bad('Stufenfarben fehlen');

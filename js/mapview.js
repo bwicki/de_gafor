@@ -179,7 +179,6 @@ const MAPVIEW = (() => {
     applyLevel();
     return level;
   }
-  const getLevel = () => level;
 
   function applyLevel() {
     if (!map) return;
@@ -210,5 +209,5 @@ const MAPVIEW = (() => {
   const get = () => map;
 
   return { init, setAreas, setRegions, setLand, setMask, setMaskTheme,
-           highlight, setLevel, getLevel, regionColor, center, germany, get, fire };
+           highlight, setLevel, regionColor, center, germany, get };
 })();

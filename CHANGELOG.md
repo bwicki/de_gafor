@@ -5,6 +5,45 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.13.0 — 2026-08-26
+
+* **Behoben: die rechte Spalte der Flugwetterübersicht war die längere.** Der Schnitt wurde
+  über die **Zeichenzahl** geschätzt, und die lag verlässlich daneben — Überschriften haben
+  Abstände, Fliesstext bricht unterschiedlich um, und eine Höhenwindtabelle wiegt pro
+  Zeichen ein Vielfaches. Jetzt wird **gemessen**: die Abschnitte werden nach dem Setzen
+  durchprobiert, gesucht ist der kleinste Schnitt, bei dem die linke Spalte in Pixeln
+  mindestens so hoch ist wie die rechte. Da links mit jedem Abschnitt wächst und rechts
+  schrumpft, ist der erste Treffer zugleich der ausgewogenste. Ändert sich die
+  Fensterbreite, wird neu ausgemessen.
+* **Die Bereichslegende liegt jetzt unten links in der Karte** statt als eigene Zeile
+  darunter. Auf schmalen Schirmen rückt sie eine Zeile höher, damit sie der
+  Leaflet-Herkunftszeile nicht ins Gehege kommt.
+* **Höhenwind 45 / 55:** die Tabelle bekommt 45 % der Breite, das Stüve-Diagramm 55 %.
+
+## 1.12.1 — 2026-08-26
+
+Aufräumen, plus ein Fehler, der dabei aufgefallen ist.
+
+* **Behoben: Gebietskopf und Zeitband konnten verschiedene Stufen zeigen.** Die Kachel oben
+  rechts nahm den **ersten** Zeitraum des Bulletins, das Zeitband hebt den **laufenden**
+  hervor. Am Nachmittag stand oben also noch der Vormittag. Beide fragen jetzt dieselbe
+  Stelle (`currentPeriod`). Der Browsertest prüft das, mit einem Testbulletin, dessen
+  erster Zeitraum absichtlich in der Vergangenheit liegt.
+* **Toter Code entfernt.** Nicht mehr aufgerufene Funktionen (`GAFOR.near`, `GAFOR.byId`,
+  `metaFor`, `allMeta`, `OM.modelsFor`, `METAR.cloudText`, `U.fmtLocal`,
+  `MAPVIEW.getLevel`), 14 Namen, die nur noch aus Gewohnheit exportiert wurden, und die
+  CSS-Reste abgelöster Ansichten (`.gafor-grid`, `.gafor-unit`, `.wp-wrap`, `.ver.stale`,
+  `.search-results .row.sel`, `.chip.off`, `.fc-table td.hour/.now`, `.sw-b`, `.mono`).
+* **Wirkungsloses entfernt:** die Klasse `clickable` an der Altersanzeige überlebte das
+  nächste Rendern nie; die Klassen `now`/`hour` in der Zeitzeile der Modellprognose lagen
+  auf dem `<span>`, während die Regeln auf das `<td>` zielten — gefärbt wurde die Spalte
+  ohnehin per Stil.
+* **Doppeltes zusammengelegt:** `renderAreaHead()` lief bei jedem Ortswechsel zweimal; die
+  Umrechnungstabelle m/s → kt/km/h stand in `util.js` **und** in `app.js`; die Bodenhöhe
+  wurde im Höhenprofil zweimal aus denselben Feldern gebildet.
+* Zustandsfelder ohne Leser (`state.busy`, `state.lastFetchAt`) und der nie gesetzte
+  `explicit`-Schalter der Startposition sind weg.
+
 ## 1.12.0 — 2026-08-26
 
 * **Neuer Kopfbereich.** Ab 900 px teilt er sich 40 / 60: rechts aussen die Karte, links

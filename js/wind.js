@@ -139,5 +139,5 @@ const WINDVIEW = (() => {
     return svg;
   }
 
-  return { chart, barb, MS_TO_KT };
+  return { chart, barb };
 })();

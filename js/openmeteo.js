@@ -72,7 +72,6 @@ const OM = (() => {
   /** Horizont eines Modells in Stunden. */
   const modelHours = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[MODELS.length - 1]).hours;
   /** Modelle, die eine Vorhersage für +hours noch abdecken. */
-  const modelsFor = (hours) => MODELS.filter(m => m.hours >= (hours || 0));
   const modelName = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[0]).name;
 
   /** Hourly forecast for the point, in the point's own time zone. */
@@ -266,7 +265,6 @@ const OM = (() => {
   }
 
   return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint,
-           MODELS, modelsFor, modelName, modelHours,
-           ensemble, spread, shareBelow, members, levelsUpTo, stdHeight,
-           HOURLY, LEVELS, ENS_HOURLY, M_TO_FT };
+           MODELS, modelName, modelHours,
+           ensemble, spread, shareBelow, levelsUpTo, stdHeight, M_TO_FT };
 })();

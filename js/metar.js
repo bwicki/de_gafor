@@ -345,13 +345,6 @@ const METAR = (() => {
     return c;
   }
 
-  function cloudText(m) {
-    const cl = m.clouds || [];
-    if (!cl.length) return '—';
-    return cl.map(l => l.base == null ? (COVER[l.cover] || l.cover)
-                                      : `${l.cover} ${l.base} ft`).join(', ');
-  }
-
   /**
    * Sicht in km. Die NOAA rechnet in Landmeilen und meldet "10+" für alles
    * darüber — daraus würden 16 km. In Europa steht im METAR aber 9999, und das
@@ -371,7 +364,7 @@ const METAR = (() => {
     return { km: m.visib * 1.609, plus: false };
   }
 
-  return { near, refresh, taf, station, reload, ceiling, cloudText, visKm,
-           wxText, layerText, parseTaf, parseGroup, COVER, OKTA, lastSource, box, pick,
+  return { near, refresh, taf, station, reload, ceiling, visKm,
+           wxText, layerText, parseTaf, parseGroup, COVER, OKTA, lastSource,
            landOf, LAND };
 })();

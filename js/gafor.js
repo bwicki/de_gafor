@@ -80,7 +80,6 @@ const GAFOR = (() => {
   let meta = null;          // data/gafor-meta.json
   let byIdMeta = new Map();
   let ready = null;         // the load promise
-  let centroids = new Map();
 
   async function init(geoUrl, metaUrl) {
     if (ready) return ready;
@@ -101,7 +100,6 @@ const GAFOR = (() => {
       for (const a of (meta.areas || [])) byIdMeta.set(String(a.id), a);
 
       // merge the metadata into the geometry so everything downstream sees one object
-      centroids = new Map();
       for (const f of fc.features) {
         const p = f.properties || (f.properties = {});
         const id = String(p.id ?? '');
@@ -114,7 +112,7 @@ const GAFOR = (() => {
           if (reg) { p.office = p.office || reg.office; p.officeName = reg.officeName; p.regionName = reg.name; }
         }
         const c = p.center ? [p.center[0], p.center[1]] : U.centroid(f.geometry);
-        if (c) { centroids.set(id, c); p.center = c; }
+        if (c) p.center = c;                 // die Karte setzt darauf ihre Beschriftung
       }
       return fc;
     })();
@@ -129,12 +127,8 @@ const GAFOR = (() => {
     }
     return out;
   }
-  const metaFor = (id) => byIdMeta.get(String(id)) || null;
-  const allMeta = () => (meta && meta.areas) || [];
-
   const areas = () => (fc ? fc.features : []);
   const count = () => areas().length;
-  const byId  = (id) => areas().find(f => String(f.properties.id) === String(id)) || null;
 
   /* Wie weit ausserhalb eines Polygons noch zugeordnet wird. Die Grenzen sind
    * aus der DFS-Karte digitalisiert und auf etwa ±2 km genau; 10 km fangen das
@@ -183,18 +177,6 @@ const GAFOR = (() => {
     return null;
   }
 
-  /** Areas whose centre is within `km` of the point, nearest first. */
-  function near(lat, lon, km) {
-    const out = [];
-    for (const [id, c] of centroids) {
-      const d = U.distKm(lat, lon, c[0], c[1]);
-      if (d <= (km || 120)) out.push({ id, distKm: d, props: byId(id).properties });
-    }
-    return out.sort((a, b) => a.distKm - b.distKm);
-  }
-
-  return { init, lookup, near, areas, count, byId, centroids: () => centroids,
-           regions, metaFor, allMeta, CODES, CLASSES, CODE_ORDER, codeInfo,
-           edgeDistKm, SNAP_KM,
+  return { init, lookup, areas, count, regions, CODE_ORDER, codeInfo, SNAP_KM,
            collection: () => fc, regionCollection: () => regionFc, landCollection: () => landFc };
 })();

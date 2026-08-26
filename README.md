@@ -91,9 +91,9 @@ html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in die
 ## Der Kopfbereich
 
 Ab 900 px Bildschirmbreite teilt sich der obere Teil der Seite **40 / 60**: rechts aussen die
-Karte, links darunter — in dieser Reihenfolge — das **Suchfeld**, die **Ortszeile** mit
-Bundesland und Koordinaten, der **GAFOR-Gebietskopf** und der Kasten mit den
-**GAFOR-Stufen**. Die vier Kästchen zusammen sind genau so hoch wie die Karte; die freie
+Karte — mit der **Bereichslegende unten links in der Karte** —, links darunter — in dieser
+Reihenfolge — das **Suchfeld**, die **Ortszeile** mit Bundesland und Koordinaten, der
+**GAFOR-Gebietskopf** und der Kasten mit den **GAFOR-Stufen**. Die vier Kästchen zusammen sind genau so hoch wie die Karte; die freie
 Fläche sammelt sich im letzten Kasten zwischen Zeitband und Legende. Auf dem Handy stapelt
 alles in derselben Reihenfolge untereinander.
 
@@ -228,8 +228,8 @@ Die relative Feuchte kommt von allen Druckflächen mit, der Taupunkt wird daraus
 gerechnet — Open-Meteo liefert ihn auf den Flächen nicht. Die bodennahen Flächen (10, 80,
 180 m über Grund) haben keinen Druck und werden über ihre Höhe eingehängt.
 
-Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben, beide je zur Hälfte
-der Kartenbreite; die Grafik ist genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
+Auf dem Desktop steht die **Tabelle links (45 %), die Grafik rechts (55 %)**; die Grafik ist
+genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
 
 Über beiden steht die **Modellwahl**, aufsteigend nach Vorhersagehorizont: ICON-D2 (48 h),
 ARPEGE (96), ICON-EU (120), ECMWF IFS (144), UKMO (168), ICON global (180), GFS (384) und
@@ -364,7 +364,12 @@ Drei Produkte, drei Zuschnitte:
   einen Bereich; was da steht, wird geparst.
 * **Flugwetterübersicht** — ein Prosabulletin je Bereich (`FBEU40 EDZH/EDZB/EDZE/EDZF/EDZM`), mit
   Gültigkeitszeitraum und der Zeile `Vorhersagebereich: GAFOR-Gebiete …`, aus der die Zuordnung
-  Gebiet → Bulletin kommt.
+  Gebiet → Bulletin kommt. In der App wird der Text an seinen Abschnittsüberschriften in **zwei
+  Spalten** gelegt. Wo geschnitten wird, ist nicht geschätzt, sondern gemessen: gesucht ist der
+  kleinste Schnitt, bei dem die **linke** Spalte in Pixeln mindestens so hoch ist wie die rechte.
+  Eine Schätzung über die Zeichenzahl lag verlässlich daneben — Überschriften haben Abstände und
+  eine Höhenwindtabelle wiegt pro Zeichen ein Vielfaches. Ändert sich die Fensterbreite, wird neu
+  ausgemessen; im Ausdruck fliesst der Text stattdessen dreispaltig über den Seitenrand.
 * **Ballonwetterbericht** — einer je GAFOR-Gebiet, 67 Stück (Gebiet 00 über See hat keinen). Die
   Seiten stehen nicht als Links auf der Übersicht, sondern in deren anklickbarer Bildkarte; der
   Fetcher liest Ziel, Name und Bezugshöhe aus den `<area>`-Tags. Nichts geraten, und eine

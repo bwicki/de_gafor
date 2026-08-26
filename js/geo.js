@@ -132,5 +132,5 @@ const GEO = (() => {
     return Array.isArray(j.elevation) ? j.elevation[0] : null;
   }
 
-  return { search, parseCoords, reverse, reverseSoon, reverseCached, elevation };
+  return { search, reverse, reverseSoon, reverseCached, elevation };
 })();

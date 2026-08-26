@@ -20,7 +20,6 @@ header.topbar{
   color:var(--text-dim);background:transparent;border:1px solid var(--line);
   border-radius:5px;padding:1px 6px;vertical-align:3px;cursor:pointer;}
 .ver:hover{color:var(--amber);border-color:var(--amber);}
-.ver.stale{color:var(--gafor-d);border-color:var(--gafor-d);}
 
 /* ---------- Zugangssperre ---------- */
 .gate{position:fixed;inset:0;z-index:2000;background:var(--bg);
@@ -69,7 +68,7 @@ header.topbar{
 }
 .search-results .row{padding:11px 13px;cursor:pointer;border-bottom:1px solid var(--line-soft);}
 .search-results .row:last-child{border-bottom:none;}
-.search-results .row:hover,.search-results .row.sel{background:var(--panel-2);}
+.search-results .row:hover{background:var(--panel-2);}
 .search-results .r1{font-size:14.5px;color:var(--text-strong);}
 .search-results .r2{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
 
@@ -115,10 +114,18 @@ header.topbar{
 .gafor-label{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-strong);
   text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;white-space:nowrap;}
 
-/* ---------- region legend ---------- */
-.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin:9px 14px 0;
-  font-family:var(--mono);font-size:10.5px;color:var(--text-dim);align-items:center;}
-.legend .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;
+/* ---------- Bereichslegende, unten links in der Karte ---------- */
+.legend{position:absolute;left:8px;bottom:8px;z-index:500;
+  max-width:calc(100% - 60px);display:flex;flex-wrap:wrap;gap:2px 10px;
+  align-items:center;padding:4px 8px;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  border:1px solid var(--line);border-radius:6px;
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.legend:empty{display:none;}
+/* Auf schmalen Schirmen käme die Legende der Leaflet-Herkunftszeile unten
+   rechts ins Gehege — dort rückt sie eine Zeile höher. */
+@media (max-width:700px){ .legend{bottom:24px;max-width:calc(100% - 16px);} }
+.legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;
   vertical-align:-1px;}
 .legend .on{color:var(--text-strong);}
 
@@ -201,7 +208,6 @@ main.content{padding:12px 14px 0;}
 .gbar-foot .k.d{color:var(--gafor-d);} .gbar-foot .k.m{color:var(--gafor-m);}
 .gbar-foot .k.x{color:var(--gafor-x);} .gbar-foot .k.none{color:var(--gafor-none);}
 
-.gafor-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);padding:8px 13px 0;}
 
 /* Stufenerklärung, zugeklappt */
 .code-legend{margin:10px 13px 2px;border-top:1px solid var(--line-soft);padding-top:9px;}
@@ -228,12 +234,6 @@ main.content{padding:12px 14px 0;}
 .place-name.outside,.area-name.outside{color:var(--amber);font-size:15px;}
 
 /* GAFOR code timeline (Rest der alten Tabelle, noch für andere Ansichten) */
-.gafor-grid{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;}
-.gafor-grid th{color:var(--text-dim);font-weight:500;text-align:center;padding:6px 4px;
-  border-bottom:1px solid var(--line-soft);font-size:10px;letter-spacing:.04em;}
-.gafor-grid td{text-align:center;padding:7px 4px;border-bottom:1px solid var(--line-soft);}
-.gafor-grid td.rt{text-align:left;color:var(--text-dim);white-space:nowrap;padding-left:12px;}
-.gafor-grid tr:last-child td{border-bottom:none;}
 .cell{display:inline-block;min-width:26px;padding:3px 5px;border-radius:5px;font-weight:600;
   color:#0b1017;}
 :root[data-theme="light"] .cell{color:#fff;}
@@ -269,8 +269,6 @@ main.content{padding:12px 14px 0;}
 .fc-table td{padding:6px 9px;text-align:center;white-space:nowrap;color:var(--text);
   border-bottom:1px solid var(--line-soft);}
 .fc-table tr:last-child td,.fc-table tr:last-child th{border-bottom:none;}
-.fc-table td.hour{color:var(--text-dim);}
-.fc-table td.now{color:var(--amber);}
 
 /* ---------- Wolken, Nebel ---------- */
 :root{ --cloud-fill:#8ea6bd; }
@@ -300,7 +298,10 @@ main.content{padding:12px 14px 0;}
 .ens-note{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);margin-top:7px;}
 
 /* ---------- Berichtstext in zwei Spalten ---------- */
-.report-cols{display:grid;grid-template-columns:1fr;gap:0 26px;}
+/* align-items:start ist nicht Kosmetik: sonst strecken sich beide Spalten auf
+   die Zeilenhöhe und wären immer gleich hoch — das Ausmessen in app.js
+   (balanceReport) bekäme nie einen Unterschied zu sehen. */
+.report-cols{display:grid;grid-template-columns:1fr;gap:0 26px;align-items:start;}
 @media (min-width:820px){ .report-cols{grid-template-columns:1fr 1fr;} }
 .report-col{min-width:0;}
 .report-h{margin:14px 0 4px;font-size:12.5px;font-weight:700;color:var(--text-strong);
@@ -370,22 +371,20 @@ main.content{padding:12px 14px 0;}
 /* ---------- Höhenwindprofil ---------- */
 .wp-holder{display:block;}
 .wp-split{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 14px;padding:4px 0 0;}
-/* Tabelle und Diagramm teilen sich die Breite hälftig. */
-.wp-col-table{flex:1 1 0;min-width:0;}
+/* Tabelle 45 %, Diagramm 55 % — beide mit Basis 0, die Wachstumsfaktoren
+   teilen den Platz also genau in diesem Verhältnis. */
+.wp-col-table{flex:45 1 0;min-width:0;}
 .wp-col-table .wp-table{min-width:0;width:100%;}
-.wp-col-chart{flex:1 1 0;min-width:0;padding:6px 12px 0 0;}
+.wp-col-chart{flex:55 1 0;min-width:0;padding:6px 12px 0 0;}
 @media (max-width:640px){ .wp-col-chart{flex:1 1 100%;padding:6px 10px 0;} }
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:11px 14px 2px;align-items:center;}
 .chips.models{padding-bottom:0;}
 .chips-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--text-dim);margin-right:2px;}
-.chips .chip.off{opacity:.34;cursor:not-allowed;text-decoration:line-through;}
-.chips .chip.off:hover{color:var(--text-dim);border-color:var(--line);}
 .chips .chip:hover{color:var(--amber);border-color:var(--amber);}
 .chips .chip.on{background:color-mix(in srgb,var(--amber) 18%,transparent);
   color:var(--text-strong);}
-.wp-wrap{padding:6px 8px 0;}
 .wp-svg{width:100%;height:auto;display:block;}
 .wp-grid line{stroke:var(--line-soft);stroke-width:1;}
 .wp-grid.minor line{stroke:var(--line-soft);stroke-width:.6;opacity:.55;}
@@ -434,7 +433,6 @@ main.content{padding:12px 14px 0;}
 .bw-table .sw-y{background:color-mix(in srgb,#e8d23a 40%,transparent);}
 .bw-table .sw-o{background:color-mix(in srgb,var(--gafor-m) 38%,transparent);}
 .bw-table .sw-r{background:color-mix(in srgb,var(--gafor-x) 40%,transparent);}
-.bw-table .sw-b{background:color-mix(in srgb,var(--dew) 22%,transparent);}
 
 /* freshness */
 .age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;}
@@ -511,7 +509,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
 
   /* alles Bedienbare weg */
   .gate,.menu,.search-block,.map-btns,.map-hint,.header-tools,.modal,
-  .code-legend,.age.clickable,.chips,.explain,.ens-note,.hs-row,
+  .code-legend,.chips,.explain,.ens-note,.hs-row,
   #savePlaceBtn,#favBtn,#gpsBtn,.leaflet-control-zoom,.leaflet-control-attribution{
     display:none !important;
   }
@@ -539,7 +537,8 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
     border-radius:2mm;background:#fff;break-inside:avoid;}
   .area-num{font-size:18pt;min-width:14mm;}
   .area-name{font-size:11pt;}
-  .legend{margin:0 0 2mm;font-size:7pt;}
+  .legend{font-size:6pt;padding:0.6mm 1.2mm;background:#fff;border:1px solid #ccc;
+    color:#333;gap:0 2mm;}
 
   .map-block{padding:0 0 2.5mm;}
   .map-wrap{height:42mm;min-height:0;max-height:none;border:1px solid #bbb;
@@ -551,9 +550,6 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .section-title{font-size:8.5pt;}
   .card-body{padding:1.5mm 2.5mm;}
 
-  /* Nicht hart umbrechen, sondern dicht packen: die beiden langen Karten
-     dürfen über den Seitenrand laufen, alles Kleine bleibt zusammen. Sonst
-     bleibt am Ende von Seite 1 die halbe Seite leer und es werden drei. */
   /* Kleine Einheiten bleiben zusammen, grosse Karten dürfen über den
      Seitenrand laufen — sonst bleibt Seite 1 halb leer und es werden drei. */
   .gbar-wrap,.metar-row,.stat,.ens-row,tr,.wp-split{break-inside:avoid;}
@@ -566,7 +562,6 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .gseg .gcd{font-size:12pt;} .gseg .gcd .g{font-size:8pt;}
   .gseg .ghr{font-size:7pt;}
   .gbar-foot{font-size:6.5pt;margin-top:1.2mm;}
-  .gafor-unit{font-size:6.5pt;padding:1.5mm 3mm 0;}
 
   pre.raw,pre.report{font-size:7.2pt;line-height:1.3;background:#fafafa;border:1px solid #eee;
     padding:1.5mm 2mm;white-space:pre-wrap;}
@@ -580,9 +575,9 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .report-h{font-size:8pt;margin:2mm 0 1mm;}
 
   .wp-split{gap:0 4mm;flex-wrap:nowrap;align-items:flex-start;}
-  .wp-col-table{flex:1 1 50%;min-width:0;}
+  .wp-col-table{flex:1 1 45%;min-width:0;}
   .wp-col-table .wp-table{max-width:none;}
-  .wp-col-chart{flex:0 0 48%;min-width:0;padding:0;}
+  .wp-col-chart{flex:0 0 53%;min-width:0;padding:0;}
   .wp-col-chart svg{width:100%;height:auto;max-height:58mm;}
   .wp-table,.bw-table,.fc-table{font-size:7pt;}
   .wp-table td,.wp-table th{padding:0.6mm 2mm;}

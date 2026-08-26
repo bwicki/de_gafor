@@ -42,7 +42,7 @@
     <div class="title-block">
       <div class="eyebrow">GAFOR · Flugwetter</div>
       <h1>GaforCast <button class="ver" id="appVersion" title="Version und Datenstand">–</button></h1>
-      <p id="subtitle">Ort wählen — Gebiet und Berichte folgen</p>
+      <p>Ort wählen — Gebiet und Berichte folgen</p>
     </div>
     <div class="header-tools">
       <button class="btn icon" id="reloadBtn" title="Alle Berichte aktualisieren" aria-label="Aktualisieren">⟳</button>
@@ -99,7 +99,7 @@
       </div>
 
       <!-- ---------- GAFOR area headline ---------- -->
-      <div class="area-head" id="areaHead">
+      <div class="area-head">
         <div class="area-num" id="areaNum">—</div>
         <div class="area-txt">
           <div class="area-name" id="areaName">Gebiet wird bestimmt…</div>
@@ -138,12 +138,13 @@
           <button class="btn icon" id="zoomDeBtn" title="Ganz Deutschland">⤢</button>
         </div>
         <div class="map-hint" id="mapHint">Karte verschieben — Fadenkreuz = Ort</div>
+        <!-- Die Bereichslegende liegt in der Karte, unten links — dort, wo sie
+             hingehört, statt darunter eine eigene Zeile zu beanspruchen. -->
+        <div class="legend" id="regionLegend"></div>
       </div>
     </div>
 
   </div>
-
-  <div class="legend" id="regionLegend"></div>
 
   <main class="content">
 
