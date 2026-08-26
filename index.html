@@ -51,22 +51,24 @@
       <button class="btn icon" id="menuBtn" title="Menü" aria-label="Menü">≡</button>
     </div>
     <img class="header-logo" alt="Wicki Partners Ballonteam" src="img/wicki-logo.png">
+
+    <!-- Die Menüs hängen an der Kopfzeile, nicht am Seitenanfang: sonst öffnen
+         sie sich bei gescrollter Seite ausserhalb des Sichtfensters. -->
+    <div class="menu hidden" id="shareMenu">
+      <button id="sharePngBtn">Bild der Seite (PNG) speichern</button>
+      <button id="shareLinkBtn">Link zu diesem Ort kopieren</button>
+    </div>
+
+    <div class="menu hidden" id="menu">
+      <button id="mThemeBtn">Hell / dunkel umschalten</button>
+      <button id="mSettingsBtn">Einstellungen…</button>
+      <div class="sep"></div>
+      <button id="mReloadBtn">Berichte neu laden</button>
+      <div class="sep"></div>
+      <button id="mAboutBtn">Über / Datenquellen</button>
+      <button id="mLockBtn">Sperren</button>
+    </div>
   </header>
-
-  <div class="menu hidden" id="shareMenu">
-    <button id="sharePngBtn">Bild der Seite (PNG) speichern</button>
-    <button id="shareLinkBtn">Link zu diesem Ort kopieren</button>
-  </div>
-
-  <div class="menu hidden" id="menu">
-    <button id="mThemeBtn">Hell / dunkel umschalten</button>
-    <button id="mSettingsBtn">Einstellungen…</button>
-    <div class="sep"></div>
-    <button id="mReloadBtn">Berichte neu laden</button>
-    <div class="sep"></div>
-    <button id="mAboutBtn">Über / Datenquellen</button>
-    <button id="mLockBtn">Sperren</button>
-  </div>
 
   <!-- ---------- place input ---------- -->
   <div class="search-block">
@@ -103,10 +105,12 @@
 
   <div class="legend" id="regionLegend"></div>
 
-  <!-- ---------- selected place ---------- -->
+  <!-- ---------- Ort und Gebiet, auf breiten Schirmen nebeneinander ---------- -->
+  <div class="place-row">
+
   <div class="place-bar">
     <div class="place-main">
-      <div id="placeName" class="place-name">Kartenmitte</div>
+      <div id="placeName" class="place-name">Ort wird gesucht …</div>
       <div id="placeCoords" class="place-coords">—</div>
     </div>
     <button class="btn icon" id="savePlaceBtn" title="Ort merken">☆</button>
@@ -120,6 +124,8 @@
       <div class="area-sub" id="areaSub"></div>
     </div>
     <div class="area-state" id="areaState"></div>
+  </div>
+
   </div>
 
   <main class="content">
@@ -296,6 +302,7 @@
 <script src="js/metar.js"></script>
 <script src="js/openmeteo.js"></script>
 <script src="js/wind.js"></script>
+<script src="js/stueve.js"></script>
 <script src="js/mapview.js"></script>
 <script src="js/app.js"></script>
 </body>

@@ -86,10 +86,16 @@ const MAPVIEW = (() => {
     return map;
   }
 
+  /* Solange die Karte auf eigenes Geheiss fährt (Suchtreffer, „ganz
+     Deutschland"), wird das an onMove durchgereicht — sonst löschte die
+     Bewegungsmeldung den gerade gefundenen Ortsnamen wieder. */
+  let selfMoveUntil = 0;
+  const markSelfMove = () => { selfMoveUntil = Date.now() + 1600; };
+
   function fire() {
     if (!map) return;
     const c = map.getCenter();
-    onMove(c.lat, c.lng);
+    onMove(c.lat, c.lng, Date.now() < selfMoveUntil);
   }
 
   /** Die Gebietspolygone. */
@@ -192,9 +198,15 @@ const MAPVIEW = (() => {
   }
 
   function center(lat, lon, zoom) {
-    if (map) map.setView([lat, lon], zoom || map.getZoom(), { animate: true });
+    if (!map) return;
+    markSelfMove();
+    map.setView([lat, lon], zoom || map.getZoom(), { animate: true });
   }
-  function germany() { if (map) map.fitBounds([[47.2, 5.8], [55.1, 15.1]], { padding: [8, 8] }); }
+  function germany() {
+    if (!map) return;
+    markSelfMove();
+    map.fitBounds([[47.2, 5.8], [55.1, 15.1]], { padding: [8, 8] });
+  }
   const get = () => map;
 
   return { init, setAreas, setRegions, setLand, setMask, setMaskTheme,

@@ -27,7 +27,7 @@ await new Promise(r => server.listen(0, r));
 const base = `http://127.0.0.1:${server.address().port}/`;
 
 // ---------------------------------------------------------------- Mockdaten
-const H = 49;                                    // Stunden im Testlauf
+const H = 80;                                    // Stunden im Testlauf
 const now = new Date();
 now.setMinutes(0, 0, 0);
 const times = Array.from({ length: H }, (_, i) =>
@@ -77,6 +77,8 @@ function forecastJSON(url) {
     hourly[`wind_direction_${p}hPa`] = ser(i => (200 + k * 9 + i * 2) % 360);
     hourly[`temperature_${p}hPa`] = ser(() => 20 - k * 3.6);
     hourly[`geopotential_height_${p}hPa`] = ser(() => STD[p]);
+    // eine feuchte Schicht zwischen 900 und 800 hPa, damit die Schattierung greift
+    hourly[`relative_humidity_${p}hPa`] = ser(() => (p <= 900 && p >= 800 ? 96 : 55));
   }
   return {
     latitude: 49.1, longitude: 9.75, elevation: 340,
@@ -180,6 +182,14 @@ await page.route('**/*', async (route) => {
   if (url.includes('aviationweather.gov'))
     return route.fulfill({ json: JSON.parse(await readFile(
       url.includes('/taf') ? 'test/sample-taf.json' : 'test/sample-metar.json', 'utf8')) });
+  if (url.includes('nominatim.openstreetmap.org/reverse')) {
+    const u = new URL(url);
+    const la = (+u.searchParams.get('lat')).toFixed(2);
+    return route.fulfill({ json: { address: { village: `Testdorf ${la}`, state: 'Baden-Württemberg' } } });
+  }
+  if (url.includes('geocoding-api.open-meteo.com'))
+    return route.fulfill({ json: { results: [{ name: 'Gladbeck', admin1: 'Nordrhein-Westfalen',
+      country: 'Deutschland', latitude: 51.5711, longitude: 6.9859, elevation: 63 }] } });
   if (url.includes('tile.openstreetmap.org'))
     return route.fulfill({ status: 200, contentType: 'image/png', body: TILE });
   return route.fulfill({ status: 404, body: '' });
@@ -215,8 +225,28 @@ await page.waitForFunction(() => {
 // Höhenwind
 const rows = await page.locator('#windBody .wp-table tbody tr').count();
 rows >= 8 ? ok(`Höhenwind: ${rows} Zeilen`) : bad(`Höhenwind: nur ${rows} Zeilen`);
-const barbs = await page.locator('#windBody .wp-svg .wp-barb').count();
+const barbs = await page.locator('#windBody .sv-svg .sv-barb').count();
 barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahnen`);
+{
+  const sv = page.locator('#windBody .sv-svg');
+  (await sv.count()) === 1 ? ok('Stüve-Diagramm gezeichnet') : bad('kein Stüve-Diagramm');
+  (await sv.locator('.sv-curve.temp').count()) === 1 &&
+  (await sv.locator('.sv-curve.dew').count()) === 1
+    ? ok('Temperatur- und Taupunktkurve vorhanden')
+    : bad('T- oder Td-Kurve fehlt');
+  (await sv.locator('.sv-adiabat line').count()) >= 3
+    ? ok(`${await sv.locator('.sv-adiabat line').count()} Trockenadiabaten`)
+    : bad('keine Trockenadiabaten');
+  (await sv.locator('.sv-humid-band').count()) === 1
+    ? ok('Schattierung der feuchten Schichten liegt auf') : bad('keine Feuchteschattierung');
+  const stops = await sv.locator('linearGradient stop').evaluateAll(
+    ns => ns.map(n => +n.getAttribute('stop-opacity')));
+  stops.length >= 5 && Math.max(...stops) > 0.3 && Math.min(...stops) === 0
+    ? ok(`Feuchteverlauf mit ${stops.length} Stufen, stärkste ${Math.max(...stops)}`)
+    : bad(`Feuchteverlauf: ${stops.join(', ')}`);
+  (await sv.locator('.sv-frame').count()) === 2
+    ? ok('zwei Felder: Stüve links, Wind rechts') : bad('Felderaufteilung stimmt nicht');
+}
 (await page.locator('#windBody .wp-mrow.fzl').count()) >= 1
   ? ok('Nullgradgrenze im Profil markiert') : bad('Nullgradgrenze fehlt');
 (await page.locator('#windBody .wp-mrow.pbl').count()) >= 1
@@ -226,15 +256,37 @@ barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahne
   models === 8 ? ok('acht Modelle zur Wahl') : bad(`Modell-Chips: ${models}`);
   (await page.locator('#windBody .chips.models .chip.on').innerText()) === 'Auto'
     ? ok('„Auto" ist vorgewählt') : bad('kein Modell vorgewählt');
-  const hours = await page.locator('#windBody .chips:not(.models) .chip').count();
-  hours >= 7 ? ok(`${hours} Stunden-Chips`) : bad(`Stunden-Chips: ${hours}`);
+
+  // Reihenfolge der Modellpillen: aufsteigend nach Vorhersagehorizont
+  const horizons = await page.locator('#windBody .chips.models .chip').evaluateAll(
+    ns => ns.map(n => +(/\+(\d+)\s*h/.exec(n.title || '') || [0, -1])[1]));
+  horizons.every((h, i) => i === 0 || h >= horizons[i - 1])
+    ? ok(`Modelle aufsteigend nach Horizont (${horizons.join(' ≤ ')})`)
+    : bad(`Modellreihenfolge: ${horizons.join(', ')}`);
+  horizons[0] === 48
+    ? ok('kürzestes Modell (ICON-D2, 48 h) steht vorn') : bad(`erster Horizont: ${horizons[0]}`);
+
+  // Zeitwahl als Schieber statt als Pillenreihe
+  (await page.locator('#windBody .chips:not(.models) .chip').count()) === 0
+    ? ok('keine Stunden-Pillen mehr') : bad('Stunden-Pillen sind noch da');
+  const slider = page.locator('#windBody .hour-slider input[type=range]');
+  (await slider.count()) === 1 ? ok('Zeitschieber vorhanden') : bad('kein Zeitschieber');
+  (await slider.getAttribute('step')) === '1'
+    ? ok('Schieber rastet in Ein-Stunden-Schritten') : bad('falsche Schrittweite');
+  // „Auto" reicht weiter als jedes Einzelmodell — hier bis ans Ende der Daten
+  const maxAuto = +(await slider.getAttribute('max'));
+  maxAuto > 48 && maxAuto <= H - 1
+    ? ok(`Schieber reicht bei „Auto" bis +${maxAuto} h (Ende der Daten)`)
+    : bad(`Schiebermaximum bei „Auto": ${maxAuto}`);
+  /jetzt/.test(await page.locator('#windBody .hs-label').innerText())
+    ? ok('Schieber beschriftet den gewählten Zeitpunkt') : bad('keine Schieberbeschriftung');
   // Tabelle links, Grafik rechts
   const split = page.locator('#windBody .wp-split');
   (await split.locator('.wp-col-table').count()) === 1 &&
   (await split.locator('.wp-col-chart').count()) === 1
     ? ok('Tabelle und Grafik stehen in einem gemeinsamen Block')
     : bad('Höhenwind ist nicht zweispaltig aufgebaut');
-  (await split.locator('.wp-svg .wp-grid.minor line').count()) > 4
+  (await split.locator('.sv-svg .sv-grid.minor line').count()) > 4
     ? ok('Zwischenlinien in der Grafik') : bad('keine Zwischenlinien');
 }
 
@@ -248,9 +300,14 @@ await page.waitForTimeout(300);
   tBox && gBox && gBox.x >= tBox.x + tBox.width - 2
     ? ok('Desktop: die Grafik steht rechts neben der Tabelle')
     : bad(`Anordnung: Tabelle x=${tBox && Math.round(tBox.x)} b=${tBox && Math.round(tBox.width)}, Grafik x=${gBox && Math.round(gBox.x)}`);
-  gBox && gBox.width <= 300
-    ? ok(`Grafik bleibt kompakt (${Math.round(gBox.width)} px)`)
-    : bad(`Grafik zu breit: ${gBox && Math.round(gBox.width)} px`);
+  // die Grafik soll ihren Kasten ausfüllen, nicht darin verloren gehen
+  const sBox = await split.locator('.wp-col-chart svg').boundingBox();
+  sBox && gBox && sBox.width >= gBox.width * 0.8
+    ? ok(`Grafik füllt ihren Platz (${Math.round(sBox.width)} von ${Math.round(gBox.width)} px)`)
+    : bad(`Grafik zu schmal: ${sBox && Math.round(sBox.width)} von ${gBox && Math.round(gBox.width)} px`);
+  sBox && tBox && Math.abs(sBox.height - tBox.height) <= Math.max(60, tBox.height * 0.25)
+    ? ok(`Grafik so hoch wie die Tabelle (${Math.round(sBox.height)} zu ${Math.round(tBox.height)} px)`)
+    : bad(`Höhen: Grafik ${sBox && Math.round(sBox.height)}, Tabelle ${tBox && Math.round(tBox.height)}`);
 
   const cols = page.locator('#gaforBody .report-cols .report-col');
   if (await cols.count() === 2) {
@@ -268,6 +325,13 @@ await page.waitForTimeout(300);
     console.log('  --   keine Flugwetterübersicht im Testindex, Spaltenprüfung entfällt');
   }
 
+  // Ortskästchen und GAFOR-Gebiet nebeneinander
+  const pb = await page.locator('.place-row .place-bar').boundingBox();
+  const ah = await page.locator('.place-row .area-head').boundingBox();
+  pb && ah && ah.x >= pb.x + pb.width - 2 && Math.abs(ah.y - pb.y) < 12
+    ? ok('Ort und GAFOR-Gebiet stehen auf einer Zeile nebeneinander')
+    : bad(`Ortszeile: Ort x=${pb && Math.round(pb.x)} b=${pb && Math.round(pb.width)}, Gebiet x=${ah && Math.round(ah.x)} y=${ah && Math.round(ah.y)}`);
+
   // Knöpfe links vom Logo
   const tools = await page.locator('.header-tools').boundingBox();
   const logo = await page.locator('.header-logo').boundingBox();
@@ -281,13 +345,34 @@ await page.waitForTimeout(300);
 await page.setViewportSize({ width: 430, height: 3200 });
 await page.waitForTimeout(250);
 
-// Stundenwechsel
+// Stundenwechsel über den Schieber
+const setSlider = async (v) => {
+  await page.locator('#windBody .hour-slider input[type=range]').evaluate((n, val) => {
+    n.value = String(val);
+    n.dispatchEvent(new Event('input', { bubbles: true }));
+  }, v);
+  await page.waitForTimeout(220);
+};
 const firstAlt = await page.locator('#windBody .wp-table tbody tr td.spd').first().innerText();
-await page.locator('#windBody .chips:not(.models) .chip').nth(4).click();
-await page.waitForTimeout(150);
+await setSlider(4);
 const secondAlt = await page.locator('#windBody .wp-table tbody tr td.spd').first().innerText();
-firstAlt !== secondAlt ? ok('Stundenwahl ändert das Profil')
-                       : bad(`Stundenwahl ohne Wirkung (${firstAlt})`);
+firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
+                       : bad(`Schieber ohne Wirkung (${firstAlt})`);
+/\+4 h/.test(await page.locator('#windBody .hs-label').innerText())
+  ? ok('Beschriftung folgt dem Schieber') : bad('Beschriftung folgt dem Schieber nicht');
+
+// Modellhorizont begrenzt den Schieber
+{
+  await page.locator('#windBody .chips.models .chip:text-is("ICON-D2")').click();
+  await page.waitForTimeout(700);
+  const max = +(await page.locator('#windBody .hour-slider input[type=range]').getAttribute('max'));
+  max === 48
+    ? ok('ICON-D2 kürzt den Schieber auf +48 h') : bad(`Schiebermaximum bei ICON-D2: ${max}`);
+  (await page.locator('#windBody .chips.models .chip.on').innerText()) === 'ICON-D2'
+    ? ok('Modellwechsel wird angezeigt') : bad('Modellwechsel ohne Wirkung');
+  await page.locator('#windBody .chips.models .chip:text-is("Auto")').click();
+  await page.waitForTimeout(700);
+}
 
 // Modellkarte
 for (const [sel, name] of [['Wolken hoch', 'Wolken hoch'], ['Wolken mittel', 'Wolken mittel'],
@@ -351,12 +436,59 @@ if (shotArg > 0) {
   names.some(n => n.includes('Flughafen'))
     ? ok('Abkürzung „Arpt" wird ausgeschrieben')
     : bad(`keine Abkürzung ausgeschrieben: ${names.join(' | ')}`);
+  !names.some(n => /(^|·|,)\s*DE\s*$/i.test(n))
+    ? ok('das Länderkürzel DE ist gestrichen') : bad(`DE steht noch da: ${names.join(' | ')}`);
+  names.some(n => /·\s*[A-Z]{2}$/.test(n))
+    ? ok('Bundesland steht als Kürzel dahinter') : bad(`kein Bundesland: ${names.join(' | ')}`);
 }
-(await page.locator('#metarBody .metar-sum').count()) === 0
-  ? ok('kein entschlüsselter Klartext mehr, nur Rohmeldung')
-  : bad('die alte Entschlüsselungszeile steht noch da');
+{
+  // Kennung, Ortsname und Distanz auf einer einzigen Zeile
+  const top = page.locator('#metarBody .metar-row .metar-top').first();
+  const box = await top.boundingBox();
+  const id = await top.locator('.metar-id').boundingBox();
+  const nm = await top.locator('.metar-name').boundingBox();
+  const ds = await top.locator('.metar-dist').boundingBox();
+  id && nm && ds && box && box.height <= id.height + 8
+    ? ok(`METAR-Kopf ist einzeilig (${Math.round(box.height)} px)`)
+    : bad(`METAR-Kopf ${box && Math.round(box.height)} px hoch`);
+  id && nm && ds && id.x < nm.x && nm.x < ds.x
+    ? ok('Reihenfolge: Kennung, Ortsname, Distanz')
+    : bad('Reihenfolge im METAR-Kopf stimmt nicht');
+  ds && box && ds.x + ds.width >= box.x + box.width - 2
+    ? ok('Distanz steht am rechten Zeilenrand') : bad('Distanz klebt nicht rechts');
+  const arrow = await top.locator('.metar-dist span').count();
+  arrow === 1 ? ok('Richtungspfeil vor der Distanz') : bad('kein Richtungspfeil');
+  /vom gewählten Ort/.test(await top.locator('.metar-dist').getAttribute('title') || '')
+    ? ok('Pfeil trägt Peilung und Richtung als Hinweis') : bad('kein Hinweis am Pfeil');
+}
+
 (await page.locator('#metarBody pre.raw').count()) >= 2
   ? ok('Rohmeldungen werden angezeigt') : bad('keine Rohmeldungen');
+{
+  const rows = page.locator('#metarBody .metar-row');
+  const first = rows.first();
+  const mp = first.locator('.metar-plain:not(.taf) .pl');
+  (await mp.count()) === 2
+    ? ok('METAR-Klartext in genau zwei Zeilen') : bad(`METAR-Klartext: ${await mp.count()} Zeilen`);
+  const t1 = await mp.first().innerText();
+  /Wind .*·.*Sicht .*·.*Wolken|Wind .*·.*Sicht/.test(t1)
+    ? ok(`erste Zeile: „${t1}"`) : bad(`erste Zeile: ${t1}`);
+  // je Zeile höchstens zwei — deshalb zeilenweise prüfen, nicht über die Karte
+  const perRow = [];
+  for (const r of await rows.all()) perRow.push(await r.locator('.metar-plain.taf .pl').count());
+  perRow.every(n => n <= 2) && perRow.some(n => n === 2)
+    ? ok(`TAF-Klartext je Platz höchstens zwei Zeilen (${perRow.join(', ')})`)
+    : bad(`TAF-Klartextzeilen je Platz: ${perRow.join(', ')}`);
+  const tp = rows.first().locator('.metar-plain.taf .pl');
+  /Vorhersage \d+\. \d\d bis \d+\. \d\d UTC/.test(await tp.first().innerText())
+    ? ok(`TAF-Gültigkeit übersetzt: „${(await tp.first().innerText()).slice(0, 60)}…"`)
+    : bad(`TAF-Zeile: ${await tp.first().innerText()}`);
+  const all = (await page.locator('#metarBody .metar-plain .pl').allInnerTexts()).join(' | ');
+  /Regenschauer|Dunst|zeitweise/.test(all)
+    ? ok('Witterungskürzel werden übersetzt (Regenschauer, Dunst, zeitweise)')
+    : bad('keine übersetzten Witterungskürzel');
+  !/VRB°/.test(all) ? ok('umlaufender Wind heisst „umlaufend", nicht „VRB°"') : bad('VRB° steht noch da');
+}
 {
   const mIdx = seen.findIndex(u => u.includes('data/dwd/metar.json'));
   const aIdx = seen.findIndex(u => u.includes('aviationweather.gov'));
@@ -441,14 +573,94 @@ await page.waitForTimeout(3200);
 
 // ---- Seitenbild ----
 {
-  const dl = page.waitForEvent('download', { timeout: 25000 }).catch(() => null);
+  /* Geprüft wird, was die App selbst tut: Bild erzeugen und den Download
+     anstossen. Ob Playwright das Download-Ereignis meldet, hängt an der
+     Fenstergrösse und ist nicht Sache der App — deshalb wird der Dateiname
+     am angeklickten Link abgegriffen. */
+  await page.evaluate(() => {
+    window.__dl = [];
+    const orig = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (this.download) window.__dl.push(this.download);
+      return orig.apply(this, arguments);
+    };
+  });
   await page.locator('#shareBtn').click();
   await page.waitForTimeout(120);
   await page.locator('#sharePngBtn').click();
-  const d = await dl;
-  d && /^gaforcast_.*\.png$/.test(d.suggestedFilename())
-    ? ok(`Seitenbild wird angeboten (${d.suggestedFilename()})`)
-    : bad('kein PNG-Download ausgelöst');
+  await page.waitForFunction(() => window.__dl.length > 0 ||
+    /fehlgeschlagen/.test(document.getElementById('mapHint').textContent),
+    null, { timeout: 90000 }).catch(() => {});
+  const names = await page.evaluate(() => window.__dl);
+  names.length && /^gaforcast_.*\.png$/.test(names[0])
+    ? ok(`Seitenbild erzeugt und zum Sichern angeboten (${names[0]})`)
+    : bad(`kein Seitenbild — Hinweiszeile: „${await page.locator('#mapHint').innerText()}"`);
+}
+
+// ---- Ortszeile nennt immer einen Ort, nie „Kartenmitte" ----
+{
+  const name = await page.locator('#placeName').innerText();
+  /Testdorf/.test(name)
+    ? ok(`Ortszeile zeigt den nächstgelegenen Ort („${name}")`)
+    : bad(`Ortszeile: ${name}`);
+  !/Kartenmitte/.test(await page.locator('.place-bar').innerText())
+    ? ok('das Wort „Kartenmitte" kommt nicht mehr vor') : bad('„Kartenmitte" steht noch da');
+  /\d+\.\d{4}° N/.test(await page.locator('#placeCoords').innerText())
+    ? ok('Koordinaten stehen darunter') : bad('keine Koordinaten');
+  // Verschieben der Karte zieht den Namen nach
+  await page.evaluate(() => MAPVIEW.get().panBy([250, 250], { animate: false }));
+  await page.waitForTimeout(2200);
+  const after = await page.locator('#placeName').innerText();
+  /Testdorf/.test(after) && after !== name
+    ? ok(`nach dem Verschieben ein neuer Ort („${after}")`)
+    : bad(`nach dem Verschieben: ${after} (vorher ${name})`);
+}
+
+// ---- Menüs öffnen sich auch bei gescrollter Seite ----
+{
+  await page.setViewportSize({ width: 430, height: 780 });
+  await page.evaluate(() => window.scrollTo(0, 1400));
+  await page.waitForTimeout(250);
+  const sy = await page.evaluate(() => Math.round(window.scrollY));
+  sy > 300 ? ok(`Seite ist gescrollt (${sy} px)`) : bad(`Seite scrollt nicht (${sy} px) — Prüfung wertlos`);
+  for (const [btn, menu] of [['#menuBtn', '#menu'], ['#shareBtn', '#shareMenu']]) {
+    await page.locator(btn).click();
+    await page.waitForTimeout(200);
+    const box = await page.locator(menu).boundingBox();
+    const vh = page.viewportSize().height;
+    box && box.y >= -1 && box.y < vh && box.height > 20
+      ? ok(`${menu} öffnet sich im Sichtfenster (y=${Math.round(box.y)})`)
+      : bad(`${menu} liegt bei y=${box && Math.round(box.y)}, Fenster ist ${vh} hoch`);
+    await page.locator(btn).click();
+    await page.waitForTimeout(120);
+  }
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.setViewportSize({ width: 430, height: 3200 });
+  await page.waitForTimeout(200);
+}
+
+// ---- Ortssuche zoomt hin und behält den Namen ----
+await page.goto(base + '?such=1', { waitUntil: 'domcontentloaded' });
+await page.waitForTimeout(2200);
+{
+  const before = await page.evaluate(() => MAPVIEW.get().getZoom());
+  await page.locator('#searchInput').fill('Gladbeck');
+  await page.waitForTimeout(700);
+  (await page.locator('#searchResults .row').count()) >= 1
+    ? ok('Ortssuche liefert einen Treffer') : bad('Suche liefert nichts');
+  await page.locator('#searchResults .row').first().click();
+  await page.waitForTimeout(2200);
+  const after = await page.evaluate(() => MAPVIEW.get().getZoom());
+  const c = await page.evaluate(() => { const p = MAPVIEW.get().getCenter(); return [p.lat, p.lng]; });
+  after >= 11 && after > before
+    ? ok(`Karte zoomt auf den Treffer (${before} → ${after})`)
+    : bad(`Zoom nach Suche: ${before} → ${after}`);
+  Math.abs(c[0] - 51.5711) < 0.01 && Math.abs(c[1] - 6.9859) < 0.01
+    ? ok('Karte steht auf dem gefundenen Ort')
+    : bad(`Kartenmitte: ${c.map(v => v.toFixed(4)).join(', ')}`);
+  (await page.locator('#placeName').innerText()).includes('Gladbeck')
+    ? ok('der gefundene Ortsname bleibt stehen')
+    : bad(`Ortszeile: ${await page.locator('#placeName').innerText()}`);
 }
 
 errors.length ? bad(`JS-Fehler: ${errors.slice(0, 3).join(' | ')}`) : ok('keine JS-Fehler');

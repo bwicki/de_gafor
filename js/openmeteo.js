@@ -27,7 +27,10 @@ const OM = (() => {
    * level the user picked in the settings — every level costs four variables
    * in the query string. */
   const LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300];
-  const LEVEL_VARS = ['wind_speed', 'wind_direction', 'temperature', 'geopotential_height'];
+  /* Feuchte kommt seit 1.10.0 mit: das Stüve-Diagramm braucht den Taupunkt und
+   * die Schattierung der feuchten Schichten. */
+  const LEVEL_VARS = ['wind_speed', 'wind_direction', 'temperature',
+                      'geopotential_height', 'relative_humidity'];
 
   const M_TO_FT = 3.280839895;
 
@@ -53,16 +56,21 @@ const OM = (() => {
    * `hours` ist der Vorhersagehorizont; die Auswahl über dem Höhenwind blendet
    * aus, was die gewählte Stunde nicht mehr abdeckt.
    */
+  /* Aufsteigend nach Vorhersagehorizont sortiert — die Knöpfe stehen in
+     derselben Reihenfolge, das kürzeste und feinste Modell zuerst. „Auto" ist
+     der nahtlose Mix und reicht deshalb am weitesten. */
   const MODELS = [
-    { key: '',                  name: 'Auto',        note: 'nahtloser Mix', hours: 384 },
     { key: 'icon_d2',           name: 'ICON-D2',     note: 'DWD, 2 km',     hours: 48 },
-    { key: 'icon_eu',           name: 'ICON-EU',     note: 'DWD, 7 km',     hours: 120 },
-    { key: 'icon_global',       name: 'ICON global', note: 'DWD, 11 km',    hours: 180 },
-    { key: 'ecmwf_ifs025',      name: 'ECMWF IFS',   note: 'ECMWF, 25 km',  hours: 144 },
-    { key: 'gfs_global',        name: 'GFS',         note: 'NOAA, 13 km',   hours: 384 },
     { key: 'meteofrance_arpege_europe', name: 'ARPEGE', note: 'Météo-France, 11 km', hours: 96 },
+    { key: 'icon_eu',           name: 'ICON-EU',     note: 'DWD, 7 km',     hours: 120 },
+    { key: 'ecmwf_ifs025',      name: 'ECMWF IFS',   note: 'ECMWF, 25 km',  hours: 144 },
     { key: 'ukmo_global_deterministic_10km', name: 'UKMO', note: 'Met Office, 10 km', hours: 168 },
+    { key: 'icon_global',       name: 'ICON global', note: 'DWD, 11 km',    hours: 180 },
+    { key: 'gfs_global',        name: 'GFS',         note: 'NOAA, 13 km',   hours: 384 },
+    { key: '',                  name: 'Auto',        note: 'nahtloser Mix', hours: 384 },
   ];
+  /** Horizont eines Modells in Stunden. */
+  const modelHours = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[MODELS.length - 1]).hours;
   /** Modelle, die eine Vorhersage für +hours noch abdecken. */
   const modelsFor = (hours) => MODELS.filter(m => m.hours >= (hours || 0));
   const modelName = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[0]).name;
@@ -139,7 +147,10 @@ const OM = (() => {
       if (s == null) continue;
       const m = ground + agl;
       out.push({ label: `${agl} m GND`, hPa: null, m, ft: Math.round(m * M_TO_FT),
-                 spd: s, dir: d, temp: agl === 10 && h.temperature_2m ? h.temperature_2m[i] : null });
+                 spd: s, dir: d,
+                 temp: agl === 10 && h.temperature_2m ? h.temperature_2m[i] : null,
+                 rh: agl === 10 && h.relative_humidity_2m ? h.relative_humidity_2m[i] : null,
+                 dew: agl === 10 && h.dew_point_2m ? h.dew_point_2m[i] : null });
     }
 
     for (const p of (j._levels || LEVELS)) {
@@ -148,15 +159,29 @@ const OM = (() => {
       const gh = h[`geopotential_height_${p}hPa`] ? h[`geopotential_height_${p}hPa`][i] : null;
       const m = gh != null ? gh : stdHeight(p);
       if (m <= ground + 200) continue;            // below or inside the surface layer
+      const tp = h[`temperature_${p}hPa`] ? h[`temperature_${p}hPa`][i] : null;
+      const rh = h[`relative_humidity_${p}hPa`] ? h[`relative_humidity_${p}hPa`][i] : null;
       out.push({
         label: `${p} hPa`, hPa: p, m, ft: Math.round(m * M_TO_FT), spd: s,
         dir: h[`wind_direction_${p}hPa`] ? h[`wind_direction_${p}hPa`][i] : null,
-        temp: h[`temperature_${p}hPa`] ? h[`temperature_${p}hPa`][i] : null,
+        temp: tp, rh, dew: dewPoint(tp, rh),
       });
     }
 
     out.sort((a, b) => b.m - a.m);
     return out;
+  }
+
+  /**
+   * Taupunkt aus Temperatur und relativer Feuchte, Magnus-Formel
+   * (Alduchov & Eskridge). Open-Meteo liefert auf den Druckflächen nur die
+   * Feuchte, nicht den Taupunkt.
+   */
+  function dewPoint(tC, rh) {
+    if (tC == null || rh == null || rh <= 0) return null;
+    const b = 17.625, c = 243.04;
+    const g = Math.log(Math.min(100, Math.max(1, rh)) / 100) + (b * tC) / (c + tC);
+    return (c * g) / (b - g);
   }
 
   /** ICAO standard atmosphere height for a pressure, as a fallback in metres. */
@@ -240,7 +265,8 @@ const OM = (() => {
     return { hit: vals.filter(v => v < limit).length, n: vals.length };
   }
 
-  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, MODELS, modelsFor, modelName,
+  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint,
+           MODELS, modelsFor, modelName, modelHours,
            ensemble, spread, shareBelow, members, levelsUpTo, stdHeight,
            HOURLY, LEVELS, ENS_HOURLY, M_TO_FT };
 })();

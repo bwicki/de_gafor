@@ -146,6 +146,14 @@ if (ovSample) {
   h.areas.length === 18 && h.areas[0] === '54' && h.areas.at(-1) === '84'
     ? ok(`Vorhersagebereich gelesen (${h.areas.length} Gebiete)`)
     : bad(`Vorhersagebereich: ${JSON.stringify(h.areas)}`);
+  // Bearbeitungsvermerke in der Kopfzeile: "FBEU40 EDZE 260600 COR". Ohne
+  // Berücksichtigung fiel die ganze Übersicht des Bereichs West durch.
+  for (const tag of ['COR', 'AMD', 'RRA', 'CCA']) {
+    const h2 = P.overviewHeader(t.replace(/^(\s*FBEU\d{2}\s+[A-Z]{4}\s+\d{6})\s*$/m, `$1 ${tag}`));
+    if (h2.office !== 'EDZM') { bad(`Kopfzeile mit ${tag} nicht erkannt`); break; }
+    if (tag === 'CCA') ok('Kopfzeile mit COR/AMD/RRA/CCA wird erkannt');
+  }
+
   const body = P.overviewBody(t);
   !/Vorhersagebereich|Deutscher Wetterdienst/.test(body.split('\n')[0])
     ? ok('Kopfblock aus dem Fliesstext entfernt')
@@ -308,6 +316,26 @@ head('METAR / TAF');
       ? ok('Hauptwolkenuntergrenze gelesen (OVC007 → 700 ft)')
       : bad(`ETHL: Basis ${M.ceiling(ifr)}`);
 
+    // --- Bundesland statt „DE" ---
+    M.landOf('EDDS') === 'BW' && M.landOf('EDTY') === 'BW' && M.landOf('ETHL') === 'BW' &&
+    M.landOf('EDDN') === 'BY' && M.landOf('EDDL') === 'NW' && M.landOf('EDDH') === 'HH'
+      ? ok('Bundesland zur Kennung (EDDS/EDTY/ETHL → BW, EDDN → BY, EDDL → NW)')
+      : bad(`landOf: ${['EDDS','EDTY','ETHL','EDDN','EDDL','EDDH'].map(M.landOf).join(', ')}`);
+    M.landOf('EDNY') === 'BW' && M.landOf('EDFH') === 'RP' && M.landOf('EDVK') === 'HE'
+      ? ok('die Ausreisser stimmen (Friedrichshafen BW, Hahn RP, Kassel HE)')
+      : bad(`Ausreisser: ${['EDNY','EDFH','EDVK'].map(M.landOf).join(', ')}`);
+    M.landOf('LSZH') === '' && M.landOf('') === '' && M.landOf('EDXX') === ''
+      ? ok('unbekannte Kennung liefert kein Kürzel statt eines erfundenen')
+      : bad('landOf erfindet ein Bundesland');
+    {
+      const codes = new Set(['BW','BY','BE','BB','HB','HH','HE','MV','NI','NW','RP','SL','SN','ST','SH','TH']);
+      const keys = Object.keys(M.LAND);
+      keys.every(k => /^E[DT][A-Z]{2}$/.test(k)) && keys.every(k => codes.has(M.LAND[k])) &&
+      keys.length === new Set(keys).size
+        ? ok(`${keys.length} Plätze hinterlegt, alle mit gültigem Bundeslandkürzel`)
+        : bad('Bundeslandtabelle enthält Unsinn');
+    }
+
     // Auffrischung hebt still auf live
     const fresh = await M.refresh(49.10, 9.75, 100, 8);
     fresh && fresh.length === 3 && M.lastSource().kind === 'live'
@@ -360,6 +388,47 @@ head('METAR / TAF');
     try { await M.near(49.10, 9.75, 100, 8); } catch { threw = true; }
     threw ? ok('sind beide Quellen weg, meldet die Karte es offen')
           : bad('Fehler wird verschluckt');
+  }
+
+  // ---- Klartext: Witterungskürzel und TAF-Gruppen ----
+  {
+    const { M } = build({ repo: REPO, live: null });
+    const wx = ['-SHRA', '+TSRA', 'FZFG', 'BR', 'VCSH', 'NSW', 'SN']
+      .map(c => `${c}=${M.wxText(c)}`).join(' ');
+    /Regenschauer, leicht/.test(wx) && /gefrierender Nebel/.test(wx) &&
+    /Dunst/.test(wx) && /keine signifikante Witterung/.test(wx)
+      ? ok('Witterungskürzel übersetzt (-SHRA → Regenschauer, leicht)')
+      : bad(`Witterung: ${wx}`);
+    M.layerText({ cover: 'BKN', base: 1200 }) === '5–7/8 ab 1200 ft'
+      ? ok('Bedeckungsgrad in Achteln (BKN012 → 5–7/8 ab 1200 ft)')
+      : bad(`layerText: ${M.layerText({ cover: 'BKN', base: 1200 })}`);
+
+    const t = M.parseTaf('TAF EDDS 260500Z 2606/2712 14005KT 9999 SCT030 ' +
+                         'TEMPO 2612/2618 SHRA BKN015 PROB30 TEMPO 2618/2622 TSRA');
+    t && t.from.day === 26 && t.from.hour === 6 && t.to.day === 27 && t.to.hour === 12
+      ? ok('TAF-Gültigkeit gelesen (26. 06 bis 27. 12 UTC)')
+      : bad(`TAF-Gültigkeit: ${JSON.stringify(t && [t.from, t.to])}`);
+    const kinds = t.groups.map(g => g.kind + (g.prob ? '/' + g.prob : '')).join(' ');
+    kinds === 'BASE TEMPO TEMPO/30'
+      ? ok('Grundlage und beide Änderungsgruppen erkannt, PROB30 zugeordnet')
+      : bad(`TAF-Gruppen: ${kinds}`);
+    const base = t.groups[0];
+    base.wind.dir === 140 && base.wind.spd === 5 && base.vis.plus &&
+    base.clouds[0].cover === 'SCT' && base.clouds[0].base === 3000
+      ? ok('TAF-Grundlage: Wind 140°/5 kt, Sicht ≥10 km, SCT 3000 ft')
+      : bad(`TAF-Grundlage: ${JSON.stringify(base)}`);
+    const tempo = t.groups[1];
+    tempo.from.hour === 12 && tempo.to.hour === 18 && tempo.wx[0] === 'SHRA'
+      ? ok('TEMPO 2612/2618 mit Regenschauern')
+      : bad(`TEMPO: ${JSON.stringify(tempo)}`);
+
+    const fm = M.parseTaf('TAF ETHL 260800Z 2608/2617 VRB02KT CAVOK FM261200 24010G20KT 3000 BR OVC007');
+    const g = fm.groups.find(x => x.kind === 'FM');
+    g && g.from.hour === 12 && g.wind.gust === 20 && g.vis.m === 3000 && g.wx[0] === 'BR'
+      ? ok('FM-Gruppe mit Böen, Sicht 3000 m und Dunst')
+      : bad(`FM: ${JSON.stringify(g)}`);
+    fm.groups[0].cavok ? ok('CAVOK in der Grundlage erkannt') : bad('CAVOK nicht erkannt');
+    M.parseTaf('') === null ? ok('leerer TAF ergibt null') : bad('parseTaf mit leerem Text liefert etwas');
   }
 
   // ---- Platzsuche findet EDDS auch ohne Netz ----
@@ -629,6 +698,78 @@ head('Open-Meteo: Profil, Nebel, Ensemble');
   kinds(5).length === 1
     ? ok('5 kt → nur die halbe Fahne')
     : bad(`barb(5): ${JSON.stringify(kinds(5))}`);
+
+  // --- Modelle und ihr Vorhersagehorizont ---
+  OM.MODELS.every((m, i) => i === 0 || m.hours >= OM.MODELS[i - 1].hours)
+    ? ok(`Modelle aufsteigend nach Horizont (${OM.MODELS.map(m => m.hours).join(' ≤ ')})`)
+    : bad(`Modellreihenfolge: ${OM.MODELS.map(m => `${m.name} ${m.hours}`).join(', ')}`);
+  OM.MODELS[0].key === 'icon_d2' && OM.MODELS[OM.MODELS.length - 1].key === ''
+    ? ok('ICON-D2 steht vorn, „Auto" zuletzt')
+    : bad(`erstes/letztes Modell: ${OM.MODELS[0].key} / ${OM.MODELS[OM.MODELS.length - 1].key}`);
+  OM.modelHours('icon_d2') === 48 && OM.modelHours('') === 384
+    ? ok('Horizont je Modell abfragbar (ICON-D2 48 h, Auto 384 h)')
+    : bad(`modelHours: ${OM.modelHours('icon_d2')} / ${OM.modelHours('')}`);
+  OM.modelHours('gibtsnicht') === 384
+    ? ok('unbekanntes Modell fällt auf den weitesten Horizont zurück')
+    : bad(`modelHours(unbekannt) = ${OM.modelHours('gibtsnicht')}`);
+}
+
+// ------------------------------------------------- 3b1. Peilung zur METAR-Station
+head('Peilung und Distanz');
+{
+  const U = new Function(`${await readFile('js/util.js', 'utf8')}; return U;`)();
+  const P = [50, 10];
+  const near = (a, b) => Math.abs(((a - b + 540) % 360) - 180) < 1.5;
+  near(U.bearing(P[0], P[1], 51, 10), 0) && near(U.bearing(P[0], P[1], 49, 10), 180) &&
+  near(U.bearing(P[0], P[1], 50, 11), 90) && near(U.bearing(P[0], P[1], 50, 9), 270)
+    ? ok('Peilung nach N, O, S, W ergibt 0°, 90°, 180°, 270°')
+    : bad(`Peilungen: ${[[51,10],[50,11],[49,10],[50,9]].map(q => Math.round(U.bearing(P[0],P[1],q[0],q[1]))).join(', ')}`);
+  near(U.bearing(50, 10, 50.5, 10.5), 33)
+    ? ok('Nordost ergibt rund 33° (Meridiankonvergenz berücksichtigt)')
+    : bad(`NO-Peilung: ${U.bearing(50, 10, 50.5, 10.5).toFixed(1)}°`);
+  U.bearing(50, 10, 50, 10) === 0 && U.bearingArrow(45).includes('rotate(45deg)')
+    ? ok('Pfeil wird um die Peilung gedreht')
+    : bad(`bearingArrow(45): ${U.bearingArrow(45)}`);
+  U.bearingArrow(null) === '' && U.bearingArrow(NaN) === ''
+    ? ok('ohne Peilung wird kein Pfeil gezeichnet') : bad('bearingArrow erfindet einen Pfeil');
+}
+
+// ------------------------------------------------- 3b2. Stüve-Diagramm
+head('Stüve-Diagramm');
+{
+  const omSrc2 = await readFile('js/openmeteo.js', 'utf8');
+  const OM2 = new Function('U', `${omSrc2}; return OM;`)({ load: (k, d) => d, clamp: (v,a,b)=>Math.min(b,Math.max(a,v)) });
+  // Taupunkt aus Temperatur und Feuchte
+  Math.abs(OM2.dewPoint(20, 60) - 12.0) < 0.2
+    ? ok('Taupunkt aus T und rF (20 °C / 60 % → 12,0 °C)')
+    : bad(`dewPoint(20,60) = ${OM2.dewPoint(20, 60)}`);
+  Math.abs(OM2.dewPoint(15, 100) - 15) < 0.05
+    ? ok('bei 100 % Feuchte ist der Taupunkt die Temperatur')
+    : bad(`dewPoint(15,100) = ${OM2.dewPoint(15, 100)}`);
+  OM2.dewPoint(null, 80) === null && OM2.dewPoint(10, 0) === null
+    ? ok('fehlende Werte ergeben keinen Taupunkt') : bad('dewPoint erfindet Werte');
+
+  const svSrc = await readFile('js/stueve.js', 'utf8');
+  const SV = new Function('U', 'WINDVIEW', `${svSrc}; return STUEVE;`)({}, { barb: () => [] });
+  SV.RH_START === 85 ? ok('Schattierung beginnt bei 85 % Feuchte') : bad(`RH_START = ${SV.RH_START}`);
+  SV.rhAlpha(80) === 0 && SV.rhAlpha(85) === 0
+    ? ok('unter 85 % keine Schattierung') : bad('Schattierung beginnt zu früh');
+  SV.rhAlpha(100) > SV.rhAlpha(92) && SV.rhAlpha(92) > SV.rhAlpha(86)
+    ? ok('Schattierung wird zu 100 % hin kräftiger')
+    : bad(`Verlauf: 86→${SV.rhAlpha(86)} 92→${SV.rhAlpha(92)} 100→${SV.rhAlpha(100)}`);
+
+  // p^0.286: die Achse, die Trockenadiabaten zu Geraden macht
+  Math.abs(SV.fp(1000) - 1) < 1e-9 && Math.abs(SV.fp(500) - 0.8203) < 0.001
+    ? ok('Höhenachse p^0,286 (1000 hPa → 1,000; 500 hPa → 0,820)')
+    : bad(`fp(500) = ${SV.fp(500)}`);
+  // Eine Trockenadiabate muss in dieser Achse eine Gerade sein: T(p) = θ·f(p)
+  const theta = 293.15;
+  const pts = [1000, 850, 700, 500].map(p => ({ f: SV.fp(p), t: theta * SV.fp(p) }));
+  const slope = (a, b) => (b.t - a.t) / (b.f - a.f);
+  const s0 = slope(pts[0], pts[1]);
+  pts.slice(2).every((p, i) => Math.abs(slope(pts[i + 1], p) - s0) < 1e-6)
+    ? ok('Trockenadiabaten sind in dieser Achse Geraden')
+    : bad('Trockenadiabate ist keine Gerade — Achse stimmt nicht');
 }
 
 // ------------------------------------------------------------- 3c. Abdeckung

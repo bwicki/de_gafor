@@ -6,6 +6,7 @@
   const state = {
     lat: 51.10, lon: 10.40,
     place: null,
+    placePrev: null,          // letzter bekannter Name, bis der neue eintrifft
     elev: null,
     area: null,
     unit: U.load('unit', 'kt'),
@@ -43,8 +44,12 @@
     state.lat = start.lat; state.lon = start.lon;
     if (start.name) state.place = start.name;
 
-    MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom || 8, onMove: onMapMove });
-    wireUI();
+    /* Getrennt abgesichert: geht die Karte nicht auf, sollen wenigstens Menü
+       und Knöpfe verdrahtet sein — und umgekehrt. */
+    try {
+      MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom || 8, onMove: onMapMove });
+    } catch (e) { console.error('Karte konnte nicht starten:', e); }
+    try { wireUI(); } catch (e) { console.error('Bedienung nicht vollständig verdrahtet:', e); }
     renderPlace();
     footer();
 
@@ -59,6 +64,7 @@
       U.$('mapHint').textContent = 'Gebietsgrenzen fehlen — data/gafor-areas.geojson ist leer';
     }
     resolveArea();
+    if (!state.place) namePlace(state.lat, state.lon);
 
     try { await DWD.load(); } catch (e) { console.warn('DWD index not available:', e.message); }
     renderReports();
@@ -166,6 +172,14 @@
     });
     document.addEventListener('click', (e) => {
       if (!U.$('searchResults').contains(e.target) && e.target !== input) hideResults();
+    });
+
+    // Die Höhenwindgrafik richtet sich nach der Breite ihres Kastens
+    let rt = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt);
+      // nur Tabelle und Grafik neu — der Schieber behält Wert und Fokus
+      rt = setTimeout(() => { if (state.om) paintProfile(); }, 220);
     });
   }
 
@@ -379,9 +393,13 @@
   }
   const hideResults = () => U.$('searchResults').classList.add('hidden');
 
+  /* Zoomstufen für einen Treffer: ein Flugplatz darf enger stehen als eine
+     Stadt, Koordinaten sind punktgenau. */
+  const PICK_ZOOM = { icao: 12, coord: 12, place: 11 };
+
   function pick(r) {
     U.$('searchInput').value = '';
-    goTo(r.lat, r.lon, r.name, 10);
+    goTo(r.lat, r.lon, r.name, PICK_ZOOM[r.kind] || 11);
   }
 
   function useGPS() {
@@ -401,31 +419,55 @@
     MAPVIEW.center(lat, lon, zoom);
     renderPlace();
     resolveArea();
-    if (!name) GEO.reverseSoon(lat, lon, n => { if (n) { state.place = n; renderPlace(); } });
+    if (!name) namePlace(lat, lon);
     loadPointData(true);
     remember();
   }
 
   let moveTimer = 0;
-  function onMapMove(lat, lon) {
+  /**
+   * `self` ist true, solange die Karte auf unser eigenes Geheiss fährt — nach
+   * einem Suchtreffer etwa. Dann darf der gefundene Ortsname nicht durch die
+   * Zwischenpositionen der Animation gelöscht werden.
+   */
+  function onMapMove(lat, lon, self) {
     state.lat = lat; state.lon = lon;
-    state.place = null;
+    if (!self) {
+      // der alte Name bleibt sichtbar, bis der neue da ist
+      if (state.place) state.placePrev = state.place;
+      state.place = GEO.reverseCached(lat, lon);
+    }
     renderPlace();
     resolveArea();
+    if (!state.place) namePlace(lat, lon);
     clearTimeout(moveTimer);
-    moveTimer = setTimeout(() => {
-      GEO.reverseSoon(lat, lon, n => { if (n) { state.place = n; renderPlace(); } });
-      loadPointData(false);
+    moveTimer = setTimeout(() => { loadPointData(false); remember(); }, 900);
+  }
+
+  /** Nächstgelegenen Ortsnamen holen und eintragen. */
+  function namePlace(lat, lon) {
+    GEO.reverseSoon(lat, lon, (n) => {
+      if (!n) return;
+      if (Math.abs(lat - state.lat) > 1e-4 || Math.abs(lon - state.lon) > 1e-4) return;
+      state.place = n; state.placePrev = n;
+      renderPlace();
       remember();
-    }, 900);
+    });
   }
 
   function remember() {
     history.replaceState(null, '', `#${state.lat.toFixed(4)},${state.lon.toFixed(4)},${MAPVIEW.get().getZoom()}`);
   }
 
+  /**
+   * Die Ortszeile zeigt immer einen Namen — den zuletzt gefundenen, solange der
+   * neue noch unterwegs ist. „Kartenmitte" stand früher da und sagte nichts.
+   */
   function renderPlace() {
-    U.$('placeName').textContent = state.place || 'Kartenmitte';
+    const node = U.$('placeName');
+    const name = state.place || state.placePrev;
+    node.textContent = name || 'Ort wird gesucht …';
+    node.classList.toggle('pending', !state.place && !!name);
     U.$('placeCoords').textContent = U.fmtCoord(state.lat, state.lon) +
       (state.elev != null ? `  ·  ${Math.round(state.elev)} m` : '');
   }
@@ -906,22 +948,120 @@
     U.$('metarAge').className = U.ageClass(newestIso, 75, 180);
 
     for (const m of list) {
+      /* Alles in einer Zeile: Kennung, Platzname, Richtung und Entfernung.
+         Der Pfeil zeigt vom gewählten Ort zur Station, nicht die Windrichtung. */
       const row = U.el('div', 'metar-row');
       const top = U.el('div', 'metar-top');
       top.appendChild(U.el('span', 'metar-id', m.icaoId));
-      top.appendChild(U.el('span', 'metar-dist', `${m.distKm.toFixed(0)} km`));
+      top.appendChild(U.el('span', 'metar-name', stationName(m)));
+      const brg = U.bearing(state.lat, state.lon, m.lat, m.lon);
+      const dist = U.el('span', 'metar-dist');
+      dist.innerHTML = `${U.bearingArrow(brg)} ${m.distKm.toFixed(0)} km`;
+      dist.title = `${U.dirName(brg)} (${U.pad(Math.round(brg))}°) vom gewählten Ort`;
+      top.appendChild(dist);
       row.appendChild(top);
-      row.appendChild(U.el('div', 'metar-name', stationName(m)));
 
-      // Rohtext, unentschlüsselt — so wie er beim DWD und in pc_met steht
+      // Klartext in zwei Zeilen, darunter der Rohtext — der bleibt massgebend
+      row.appendChild(plainLines(metarLines(m)));
       if (m.rawOb) row.appendChild(Object.assign(U.el('pre', 'raw'), { textContent: m.rawOb }));
+
       const t = state.showTaf && state.tafs && state.tafs[m.icaoId];
       if (t && t.rawTAF) {
-        const p = Object.assign(U.el('pre', 'raw taf'), { textContent: t.rawTAF });
-        row.appendChild(p);
+        const tl = tafLines(t);
+        if (tl.length) row.appendChild(plainLines(tl, 'taf'));
+        row.appendChild(Object.assign(U.el('pre', 'raw taf'), { textContent: t.rawTAF }));
       }
       body.appendChild(row);
     }
+  }
+
+  /* ---------------------------------------------------- METAR/TAF im Klartext
+   * Höchstens zwei Zeilen je Meldung. Alles, was nicht hineinpasst, steht im
+   * Rohtext darunter — der ist und bleibt die Meldung, das hier ist Lesehilfe.
+   */
+  function plainLines(lines, cls) {
+    const d = U.el('div', 'metar-plain' + (cls ? ' ' + cls : ''));
+    for (const l of lines) if (l) d.appendChild(U.el('div', 'pl', l));
+    return d;
+  }
+
+  const knots = (kt) => (kt == null ? '—'
+    : `${U.wind(kt * 0.514444, state.unit)} ${U.unitLabel[state.unit]}`);
+
+  function windPhrase(dir, spd, gust) {
+    if (spd == null) return 'keine Angabe';
+    if (!spd) return 'still';
+    const d = dir == null ? 'umlaufend' : `${U.pad(dir)}°`;
+    return `${d}, ${knots(spd)}` + (gust ? `, Böen ${knots(gust)}` : '');
+  }
+
+  function cloudPhrase(clouds, cavok) {
+    if (cavok) return 'CAVOK — unter 5000 ft wolkenfrei';
+    const cl = (clouds || []).filter(c => c && c.cover);
+    if (!cl.length) return 'keine Wolken gemeldet';
+    const named = cl.filter(c => METAR.OKTA[c.cover]);
+    if (!named.length) return METAR.COVER[cl[0].cover] || cl[0].cover;
+    const txt = named.slice(0, 3).map(c => METAR.layerText(c)).join('; ');
+    return 'Wolken ' + txt + (named.length > 3 ? ' …' : '');
+  }
+
+  const CAT_TXT = { VFR: 'VFR', MVFR: 'MVFR — grenzwertig', IFR: 'IFR', LIFR: 'LIFR' };
+
+  /** Beobachtung → zwei Zeilen. */
+  function metarLines(m) {
+    const g = METAR.parseGroup(' ' + (m.rawOb || '') + ' ');
+    const v = METAR.visKm(m);
+    const wx = g.wx.map(METAR.wxText).filter(Boolean);
+    const one = [`Wind ${windPhrase(m.wdir === 'VRB' ? null : m.wdir, m.wspd, m.wgst)}`];
+    one.push('Sicht ' + (v ? `${v.plus ? '≥' : ''}${v.km.toFixed(v.km < 10 ? 1 : 0)} km` : 'keine Angabe'));
+    if (wx.length) one.push(wx.join(', '));
+    one.push(cloudPhrase(m.clouds, g.cavok));
+
+    const two = [`${fmt(m.temp)} °C, Taupunkt ${fmt(m.dewp)} °C`];
+    if (m.altim) two.push(`QNH ${Math.round(m.altim)} hPa`);
+    // Die Hauptuntergrenze steht schon in Zeile 1 bei den Wolken — nicht doppeln
+    if (m.fltCat) two.push(CAT_TXT[m.fltCat] || m.fltCat);
+    return [one.join(' · '), two.join(' · ')];
+  }
+
+  const dayHour = (t) => (t ? `${t.day}. ${U.pad(t.hour)}` : '?');
+
+  /** Wind, Sicht, Witterung und Wolken einer TAF-Gruppe als kurze Stücke. */
+  function groupBits(g) {
+    const out = [];
+    if (g.wind) out.push(`Wind ${windPhrase(g.wind.dir, g.wind.spd, g.wind.gust)}`);
+    if (g.vis) out.push('Sicht ' + (g.vis.plus ? '≥10 km'
+      : g.vis.m >= 1000 ? `${(g.vis.m / 1000).toFixed(g.vis.m % 1000 ? 1 : 0)} km` : `${g.vis.m} m`));
+    const wx = g.wx.map(METAR.wxText).filter(Boolean);
+    if (wx.length) out.push(wx.join(', '));
+    if (g.clouds.length || g.cavok) out.push(cloudPhrase(g.clouds, g.cavok));
+    return out;
+  }
+
+  const KIND_TXT = {
+    FM: (g) => `ab ${dayHour(g.from)} UTC`,
+    TEMPO: (g) => `zeitweise ${dayHour(g.from)}–${U.pad(g.to ? g.to.hour : 0)} UTC`,
+    INTER: (g) => `zwischenzeitlich ${dayHour(g.from)}–${U.pad(g.to ? g.to.hour : 0)} UTC`,
+    BECMG: (g) => `Übergang ${dayHour(g.from)}–${U.pad(g.to ? g.to.hour : 0)} UTC`,
+  };
+
+  /** Vorhersage → zwei Zeilen: Grundlage, dann die Änderungen. */
+  function tafLines(t) {
+    const p = METAR.parseTaf(t.rawTAF);
+    if (!p) return [];
+    const base = p.groups.find(g => g.kind === 'BASE');
+    const one = [];
+    if (p.from && p.to) one.push(`Vorhersage ${dayHour(p.from)} bis ${dayHour(p.to)} UTC`);
+    if (base) one.push(...groupBits(base));
+
+    const changes = p.groups.filter(g => g.kind !== 'BASE').map(g => {
+      const head = (KIND_TXT[g.kind] ? KIND_TXT[g.kind](g) : g.kind) +
+                   (g.prob ? ` (${g.prob} %)` : '');
+      return `${head}: ${groupBits(g).join(', ')}`;
+    });
+    let two = changes.join(' · ');
+    if (two.length > 210) two = two.slice(0, 208).replace(/[ ,·]+$/, '') + ' …';
+    return [one.join(' · '), two];
   }
 
   /* Die NOAA schreibt "Stuttgart Arpt, BW, DE". Die Abkürzungen ausschreiben,
@@ -936,7 +1076,18 @@
     let n = String(m.name || '').trim();
     if (!n) return m.icaoId;
     for (const [re, to] of SITE_ABBR) n = n.replace(re, to);
-    return n.replace(/\s*,\s*/g, ' · ');
+    /* "Stuttgart Arpt, DE" → "Stuttgart Flughafen · BW".
+     * Das Länderkürzel steht zuletzt. „DE" sagt in einer Deutschlandkarte
+     * nichts und weicht dem Bundesland; ist der Platz nicht hinterlegt,
+     * entfällt es ersatzlos — ein falsches Kürzel wäre schlimmer als keines.
+     * Ausländische Plätze behalten ihr Land. */
+    const parts = n.split(/\s*,\s*/).map(x => x.trim()).filter(Boolean);
+    if (parts.length > 1 && /^DE$/i.test(parts[parts.length - 1])) {
+      parts.pop();
+      const land = METAR.landOf(m.icaoId);
+      if (land && !parts.includes(land)) parts.push(land);
+    }
+    return parts.join(' · ');
   }
 
   const fmt = (v) => (v == null || !isFinite(v)) ? '—' : Math.round(v);
@@ -1111,6 +1262,36 @@
     const body = U.clear(U.$('windBody'));
     const j = state.om;
     if (!j) return;
+
+    body.appendChild(modelChips());
+    body.appendChild(hourSlider(j));
+
+    const holder = U.el('div', 'wp-holder');
+    holder.id = 'windProfile';
+    body.appendChild(holder);
+
+    body.appendChild(explainNote(
+      'Links ein <strong>Stüve-Diagramm</strong>: senkrecht der Druck in p<sup>0,286</sup>, ' +
+      'waagrecht die Temperatur — dadurch sind die feinen Schräglinien ' +
+      '<strong>Trockenadiabaten</strong> und damit Geraden. Rot die Temperatur, blau der ' +
+      'Taupunkt; wo beide zusammenlaufen, ist die Luft gesättigt. Die blaue Schattierung ' +
+      'beginnt bei 85 % relativer Feuchte und wird bis 100 % kräftiger. ' +
+      'Rechts dasselbe Höhenraster mit der Windgeschwindigkeit; die <strong>Windfahne</strong> ' +
+      'zeigt wie in der Luftfahrtkarte in den Wind, die Federn geben Knoten (halb 5, ganz 10, ' +
+      'Wimpel 50). Der <strong>Pfeil in der Tabelle</strong> zeigt dagegen die Richtung, in die ' +
+      'es treibt. Feuchtadiabaten und Mischungsverhältnislinien sind nicht eingezeichnet.'));
+    body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
+
+    paintProfile();
+  }
+
+  /** Tabelle und Diagramm für die gewählte Stunde — ohne die Bedienelemente. */
+  function paintProfile() {
+    const holder = U.$('windProfile');
+    const j = state.om;
+    if (!holder || !j) return;
+    U.clear(holder);
+
     const i0 = OM.nowIndex(j);
     const idx = Math.min(i0 + state.windOffset, j.hourly.time.length - 1);
     const metres = state.altUnit === 'm';
@@ -1122,12 +1303,8 @@
       `${j.hourly.time[idx].slice(11, 16)} ${j.timezone_abbreviation || ''}`;
     U.$('windAge').className = 'age';
 
-    // ---- Modell- und Stundenwahl ----
-    body.appendChild(modelChips());
-    body.appendChild(hourChips(j, i0));
-
     if (!levels.length) {
-      body.appendChild(wrapNote(
+      holder.appendChild(wrapNote(
         `<strong>${OM.modelName(j._model)}</strong> liefert für diesen Ort und diese Stunde ` +
         'kein Höhenprofil. Ein anderes Modell oder „Auto" wählen.'));
       return;
@@ -1138,20 +1315,18 @@
     const toAlt = (m) => (m == null ? null : (metres ? Math.round(m) : Math.round(m * OM.M_TO_FT)));
     const fzlA = toAlt(rec.fzl), pblA = rec.pbl == null ? null : toAlt(ground + rec.pbl);
 
-    /* Tabelle links, Grafik rechts — nebeneinander, sobald Platz da ist.
+    /* Tabelle links, Diagramm rechts — nebeneinander, sobald Platz da ist.
        Auf dem Handy stapelt der Umbruch sie automatisch. */
     const split = U.el('div', 'wp-split');
 
-    // ---- Tabelle ----
     const wrapT = U.el('div', 'wp-col-table fc-scroll');
     const t = U.el('table', 'wp-table');
     const th = U.el('tr');
     for (const h of [metres ? 'm AMSL' : 'ft AMSL', 'Fläche', 'Drift',
-                     U.unitLabel[state.unit], '°C']) th.appendChild(U.el('th', '', h));
+                     U.unitLabel[state.unit], '°C', 'Td', 'rF']) th.appendChild(U.el('th', '', h));
     const thead = U.el('thead'); thead.appendChild(th); t.appendChild(thead);
     const tb = U.el('tbody');
 
-    // Flächen und Marker in eine gemeinsame, nach Höhe fallende Liste
     const unitTxt = metres ? ' m' : ' ft';
     const entries = levels.map(l => ({ alt: l.ft, lvl: l }));
     if (fzlA != null) entries.push({ alt: fzlA, mark: 'Nullgradgrenze ' + fzlA.toLocaleString('de-CH') + unitTxt, cls: 'fzl' });
@@ -1169,13 +1344,21 @@
       tr.appendChild(d);
       tr.appendChild(U.el('td', 'spd', U.wind(l.spd, state.unit)));
       tr.appendChild(U.el('td', 'tmp', l.temp == null ? '·' : String(Math.round(l.temp))));
+      tr.appendChild(U.el('td', 'tmp', l.dew == null ? '·' : String(Math.round(l.dew))));
+      const rh = U.el('td', 'rh', l.rh == null ? '·' : `${Math.round(l.rh)} %`);
+      if (l.rh != null && l.rh > STUEVE.RH_START) {
+        rh.style.background = `color-mix(in srgb, var(--sv-humid) ${Math.round(STUEVE.rhAlpha(l.rh) * 130)}%, transparent)`;
+      }
+      tr.appendChild(rh);
       tb.appendChild(tr);
     }
     t.appendChild(tb); wrapT.appendChild(t);
     split.appendChild(wrapT);
 
-    // ---- Grafik ----
-    const svg = WINDVIEW.chart(levels, {
+    const wrapG = U.el('div', 'wp-col-chart');
+    split.appendChild(wrapG);
+    holder.appendChild(split);
+    paintChart(wrapG, wrapT, levels, {
       unit: U.unitLabel[state.unit],
       unitFactor: MS(1),
       altUnit: metres ? 'm' : 'ft',
@@ -1183,54 +1366,89 @@
       fzlFt: fzlA,
       pblFt: pblA,
     });
-    if (svg) {
-      const wrapG = U.el('div', 'wp-col-chart');
-      wrapG.appendChild(svg);
-      split.appendChild(wrapG);
-    }
-    body.appendChild(split);
-
-    body.appendChild(explainNote(
-      'Die <strong>Windfahne</strong> zeigt wie in der Luftfahrtkarte in den Wind, ' +
-      'die Federn geben die Stärke in Knoten (halb 5, ganz 10, Wimpel 50). ' +
-      'Waagrecht steht die Geschwindigkeit, senkrecht die Höhe. ' +
-      'Der <strong>Pfeil in der Tabelle</strong> zeigt dagegen die Richtung, in die es treibt.'));
-    body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
-  }
-
-  /** Stunden-Chips: jetzt bis ans Ende dessen, was das Modell hergibt. */
-  function hourChips(j, i0) {
-    const chips = U.el('div', 'chips');
-    for (const off of [0, 1, 2, 3, 6, 9, 12, 18, 24, 36, 48]) {
-      const i = i0 + off;
-      if (i >= j.hourly.time.length) break;
-      const b = U.el('button', 'chip' + (off === state.windOffset ? ' on' : ''),
-        off === 0 ? 'jetzt' : `+${off} h`);
-      b.title = j.hourly.time[i].replace('T', ' ');
-      b.onclick = () => { state.windOffset = off; renderWind(); };
-      chips.appendChild(b);
-    }
-    return chips;
   }
 
   /**
-   * Modellwahl. Angeboten wird nur, was die gewählte Stunde noch abdeckt —
-   * ICON-D2 verschwindet also, sobald man über 48 h hinausgeht.
+   * Zeichnet das Diagramm erst, wenn die Spalte ihre Breite kennt — sonst
+   * bliebe es auf der Notbreite stehen und ginge im Kasten verloren.
+   */
+  function paintChart(box, table, levels, opts) {
+    const draw = () => {
+      if (!box.isConnected) return;
+      const w = Math.round(box.clientWidth || 260);
+      if (w < 60) { requestAnimationFrame(draw); return; }   // Layout noch nicht fertig
+      const side = window.innerWidth > 640 && w >= 200;
+      const th = Math.round(table.getBoundingClientRect().height);
+      const h = side ? U.clamp(th || 320, 280, 680) : 360;
+      // Stüve mit Windfeld daneben; fehlt die Feuchte, bleibt das reine Windprofil
+      const svg = STUEVE.chart(levels, { ...opts, w: U.clamp(w, 260, 760), h }) ||
+                  WINDVIEW.chart(levels, { ...opts, w: U.clamp(w, 200, 680), h });
+      U.clear(box);
+      if (svg) box.appendChild(svg);
+    };
+    requestAnimationFrame(draw);
+  }
+
+  /**
+   * Zeitwahl als Schieber in Ein-Stunden-Schritten. Sein oberes Ende ist der
+   * Vorhersagehorizont des gewählten Modells — weiter als ICON-D2 rechnet,
+   * lässt er sich mit ICON-D2 also gar nicht erst ziehen.
+   */
+  function hourSlider(j) {
+    const i0 = OM.nowIndex(j);
+    const maxData = Math.max(0, j.hourly.time.length - 1 - i0);
+    const maxHours = Math.min(maxData, OM.modelHours(j._model));
+    state.windOffset = U.clamp(state.windOffset, 0, maxHours);
+
+    const box = U.el('div', 'hour-slider');
+    const lab = U.el('div', 'hs-label');
+    const input = Object.assign(U.el('input'), {
+      type: 'range', min: '0', max: String(maxHours), step: '1',
+      value: String(state.windOffset),
+    });
+    input.setAttribute('aria-label', 'Vorhersagezeitpunkt');
+
+    const stamp = (off) => {
+      const i = Math.min(i0 + off, j.hourly.time.length - 1);
+      const t = j.hourly.time[i];
+      return `${off === 0 ? 'jetzt' : '+' + off + ' h'} · ${t.slice(11, 16)} ` +
+             `${j.timezone_abbreviation || ''}${off >= 24 ? ' · ' + t.slice(8, 10) + '.' : ''}`;
+    };
+    const setLabel = (off) => { lab.textContent = stamp(off); };
+    setLabel(state.windOffset);
+
+    let t = 0;
+    input.oninput = () => {
+      state.windOffset = +input.value;
+      setLabel(state.windOffset);
+      clearTimeout(t);
+      t = setTimeout(paintProfile, 90);
+    };
+
+    const row = U.el('div', 'hs-row');
+    row.appendChild(U.el('span', 'hs-cap', 'jetzt'));
+    row.appendChild(input);
+    row.appendChild(U.el('span', 'hs-cap', `+${maxHours} h`));
+    box.appendChild(row);
+    box.appendChild(lab);
+    return box;
+  }
+
+  /**
+   * Modellwahl, aufsteigend nach Vorhersagehorizont. Jedes Modell bleibt
+   * wählbar; der Schieber verkürzt sich danach auf dessen Horizont.
    */
   function modelChips() {
     const row = U.el('div', 'chips models');
     row.appendChild(U.el('span', 'chips-label', 'Modell'));
-    const usable = OM.modelsFor(state.windOffset);
     for (const m of OM.MODELS) {
-      const ok = usable.indexOf(m) >= 0;
-      const b = U.el('button', 'chip' + (m.key === state.model ? ' on' : '') + (ok ? '' : ' off'),
-        m.name);
-      b.title = ok ? `${m.note} · bis +${m.hours} h`
-                   : `${m.note} — reicht nur bis +${m.hours} h`;
-      b.disabled = !ok;
+      const b = U.el('button', 'chip' + (m.key === state.model ? ' on' : ''), m.name);
+      b.title = `${m.note} · Vorhersage bis +${m.hours} h`;
       b.onclick = () => {
         if (m.key === state.model) return;
         state.model = m.key; U.save('model', m.key);
+        // weiter als das neue Modell rechnet, geht nicht
+        state.windOffset = Math.min(state.windOffset, m.hours);
         loadPointData(true, ['model']);
       };
       row.appendChild(b);
@@ -1241,7 +1459,7 @@
   function markRow(txt, cls) {
     const tr = U.el('tr', 'wp-mrow ' + cls);
     const td = U.el('td', '', txt);
-    td.colSpan = 5;
+    td.colSpan = 7;
     tr.appendChild(td);
     return tr;
   }

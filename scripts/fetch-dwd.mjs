@@ -288,7 +288,11 @@ function overviewHeader(text) {
   const out = { bulletin: null, office: null, bereich: null,
                 issued: null, validFrom: null, validTo: null, areas: [] };
 
-  const b = text.match(/^\s*(FBEU\d{2})\s+([A-Z]{4})\s+(\d{2})(\d{2})(\d{2})\s*$/im);
+  /* Die Kopfzeile kann einen Bearbeitungsvermerk tragen — "FBEU40 EDZE 260600 COR"
+     für eine Korrektur, ebenso AMD, RRA/RRB/RRC oder CCA. Ohne diesen Zusatz im
+     Muster fiel die ganze Übersicht des Bereichs West durch, und in Gebiet 31–39
+     stand dann gar kein Flugwetterbericht. */
+  const b = text.match(/^\s*(FBEU\d{2})\s+([A-Z]{4})\s+(\d{2})(\d{2})(\d{2})(?:\s+[A-Z]{3}[A-Z0-9]?)?\s*$/im);
   if (b) {
     out.bulletin = `${b[1]} ${b[2]} ${b[3]}${b[4]}${b[5]}`;
     out.office = b[2];
@@ -383,16 +387,23 @@ async function collectGafor() {
 
     // (a) the prose Flugwetterübersicht — one per Bereich, carries the
     //     authoritative list of areas it covers
+    /* Der Schlüssel ist die ausgebende Stelle. Fehlt sie, weil die Kopfzeile
+       anders aussieht als erwartet, wird der Bericht trotzdem abgelegt — sonst
+       verschwindet ein ganzer Bereich lautlos aus der App. */
     const oh = overviewHeader(text);
-    if (oh.office && oh.areas.length) {
-      overview[oh.office] = {
+    const ovKey = oh.office || officeFrom(url) ||
+                  (oh.bereich ? 'B-' + oh.bereich.replace(/\s+/g, '-') : null);
+    if (ovKey && oh.areas.length) {
+      if (!oh.office) note('übersicht', url, `Kopfzeile ohne Stelle — abgelegt als ${ovKey}`);
+      oh.office = oh.office || officeFrom(url) || null;
+      overview[ovKey] = {
         bulletin: oh.bulletin, bereich: oh.bereich, office: oh.office,
         source: url, issued: oh.issued,
         validFrom: oh.validFrom, validTo: oh.validTo,
         areas: oh.areas, fetched: new Date().toISOString(),
         text: overviewBody(text), fullText: text,
       };
-      console.log(`✓ übersicht ${oh.office} (${oh.bereich}): ${oh.areas.length} Gebiete, ` +
+      console.log(`✓ übersicht ${ovKey} (${oh.bereich}): ${oh.areas.length} Gebiete, ` +
                   `gültig bis ${oh.validTo || '?'}`);
     }
 
@@ -417,7 +428,7 @@ async function collectGafor() {
       console.log(`✓ gafor ${key} (${hl.bereich || '?'}): ${Object.keys(areas).length} Gebiete, ` +
                   `${periods.length} Zeiträume`);
     }
-    if (!found && !oh.office) {
+    if (!found && !ovKey) {
       note('gafor', url, 'weder Gebietstabelle noch Übersichtskopf erkannt');
     }
   }

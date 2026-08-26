@@ -85,16 +85,43 @@ html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in die
 ## Karte beim Öffnen
 
 Die App startet immer mit ganz Deutschland im Bild (Zoom 6, Mitte bei 51,1 N / 10,4 E), damit die
-Gebiete und die abgegraute Umgebung sichtbar sind. Ein Link mit Koordinaten im Fragment
+Gebiete und die abgegraute Umgebung sichtbar sind. Ein Suchtreffer fährt die Karte auf den Ort:
+Zoom 11 für eine Ortschaft, 12 für einen Flugplatz oder eingegebene Koordinaten. Ein Link mit Koordinaten im Fragment
 (`#49.2200,8.8000,10`) überschreibt das. Auf den eigenen Standort springt die App nicht mehr von
 selbst — dafür ist der Knopf ◎ da.
 
 ## Woher die METAR kommen
 
-METAR und TAF werden **nicht entschlüsselt** — sie stehen im Rohformat da, so wie in pc_met.
-Das einzige, was die App hinzufügt, ist der Platzname im Klartext: `EDDS` wird zu
-„Stuttgart Flughafen · BW · DE". Die Namen kommen aus der NOAA-Antwort, abgekürzte Zusätze wie
-*Arpt*, *Intl* oder *AB* werden ausgeschrieben.
+Die Kopfzeile je Platz ist **einzeilig**: die Kennung in Dunkelamber, mit Abstand der
+**Name im Klartext**, am rechten Rand ein **Peilungspfeil vom Vorhersageort zur Station**
+und dahinter die Entfernung. Der Pfeil zeigt die rechtweisende Anfangspeilung; Richtung und
+Gradzahl stehen im Tooltip. Reicht der Platz nicht, wird der Name gekürzt — Kennung und
+Entfernung bleiben stehen.
+
+Die Namen kommen aus der NOAA-Antwort; Abkürzungen wie *Arpt*, *Intl* oder *AB* werden
+ausgeschrieben. Das angehängte „DE" sagt in einer Deutschlandkarte nichts und weicht dem
+**Kürzel des Bundeslands** (`EDDS` → „Stuttgart Flughafen · BW"). Dahinter liegt eine feste
+Tabelle deutscher Plätze in `js/metar.js` — offline richtig oder gar nicht: eine nicht
+hinterlegte Kennung bekommt **kein** Kürzel statt eines geratenen. Ausländische Plätze
+behalten ihr Land.
+
+Darunter stehen **zwei Zeilen Klartext** und darunter der **Rohtext**. Der Rohtext bleibt
+massgebend — die zwei Zeilen sind Lesehilfe, keine Auswertung.
+
+```
+EDDS   Stuttgart Flughafen · BW                                 ↗ 60 km
+Wind 140°, 5 kt · Sicht ≥10 km · Wolken 3–4/8 ab 2500 ft
+15 °C, Taupunkt 13 °C · QNH 1018 hPa · VFR
+   EDDS 260620Z 14005KT 9999 SCT025 15/13 Q1018 NOSIG
+Vorhersage 26. 06 bis 27. 12 UTC · Wind 140°, 5 kt · Sicht ≥10 km · Wolken 3–4/8 ab 3000 ft
+zeitweise 26. 12–18 UTC: Regenschauer, Wolken 5–7/8 ab 1500 ft
+   TAF EDDS 260500Z 2606/2712 14005KT 9999 SCT030 TEMPO 2612/2618 SHRA BKN015
+```
+
+Beim TAF werden FM, TEMPO, BECMG, INTER und PROB erkannt; PROB30 gehört zur folgenden
+TEMPO-Gruppe. Witterungskürzel sind übersetzt (`-SHRA` → Regenschauer, leicht), Bedeckungsgrade
+stehen in Achteln (`BKN012` → 5–7/8 ab 1200 ft). Passt die Änderungszeile nicht in eine Zeile,
+wird sie mit „…" gekürzt — vollständig steht alles im Rohtext.
 
 Bei der Herkunft gilt seit 1.7.0 die umgekehrte Reihenfolge von früher, und zwar mit Absicht:
 
@@ -144,20 +171,49 @@ des DWD-Merkblatts (D1 und M5) und zwei unabhängigen Wiedergaben der vollständ
 rekonstruiert; unbekannte Feinstufen fallen in der App sauber auf die Buchstabenklasse zurück.
 Verbindlich ist die GAFOR-Legende des DWD.
 
-## Höhenwind, Bewölkung, Nebel, Streubreite
+## Höhenwind, Stüve-Diagramm, Bewölkung, Nebel, Streubreite
 
-Die Karte **Höhenwind am Ort** zeigt oben ein Diagramm und darunter dieselben Werte als
-Tabelle. Im Diagramm steht die Geschwindigkeit waagrecht und die Höhe senkrecht; die
-**Windfahne** zeigt wie in der Luftfahrtkarte in den Wind, die Federn geben Knoten (halb 5,
-ganz 10, Wimpel 50). Der **Pfeil in der Tabelle** zeigt umgekehrt die Richtung, in die es
-treibt — für die Fahrtplanung ist das die brauchbarere Angabe. Nullgradgrenze und
-Grenzschichtobergrenze sind in beiden markiert. Die Chips wählen die Stunde, jetzt bis +12 h.
+Die Karte **Höhenwind am Ort** zeigt links die Tabelle und rechts ein **Stüve-Diagramm mit
+Windfeld**.
 
-Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben; auf dem Handy stapeln
-sie sich. Über beiden lässt sich das **Wettermodell** wählen — Auto (nahtloser Mix), ICON-D2,
-ICON-EU, ICON global, ECMWF IFS, GFS, ARPEGE, UKMO. Angeboten wird nur, was den gewählten
-Zeitpunkt noch abdeckt: ICON-D2 reicht 48 Stunden, ARPEGE 96, ECMWF 144, GFS 384. Was zu kurz
-reicht, ist durchgestrichen und nicht wählbar.
+Im Stüve steht senkrecht der Druck, skaliert mit p^0,286, waagrecht die Temperatur. Diese
+Achse ist der Zweck der Darstellung: sie macht **Trockenadiabaten zu Geraden**. Damit liest
+man Inversionen, die Mischungsschicht und die Höhe, bis zu der ein Paket trocken aufsteigt,
+direkt ab. Eingezeichnet sind Isothermen, Isobaren, Trockenadiabaten alle 20 K sowie die
+**Temperatur-** (rot) und die **Taupunktkurve** (blau) — laufen beide zusammen, ist die Luft
+gesättigt.
+
+**Feuchte Schichten sind schattiert**: ab 85 % relativer Feuchte beginnt die Schattierung und
+wird bis 100 % kräftiger; zwischen den Druckflächen wird überblendet. Dieselbe Färbung steht
+in der Spalte *rF* der Tabelle.
+
+Rechts, auf demselben Höhenraster, das Windfeld. Die **Windfahne** zeigt wie in der
+Luftfahrtkarte in den Wind, die Federn geben Knoten (halb 5, ganz 10, Wimpel 50). Der
+**Pfeil in der Tabelle** zeigt umgekehrt die Richtung, in die es treibt — für die
+Fahrtplanung die brauchbarere Angabe. Nullgradgrenze und Grenzschichtobergrenze sind in
+beiden markiert.
+
+**Nicht eingezeichnet** sind Feuchtadiabaten und Mischungsverhältnislinien. Beide brauchen
+Iteration und würden das Bild in dieser Grösse zustellen; der Hinweis steht auch unter dem
+Diagramm.
+
+Die relative Feuchte kommt von allen Druckflächen mit, der Taupunkt wird daraus nach Magnus
+gerechnet — Open-Meteo liefert ihn auf den Flächen nicht. Die bodennahen Flächen (10, 80,
+180 m über Grund) haben keinen Druck und werden über ihre Höhe eingehängt.
+
+Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben; die Grafik füllt den
+verbleibenden Platz aus und ist genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
+
+Über beiden steht die **Modellwahl**, aufsteigend nach Vorhersagehorizont: ICON-D2 (48 h),
+ARPEGE (96), ICON-EU (120), ECMWF IFS (144), UKMO (168), ICON global (180), GFS (384) und
+zuletzt Auto (nahtloser Mix). Jedes Modell bleibt wählbar.
+
+Darunter wählt ein **Schieber in Ein-Stunden-Schritten** den Zeitpunkt. Sein oberes Ende ist
+der Horizont des gewählten Modells — mit ICON-D2 lässt er sich also gar nicht erst über
++48 h ziehen; wer von einem weiten auf ein kurzes Modell wechselt, dessen Zeitpunkt rückt
+auf dessen Horizont zurück. Unter dem Schieber steht der gewählte Zeitpunkt mit Uhrzeit und,
+ab einem Tag Vorlauf, dem Datum. Im Ausdruck fällt der Schieber weg, seine Beschriftung
+bleibt als Zeitangabe stehen.
 
 Die Werte kommen aus den Druckflächen 1000 bis 300 hPa desselben Open-Meteo-Abrufs, ergänzt
 um 10, 80 und 180 m über Grund; Flächen unterhalb des Geländes fallen heraus. Die Höhe stammt
@@ -223,17 +279,18 @@ bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 ## Aufbau
 
 ```
-index.html                  eine Seite: Suche · Karte · Ortszeile · Gebietskopf · fünf Karten
+index.html                  eine Seite: Suche · Karte · Ortszeile und Gebietskopf nebeneinander · fünf Karten
 css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
-js/util.js                  Helfer: Geometrie (point-in-polygon), Distanz, Formatierung, Storage
+js/util.js                  Helfer: Geometrie (point-in-polygon), Distanz, Peilung, Formatierung, Storage
 js/gafor.js                 Gebietsgeometrie laden, Punkt → Gebiet, Code-Legende C/O/D/M/X
 js/geo.js                   Ortssuche (Open-Meteo), Koordinateneingabe, ICAO, Reverse-Geocoding
 js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ballonbericht aus
-js/metar.js                 METAR/TAF: erst die Repo-Kopie, dann still die NOAA; Ceiling/Sicht/Einstufung
+js/metar.js                 METAR/TAF: erst die Repo-Kopie, dann still die NOAA; Ceiling/Sicht/Einstufung, Bundeslandtabelle
 js/openmeteo.js             Punktprognose, Druckflächen-Windprofil, Nebel- und Basisschätzung, Ensemble
-js/wind.js                  das Höhenwinddiagramm: Windfahnen, Achsen, Marker (reines SVG)
+js/wind.js                  Windfahnen und das einfache Windprofil (Rückfall ohne Feuchte)
+js/stueve.js                Stüve-Diagramm mit Windfeld, Feuchteschattierung (reines SVG)
 js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
 js/mapview.js               Leaflet-Karte, drei Grenzebenen, festes Fadenkreuz in der Mitte
 js/app.js                   Zustand, Bedienung, Rendering aller Karten

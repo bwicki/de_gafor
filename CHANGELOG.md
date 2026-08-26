@@ -5,6 +5,102 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.11.0 — 2026-08-26
+
+* **Ort und GAFOR-Gebiet stehen nebeneinander.** Auf Schirmen ab 820 px teilen sich die
+  beiden Kästchen eine Zeile (das Gebiet bekommt etwas mehr Platz, weil dort mehr Text
+  steht); darunter stapeln sie wie bisher.
+* **Der METAR-Kopf ist einzeilig.** Kennung in Dunkelamber, mit Abstand der Platzname, am
+  rechten Rand ein **Peilungspfeil vom Vorhersageort zur Station** und dahinter die
+  Entfernung. Der Pfeil zeigt die rechtweisende Anfangspeilung; im Tooltip stehen Richtung
+  und Gradzahl. Der Platzname ist gekürzt, wenn er nicht passt — Kennung und Entfernung
+  bleiben immer stehen.
+* **Statt „DE" das Bundesland.** Die NOAA hängt an jeden deutschen Platznamen ein „DE", das
+  in einer Deutschlandkarte nichts sagt. An seiner Stelle steht jetzt das Kürzel des
+  Bundeslands (`Stuttgart Flughafen · BW`). Dahinter liegt eine feste Tabelle von 103
+  deutschen Plätzen — offline richtig oder gar nicht: eine nicht hinterlegte Kennung
+  bekommt **kein** Kürzel statt eines geratenen. Ausländische Plätze behalten ihr Land.
+* **Zeitwahl als Schieber.** Die Stunden-Pillen sind weg; an ihrer Stelle steht ein
+  Schieber in Ein-Stunden-Schritten. Sein oberes Ende ist der **Vorhersagehorizont des
+  gewählten Modells** — mit ICON-D2 lässt er sich also gar nicht erst über +48 h ziehen.
+  Unter dem Schieber steht der gewählte Zeitpunkt mit Uhrzeit und, ab einem Tag Vorlauf,
+  dem Datum. Im Ausdruck fällt der Schieber weg, seine Beschriftung bleibt als
+  Zeitangabe stehen.
+* **Modellpillen aufsteigend nach Horizont:** ICON-D2 (48 h) → ARPEGE (96) → ICON-EU (120)
+  → ECMWF IFS (144) → UKMO (168) → ICON global (180) → GFS (384) → Auto. Kein Modell wird
+  mehr ausgegraut; wer auf ein kürzeres wechselt, dessen Zeitpunkt rückt auf dessen
+  Horizont zurück.
+* Nebenbei: Beim Ziehen des Schiebers und beim Ändern der Fensterbreite werden nur noch
+  Tabelle und Diagramm neu gezeichnet, nicht die Bedienelemente — der Schieber behält
+  Wert und Fokus.
+
+## 1.10.0 — 2026-08-26
+
+* **Stüve-Diagramm statt des reinen Windprofils.** Links das Stüve — senkrecht der Druck in
+  p^0,286, waagrecht die Temperatur. Diese Achse ist der ganze Witz daran: sie macht
+  **Trockenadiabaten zu Geraden**, und damit sieht man Inversionen, die Mischungsschicht und
+  die Höhe, bis zu der ein Paket trocken aufsteigt, ohne zu rechnen. Eingezeichnet sind
+  Isothermen, Isobaren, Trockenadiabaten alle 20 K, die **Temperaturkurve** (rot) und die
+  **Taupunktkurve** (blau). Rechts, auf demselben Höhenraster, das Windfeld mit den Fahnen.
+* **Feuchte Schichten sind schattiert:** ab 85 % relativer Feuchte beginnt die Schattierung
+  und wird bis 100 % kräftiger. Zwischen den Druckflächen wird überblendet (ein Farbverlauf,
+  keine harten Balken), so dass die Schichtung als solche sichtbar wird. Dieselbe Färbung
+  steht in der neuen Spalte **rF** der Tabelle.
+* Dafür holt die App jetzt die **relative Feuchte auf allen Druckflächen** mit; der Taupunkt
+  wird daraus nach Magnus gerechnet, weil Open-Meteo ihn auf den Flächen nicht liefert. Die
+  Tabelle hat deshalb zwei neue Spalten: **Td** und **rF**.
+* Die bodennahen Flächen (10, 80, 180 m über Grund) haben keinen Druck und werden über ihre
+  Höhe eingehängt — für die Ballonfahrt sind gerade sie die wichtigsten.
+* Nicht eingezeichnet sind **Feuchtadiabaten und Mischungsverhältnislinien**; beide brauchen
+  Iteration und würden das Bild in dieser Grösse zustellen. Der Hinweis steht unter dem
+  Diagramm.
+* **Kein „Kartenmitte" mehr.** Die Ortszeile nennt immer den nächstgelegenen Ort mit
+  Koordinaten und zieht beim Verschieben der Karte nach. Solange der neue Name unterwegs ist,
+  bleibt der letzte blass stehen, statt dass die Zeile leer wird. Die Rückwärtssuche merkt
+  sich Antworten (auf gut hundert Meter gerundet) und hält Nominatims Bitte um höchstens eine
+  Anfrage pro Sekunde ein.
+
+## 1.9.2 — 2026-08-26
+
+* **Behoben: Menü und Teilen-Auswahl liessen sich nicht öffnen.** Sie hingen am Seitenanfang
+  statt an der Kopfzeile — `position:absolute` ohne positionierten Vorfahren rechnet vom
+  Dokument, nicht vom Sichtfenster. Bei gescrollter Seite öffneten sie sich also weit oberhalb
+  des Bildschirms. Jetzt sitzen beide Menüs in der Kopfzeile und folgen ihr. Der Testlauf
+  scrollt eigens 1400 px herunter und prüft nach, dass sie im Sichtfenster erscheinen.
+* Nebenher abgesichert: Karte und Bedienung werden getrennt aufgesetzt. Scheitert eines von
+  beiden, funktioniert wenigstens das andere, statt dass die ganze Seite tot ist.
+* **METAR und TAF wieder mit Klartext**, je höchstens zwei Zeilen über dem Rohtext:
+  * METAR — Wind, Sicht, Witterung, Wolken in Achteln; darunter Temperatur, Taupunkt, QNH
+    und die Flugkategorie der NOAA.
+  * TAF — Gültigkeit und Grundlage in der ersten Zeile, die Änderungsgruppen in der zweiten:
+    `zeitweise 26. 12–18 UTC: Regenschauer, Wolken 5–7/8 ab 1500 ft`. FM, TEMPO, BECMG, INTER
+    und PROB werden erkannt, PROB30 wird der folgenden TEMPO-Gruppe zugeordnet.
+  * Witterungskürzel sind übersetzt (`-SHRA` → Regenschauer, leicht; `FZFG` → gefrierender
+    Nebel; `NSW` → keine signifikante Witterung), Bedeckungsgrade in Achteln
+    (`BKN012` → 5–7/8 ab 1200 ft), und umlaufender Wind heisst „umlaufend" statt „VRB°".
+  * Der Rohtext steht unverändert darunter und bleibt massgebend.
+* Der Druck bleibt bei zwei A4-Seiten — der Klartext ist dort kleiner gesetzt und die Karte
+  4 mm flacher.
+
+## 1.9.1 — 2026-08-26
+
+* **Behoben: im Bereich West (Gebiete 31–39) fehlte die Flugwetterübersicht komplett.** Die
+  Kopfzeile lautete `FBEU40 EDZE 260600 COR` — ein Korrekturvermerk, den das Muster für die
+  Kopfzeile nicht kannte. Damit wurde die ausgebende Stelle nicht erkannt und der ganze Bericht
+  verworfen. Jetzt werden COR, AMD, RRA und CCA mitgelesen; und falls die Kopfzeile künftig
+  wieder anders aussieht, wird der Bericht trotzdem abgelegt und der Fall in `errors[]`
+  vermerkt, statt lautlos zu verschwinden. **Wirkt erst nach dem nächsten Workflow-Lauf** —
+  die App kann nicht nachliefern, was nie in `index.json` stand.
+* **Behoben: nach einem Suchtreffer ging der Ortsname wieder verloren.** Die Karte meldet
+  während ihrer Zoomfahrt laufend neue Mittelpunkte, und jede dieser Meldungen setzte den
+  gerade gefundenen Namen auf „Kartenmitte" zurück. Programmatische Fahrten sind jetzt als
+  solche gekennzeichnet.
+* **Suchtreffer werden näher angefahren:** Zoom 11 für einen Ort, 12 für einen Flugplatz oder
+  eingegebene Koordinaten (vorher pauschal 10).
+* **Die Höhenwindgrafik füllt jetzt den Platz rechts neben der Tabelle aus** und ist genauso
+  hoch wie diese. Ihre Grösse wird nach dem Layout gemessen und beim Ändern der Fensterbreite
+  neu gezeichnet — vorher stand sie mit festen 264 px verloren im Weissraum.
+
 ## 1.9.0 — 2026-08-26
 
 * **Die Karte öffnet mit ganz Deutschland im Bild** (Zoom 6, Mitte bei 51,1 N / 10,4 E) statt

@@ -7,7 +7,7 @@
 
 /* ---------- header ---------- */
 header.topbar{
-  position:sticky;top:0;z-index:40;background:var(--bg);
+  position:sticky;top:0;z-index:60;background:var(--bg);
   padding:calc(9px + var(--safe-t)) 12px 9px;
   border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:10px;
@@ -103,12 +103,20 @@ header.topbar{
   vertical-align:-1px;}
 .legend .on{color:var(--text-strong);}
 
-/* ---------- place bar ---------- */
+/* ---------- Ortszeile und Gebietskopf ---------- */
+.place-row{display:grid;grid-template-columns:1fr;gap:0;}
+@media (min-width:820px){
+  .place-row{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0 12px;
+    align-items:stretch;margin-right:14px;}
+  .place-row > .place-bar,.place-row > .area-head{margin-right:0;}
+  .place-row > .area-head{margin-top:10px;}
+}
 .place-bar{display:flex;align-items:center;gap:10px;margin:10px 14px 0;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 13px;}
 .place-main{flex:1;min-width:0;}
 .place-name{font-size:15px;color:var(--text-strong);white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;}
+.place-name.pending{opacity:.6;}
 .place-coords{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
 
 /* ---------- the GAFOR area headline ---------- */
@@ -200,10 +208,18 @@ main.content{padding:12px 14px 0;}
 /* METAR list — Rohtext, dazu der Platzname im Klartext */
 .metar-row{padding:11px 14px;border-bottom:1px solid var(--line-soft);}
 .metar-row:last-child{border-bottom:none;}
-.metar-top{display:flex;align-items:baseline;gap:8px;}
-.metar-id{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--amber);flex:1;}
-.metar-dist{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);}
-.metar-name{font-size:13px;color:var(--text-strong);line-height:1.4;margin:1px 0 7px;}
+.metar-top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.metar-id{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--amber);
+  flex:0 0 auto;}
+.metar-name{font-size:13px;color:var(--text-strong);line-height:1.4;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.metar-dist{font-family:var(--mono);font-size:11px;color:var(--text-dim);flex:0 0 auto;
+  white-space:nowrap;}
+.metar-plain{margin:0 0 6px;}
+.metar-plain .pl{font-size:12px;line-height:1.45;color:var(--text);}
+.metar-plain .pl + .pl{color:var(--text-dim);}
+.metar-plain.taf{margin:8px 0 6px;padding-top:6px;border-top:1px solid var(--line-soft);}
+.metar-plain.taf .pl:first-child{color:var(--text-strong);}
 .metar-row pre.raw{margin:0;}
 .metar-row pre.raw.taf{margin-top:6px;color:var(--text-dim);}
 
@@ -257,11 +273,62 @@ main.content{padding:12px 14px 0;}
 .report-cols pre.report{margin:0;font-size:11px;}
 .report-p{margin:0;font-size:13px;line-height:1.55;color:var(--text);hyphens:auto;}
 
+
+/* ---------- Stüve-Diagramm ---------- */
+:root{ --sv-humid:#4f86c6; --sv-temp:#e0662a; --sv-dew:#2f9bd4; }
+:root[data-theme="light"]{ --sv-humid:#3d74b4; --sv-temp:#c2481a; --sv-dew:#1673a8; }
+.sv-svg{width:100%;height:auto;display:block;}
+.sv-grid line{stroke:var(--line-soft);stroke-width:1;}
+.sv-grid.minor line{stroke:var(--line-soft);stroke-width:.6;opacity:.55;}
+.sv-grid line.sv-zero{stroke:var(--dew);stroke-width:1.2;opacity:.85;}
+.sv-adiabat line{stroke:var(--text-dim);stroke-width:.6;opacity:.5;stroke-dasharray:3 3;}
+.sv-frame{fill:none;stroke:var(--line);stroke-width:1;}
+.sv-humid-band{pointer-events:none;}
+.sv-ax{font-family:var(--mono);font-size:8px;fill:var(--text-dim);}
+.sv-curve{fill:none;stroke-width:1.8;stroke-linejoin:round;}
+.sv-curve.temp{stroke:var(--sv-temp);}
+.sv-curve.dew{stroke:var(--sv-dew);}
+.sv-dot.temp{fill:var(--sv-temp);} .sv-dot.dew{fill:var(--sv-dew);}
+.sv-lab{font-family:var(--mono);font-size:8.5px;font-weight:600;}
+.sv-lab.temp{fill:var(--sv-temp);} .sv-lab.dew{fill:var(--sv-dew);}
+.sv-mark{stroke-width:1;stroke-dasharray:4 3;}
+.sv-mark.fzl{stroke:var(--dew);} .sv-mark.pbl{stroke:var(--gafor-c);}
+.sv-mlab{font-family:var(--mono);font-size:8px;}
+.sv-mlab.fzl{fill:var(--dew);} .sv-mlab.pbl{fill:var(--gafor-c);}
+.sv-wind{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-opacity:.8;}
+.sv-barb path{stroke:var(--text-strong);stroke-width:1.3;fill:none;stroke-linecap:round;}
+.sv-barb path.sv-fill{fill:var(--text-strong);}
+.sv-calm{fill:none;stroke:var(--text-strong);stroke-width:1.2;}
+.wp-table td.rh{font-family:var(--mono);}
+
+/* ---------- Zeitschieber ---------- */
+.hour-slider{padding:8px 14px 2px;}
+.hs-row{display:flex;align-items:center;gap:9px;}
+.hs-cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-dim);flex:0 0 auto;white-space:nowrap;}
+.hs-label{font-family:var(--mono);font-size:11px;color:var(--text-strong);
+  padding:3px 0 0 0;letter-spacing:.02em;}
+.hour-slider input[type=range]{flex:1 1 auto;min-width:0;height:18px;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.hour-slider input[type=range]:focus{outline:none;}
+.hour-slider input[type=range]:focus-visible{outline:1px solid var(--amber);
+  outline-offset:3px;border-radius:3px;}
+.hour-slider input[type=range]::-webkit-slider-runnable-track{
+  height:3px;border-radius:2px;background:var(--line);}
+.hour-slider input[type=range]::-moz-range-track{
+  height:3px;border-radius:2px;background:var(--line);}
+.hour-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;
+  background:var(--amber);border:none;}
+.hour-slider input[type=range]::-moz-range-thumb{width:13px;height:13px;
+  border-radius:50%;background:var(--amber);border:none;}
+
 /* ---------- Höhenwindprofil ---------- */
+.wp-holder{display:block;}
 .wp-split{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 14px;padding:4px 0 0;}
-.wp-col-table{flex:1 1 320px;min-width:0;}
-.wp-col-table .wp-table{min-width:0;width:100%;max-width:640px;}
-.wp-col-chart{flex:0 0 264px;min-width:210px;padding:6px 12px 0 0;}
+.wp-col-table{flex:1 1 380px;min-width:0;}
+.wp-col-table .wp-table{min-width:0;width:100%;max-width:620px;}
+.wp-col-chart{flex:1 1 260px;min-width:220px;padding:6px 12px 0 0;}
 @media (max-width:640px){ .wp-col-chart{flex:1 1 100%;padding:6px 10px 0;} }
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:11px 14px 2px;align-items:center;}
@@ -357,7 +424,10 @@ footer a{color:var(--text-dim);text-decoration:underline;}
 body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{display:none !important;}
 
 /* menu */
-.menu{position:absolute;right:12px;top:calc(52px + var(--safe-t));z-index:70;
+/* Die Menüs sitzen in der Kopfzeile und hängen an ihr. Vorher waren sie am
+   Seitenanfang verankert (position:absolute ohne positionierten Vorfahren) und
+   öffneten sich bei gescrollter Seite ausserhalb des Sichtfensters. */
+.menu{position:absolute;right:12px;top:calc(100% + 6px);z-index:70;
   background:var(--panel);border:1px solid var(--line);border-radius:10px;
   min-width:210px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.45);}
 .menu button{display:block;width:100%;text-align:left;background:transparent;border:none;
@@ -394,10 +464,13 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
 
   /* alles Bedienbare weg */
   .gate,.menu,.search-block,.map-btns,.map-hint,.header-tools,.modal,
-  .code-legend,.age.clickable,.chips,.explain,.ens-note,
+  .code-legend,.age.clickable,.chips,.explain,.ens-note,.hs-row,
   #savePlaceBtn,#favBtn,#gpsBtn,.leaflet-control-zoom,.leaflet-control-attribution{
     display:none !important;
   }
+  /* der Schieber fällt weg, sein Zeitstempel bleibt als Beschriftung stehen */
+  .hour-slider{padding:1mm 0 0;}
+  .hs-label{font-size:7pt;color:#111;}
   .card-head .age{display:none !important;}
 
   .app{max-width:none;padding:0;}
@@ -417,7 +490,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .legend{margin:0 0 2mm;font-size:7pt;}
 
   .map-block{padding:0 0 2.5mm;}
-  .map-wrap{height:46mm;min-height:0;max-height:none;border:1px solid #bbb;
+  .map-wrap{height:42mm;min-height:0;max-height:none;border:1px solid #bbb;
     border-radius:2mm;break-inside:avoid;}
 
   main.content{padding:0;display:block;}
@@ -457,15 +530,18 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .wp-col-table{flex:1 1 62%;min-width:0;}
   .wp-col-table .wp-table{max-width:none;}
   .wp-col-chart{flex:0 0 34%;min-width:0;padding:0;}
-  .wp-col-chart svg{height:50mm;width:auto;max-width:100%;}
+  .wp-col-chart svg{width:100%;height:auto;max-height:58mm;}
   .wp-table,.bw-table,.fc-table{font-size:7pt;}
   .wp-table td,.wp-table th{padding:0.6mm 2mm;}
   .fc-scroll{overflow:hidden;}
   .fc-table{font-size:5.9pt;} .fc-table td{padding:0.35mm 0.9mm;} .fc-table th{padding:0.35mm 1.5mm;}
   /* der Kachelstreifen wiederholt nur, was in der Stundentabelle steht */
   .stat-strip,.ens{display:none !important;}
-  .metar-row{padding:1mm 2.5mm;} .metar-name{font-size:7.4pt;margin:0 0 0.8mm;}
-  .metar-row pre.raw{padding:0.8mm 1.5mm;}
+  .metar-row{padding:1mm 2.5mm;} .metar-name{font-size:7.4pt;}
+  .metar-top{margin-bottom:0.8mm;}
+  .metar-plain .pl{font-size:6.3pt;line-height:1.22;}
+  .metar-plain{margin:0 0 0.8mm;} .metar-plain.taf{margin:1mm 0 0.8mm;padding-top:0.8mm;}
+  .metar-row pre.raw{padding:0.6mm 1.2mm;font-size:6.4pt;}
 
   .note{font-size:7pt;}
   footer{margin:3mm 0 0;font-size:6.5pt;padding-top:2mm;}

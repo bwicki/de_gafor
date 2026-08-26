@@ -20,9 +20,11 @@ const WINDVIEW = (() => {
     return n;
   };
 
-  /* Kompakt gehalten: die Grafik steht auf dem Desktop rechts neben der
-     Tabelle und darf ihr keinen Platz wegnehmen. */
-  const W = 236, PAD_L = 34, PAD_R = 26, PAD_T = 16, PAD_B = 34;
+  /* Grundmass. Die tatsächliche Grösse gibt der Aufrufer vor (opts.w/opts.h) —
+     die Grafik füllt den Platz rechts neben der Tabelle aus, und der ist je
+     nach Fensterbreite verschieden. */
+  const W0 = 260, H0 = 310;
+  const PAD_L = 34, PAD_R = 26, PAD_T = 16, PAD_B = 34;
 
   /** Barb path fragments in local coordinates, shaft pointing up. */
   function barb(kt) {
@@ -56,14 +58,15 @@ const WINDVIEW = (() => {
     if (pts.length < 2) return null;
 
     const conv = o.unitFactor || MS_TO_KT;
+    const W = Math.max(180, Math.round(o.w || W0));
     const topFt = Math.ceil(Math.max(...pts.map(p => p.ft)) / 1000) * 1000;
     const botFt = Math.floor(Math.min(o.groundFt != null ? o.groundFt : pts[pts.length - 1].ft,
                                       ...pts.map(p => p.ft)) / 500) * 500;
     const maxV = Math.max(10, Math.ceil(Math.max(...pts.map(p => p.spd * conv)) / 10) * 10);
 
-    // Die Fahnen ragen bis zu 30 px über ihren Punkt hinaus — deshalb oben und
-    // unten etwas Luft, sonst schneidet der Rahmen sie ab.
-    const H = 310;
+    // Die Fahnen ragen über ihren Punkt hinaus — deshalb oben und unten etwas
+    // Luft, sonst schneidet der Rahmen sie ab.
+    const H = Math.max(200, Math.round(o.h || H0));
     const padFt = ((topFt - botFt) || 1000) * 0.12;
     const lo = botFt - padFt, hi = topFt + padFt;
     const x = (v) => PAD_L + (v / maxV) * (W - PAD_L - PAD_R);

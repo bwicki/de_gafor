@@ -98,6 +98,17 @@ const U = (() => {
   }
   const DIRS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
                 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+  /** Anfangspeilung von 1 nach 2 in Grad rechtweisend. */
+  function bearing(lat1, lon1, lat2, lon2) {
+    const p1 = rad(lat1), p2 = rad(lat2), dl = rad(lon2 - lon1);
+    const y = Math.sin(dl) * Math.cos(p2);
+    const x = Math.cos(p1) * Math.sin(p2) - Math.sin(p1) * Math.cos(p2) * Math.cos(dl);
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+  /** Pfeil, der in die angegebene Richtung zeigt (nicht Drift, sondern Peilung). */
+  const bearingArrow = (deg) => (deg == null || !isFinite(deg)) ? '' :
+    `<span style="display:inline-block;transform:rotate(${deg}deg)">↑</span>`;
+
   const dirName = (deg) => (deg == null || !isFinite(deg)) ? '—' : DIRS[Math.round(deg / 22.5) % 16];
   const dirArrow = (deg) => (deg == null || !isFinite(deg)) ? '' :
     `<span style="display:inline-block;transform:rotate(${(deg + 180) % 360}deg)">↑</span>`;
@@ -120,5 +131,6 @@ const U = (() => {
 
   return { $, el, clear, clamp, distKm, inRing, inGeometry, centroid,
            fmtCoord, fmtLocal, fmtUTC, ago, ageClass, pad,
-           wind, unitLabel, dirName, dirArrow, load, save, getJSON };
+           wind, unitLabel, dirName, dirArrow, bearing, bearingArrow,
+           load, save, getJSON };
 })();

@@ -78,8 +78,18 @@ const GEO = (() => {
     return out;
   }
 
-  // ---------- reverse ----------
+  /* ---------- reverse ----------
+   * Nominatim bittet um höchstens eine Anfrage pro Sekunde. Die Karte feuert
+   * beim Verschieben viel öfter, deshalb: entprellen, drosseln und gemerkte
+   * Antworten wiederverwenden. Der Schlüssel ist auf drei Nachkommastellen
+   * gerundet, das sind gut hundert Meter — feiner ändert sich der Ortsname
+   * ohnehin nicht.
+   */
   let revTimer = 0;
+  let revLast = 0;
+  const revCache = new Map();
+  const revKey = (lat, lon) => `${lat.toFixed(3)},${lon.toFixed(3)}`;
+
   async function reverse(lat, lon) {
     const j = await U.getJSON(
       `https://nominatim.openstreetmap.org/reverse?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}` +
@@ -92,12 +102,27 @@ const GEO = (() => {
                  : (j.display_name || '').split(',').slice(0, 2).join(',');
   }
 
-  /** Debounced reverse geocode — the map fires a lot of move events. */
+  /** Gemerkter Name für diesen Punkt, falls schon einmal geholt. */
+  const reverseCached = (lat, lon) => revCache.get(revKey(lat, lon)) || null;
+
+  /**
+   * Entprellter Rückwärtsabruf. Ist der Name schon bekannt, kommt er sofort;
+   * sonst nach kurzer Pause und frühestens 1,1 s nach der letzten Anfrage.
+   */
   function reverseSoon(lat, lon, cb) {
+    const key = revKey(lat, lon);
+    if (revCache.has(key)) { cb(revCache.get(key)); return; }
     clearTimeout(revTimer);
+    const wait = Math.max(450, 1100 - (Date.now() - revLast));
     revTimer = setTimeout(async () => {
-      try { cb(await reverse(lat, lon)); } catch { cb(null); }
-    }, 700);
+      revLast = Date.now();
+      try {
+        const n = await reverse(lat, lon);
+        if (n) revCache.set(key, n);
+        if (revCache.size > 400) revCache.delete(revCache.keys().next().value);
+        cb(n);
+      } catch { cb(null); }
+    }, wait);
   }
 
   /** Elevation for the point (one cheap Open-Meteo call). */
@@ -107,5 +132,5 @@ const GEO = (() => {
     return Array.isArray(j.elevation) ? j.elevation[0] : null;
   }
 
-  return { search, parseCoords, reverse, reverseSoon, elevation };
+  return { search, parseCoords, reverse, reverseSoon, reverseCached, elevation };
 })();
