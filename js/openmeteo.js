@@ -1,0 +1,240 @@
+/* GaforCast — point forecast from Open-Meteo (same source and free tier as
+ * StueveCast). It is the fallback when a DWD text product is missing, the
+ * hour-by-hour detail the area bulletins do not give, and — since 1.6.0 — the
+ * upper wind profile, the layered cloud cover, a fog estimate and the ICON-D2
+ * ensemble spread.
+ *
+ * Everything derived here (fog risk, cloud base, GAFOR-style class) is a model
+ * estimate. It is labelled as such wherever it is shown; it is never a DWD
+ * statement.
+ */
+const OM = (() => {
+  'use strict';
+
+  const HOURLY = [
+    'temperature_2m', 'dew_point_2m', 'relative_humidity_2m',
+    'precipitation', 'precipitation_probability',
+    'cloud_cover', 'cloud_cover_low', 'cloud_cover_mid', 'cloud_cover_high',
+    'visibility', 'shortwave_radiation',
+    'wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m',
+    'wind_speed_80m', 'wind_direction_80m',
+    'wind_speed_180m', 'wind_direction_180m',
+    'cape', 'boundary_layer_height', 'freezing_level_height',
+    'pressure_msl',
+  ];
+
+  /* Pressure levels Open-Meteo serves, ground up. The profile is cut at the
+   * level the user picked in the settings — every level costs four variables
+   * in the query string. */
+  const LEVELS = [1000, 975, 950, 925, 900, 850, 800, 700, 600, 500, 400, 300];
+  const LEVEL_VARS = ['wind_speed', 'wind_direction', 'temperature', 'geopotential_height'];
+
+  const M_TO_FT = 3.280839895;
+
+  function levelsUpTo(topHpa) {
+    return LEVELS.filter(p => p >= (topHpa || 500));
+  }
+
+  function base() {
+    const key = U.load('omKey', '');
+    return key ? 'https://customer-api.open-meteo.com' : 'https://api.open-meteo.com';
+  }
+  function ensembleBase() {
+    const key = U.load('omKey', '');
+    return key ? 'https://customer-ensemble-api.open-meteo.com' : 'https://ensemble-api.open-meteo.com';
+  }
+  function keyParam() {
+    const key = U.load('omKey', '');
+    return key ? `&apikey=${encodeURIComponent(key)}` : '';
+  }
+
+  /** Hourly forecast for the point, in the point's own time zone. */
+  async function forecast(lat, lon, days, topHpa) {
+    const levels = levelsUpTo(topHpa);
+    const lvl = [];
+    for (const p of levels) for (const v of LEVEL_VARS) lvl.push(`${v}_${p}hPa`);
+    const url = `${base()}/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
+      `&hourly=${HOURLY.concat(lvl).join(',')}` +
+      `&daily=sunrise,sunset` +
+      `&wind_speed_unit=ms&timezone=auto&forecast_days=${days || 2}${keyParam()}`;
+    const j = await U.getJSON(url);
+    if (j.error) throw new Error(j.reason || 'Open-Meteo error');
+    j._levels = levels;
+    return j;
+  }
+
+  /** Index of the hour nearest to now within the returned series. */
+  function nowIndex(j) {
+    const t = j && j.hourly && j.hourly.time;
+    if (!t || !t.length) return 0;
+    const now = Date.now() + (j.utc_offset_seconds || 0) * 1000;
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < t.length; i++) {
+      // the series is local wall time; compare it as if it were UTC
+      const d = Math.abs(Date.parse(t[i] + ':00Z') - now);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  /** One hour as a flat record. */
+  function at(j, i) {
+    const h = j.hourly;
+    const g = (k) => (h[k] ? h[k][i] : null);
+    return {
+      time: h.time[i],
+      temp: g('temperature_2m'), dew: g('dew_point_2m'), rh: g('relative_humidity_2m'),
+      precip: g('precipitation'), pop: g('precipitation_probability'),
+      cloud: g('cloud_cover'), cloudLow: g('cloud_cover_low'),
+      cloudMid: g('cloud_cover_mid'), cloudHigh: g('cloud_cover_high'),
+      vis: g('visibility'),                       // metres
+      rad: g('shortwave_radiation'),              // W/m²
+      w10: g('wind_speed_10m'), d10: g('wind_direction_10m'), gust: g('wind_gusts_10m'),
+      w80: g('wind_speed_80m'), d80: g('wind_direction_80m'),
+      w180: g('wind_speed_180m'), d180: g('wind_direction_180m'),
+      cape: g('cape'), pbl: g('boundary_layer_height'), fzl: g('freezing_level_height'),
+      qnh: g('pressure_msl'),
+    };
+  }
+
+  // ------------------------------------------------------------ upper wind
+  /**
+   * Wind profile for one hour, ground up.
+   * Returns [{label, hPa, m, ft, spd (m/s), dir, temp}] sorted top down, so it
+   * reads like a sounding. Levels below the surface are dropped, levels the
+   * model did not deliver are skipped rather than shown as gaps.
+   */
+  function profile(j, i, elevM) {
+    if (!j || !j.hourly) return [];
+    const h = j.hourly;
+    const ground = (elevM != null ? elevM : (j.elevation != null ? j.elevation : 0));
+    const out = [];
+
+    // the near-surface levels the model gives directly, in m above ground
+    for (const [agl, ws, wd] of [[10, 'wind_speed_10m', 'wind_direction_10m'],
+                                 [80, 'wind_speed_80m', 'wind_direction_80m'],
+                                 [180, 'wind_speed_180m', 'wind_direction_180m']]) {
+      const s = h[ws] ? h[ws][i] : null, d = h[wd] ? h[wd][i] : null;
+      if (s == null) continue;
+      const m = ground + agl;
+      out.push({ label: `${agl} m GND`, hPa: null, m, ft: Math.round(m * M_TO_FT),
+                 spd: s, dir: d, temp: agl === 10 && h.temperature_2m ? h.temperature_2m[i] : null });
+    }
+
+    for (const p of (j._levels || LEVELS)) {
+      const s = h[`wind_speed_${p}hPa`] ? h[`wind_speed_${p}hPa`][i] : null;
+      if (s == null) continue;
+      const gh = h[`geopotential_height_${p}hPa`] ? h[`geopotential_height_${p}hPa`][i] : null;
+      const m = gh != null ? gh : stdHeight(p);
+      if (m <= ground + 200) continue;            // below or inside the surface layer
+      out.push({
+        label: `${p} hPa`, hPa: p, m, ft: Math.round(m * M_TO_FT), spd: s,
+        dir: h[`wind_direction_${p}hPa`] ? h[`wind_direction_${p}hPa`][i] : null,
+        temp: h[`temperature_${p}hPa`] ? h[`temperature_${p}hPa`][i] : null,
+      });
+    }
+
+    out.sort((a, b) => b.m - a.m);
+    return out;
+  }
+
+  /** ICAO standard atmosphere height for a pressure, as a fallback in metres. */
+  function stdHeight(hPa) {
+    return 44330.77 * (1 - Math.pow(hPa / 1013.25, 0.1902632));
+  }
+
+  // ------------------------------------------------------------ derived
+  /**
+   * Fog risk 0…3 from spread, humidity, wind and model visibility.
+   * Daylight with strong insolation takes one step off — radiation fog does not
+   * usually survive it. Deliberately conservative: this is an indicator, not a
+   * forecast.
+   */
+  function fogRisk(rec) {
+    if (!rec || rec.temp == null || rec.dew == null) return { level: null, txt: '—' };
+    const spread = rec.temp - rec.dew;
+    const rh = rec.rh == null ? 100 - spread * 5 : rec.rh;
+    const w = rec.w10 == null ? 0 : rec.w10;
+    let lvl = 0;
+    if (spread <= 0.6 && rh >= 97 && w < 2.0) lvl = 3;
+    else if (spread <= 1.5 && rh >= 93 && w < 3.5) lvl = 2;
+    else if (spread <= 2.5 && rh >= 88 && w < 5.0) lvl = 1;
+    if (rec.vis != null) {
+      if (rec.vis < 1000) lvl = 3;
+      else if (rec.vis < 3000) lvl = Math.max(lvl, 2);
+      else if (rec.vis < 5000) lvl = Math.max(lvl, 1);
+    }
+    if (lvl > 0 && rec.rad != null && rec.rad > 250) lvl -= 1;
+    const TXT = ['kein', 'gering', 'mässig', 'hoch'];
+    return { level: lvl, txt: TXT[lvl] };
+  }
+
+  /** Rough base of the lowest deck in ft AGL, from the LCL. null if no low cloud. */
+  function cloudBaseFt(rec) {
+    if (!rec || rec.cloudLow == null || rec.cloudLow < 25) return null;
+    if (rec.temp == null || rec.dew == null) return null;
+    return Math.max(100, Math.round((rec.temp - rec.dew) * 400 / 100) * 100);
+  }
+
+  /**
+   * Rough GAFOR-style class from model visibility and low cloud.
+   * Marked as a model estimate everywhere it is shown — it is not the DWD code.
+   */
+  function classify(rec) {
+    if (rec.vis == null) return null;
+    const visKm = rec.vis / 1000;
+    const cig = cloudBaseFt(rec) == null ? 99999 : cloudBaseFt(rec);
+    if (visKm >= 10 && cig >= 2000) return 'C';
+    if (visKm >= 8  && cig >= 1500) return 'O';
+    if (visKm >= 5  && cig >= 1000) return 'D';
+    if (visKm >= 5  && cig >= 500)  return 'M';
+    return 'X';
+  }
+
+  // ------------------------------------------------------------ ensemble
+  const ENS_HOURLY = ['wind_speed_10m', 'wind_gusts_10m', 'precipitation',
+                      'cloud_cover', 'temperature_2m'];
+
+  /** ICON-D2-EPS, 20 members. Separate host, so it is a second request. */
+  async function ensemble(lat, lon, days) {
+    const url = `${ensembleBase()}/v1/ensemble?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}` +
+      `&hourly=${ENS_HOURLY.join(',')}&models=icon_d2` +
+      `&wind_speed_unit=ms&timezone=auto&forecast_days=${days || 2}${keyParam()}`;
+    const j = await U.getJSON(url);
+    if (j.error) throw new Error(j.reason || 'Open-Meteo error');
+    return j;
+  }
+
+  /** All member series for one variable: control plus `_memberNN`. */
+  function members(j, key) {
+    if (!j || !j.hourly) return [];
+    const re = new RegExp(`^${key}(_member\\d+)?$`);
+    return Object.keys(j.hourly).filter(k => re.test(k)).map(k => j.hourly[k]);
+  }
+
+  /** min / median / max across members at one hour. */
+  function spread(j, key, i) {
+    const vals = members(j, key).map(s => (s ? s[i] : null))
+                                .filter(v => v != null && isFinite(v))
+                                .sort((a, b) => a - b);
+    if (!vals.length) return null;
+    const mid = Math.floor(vals.length / 2);
+    return {
+      n: vals.length,
+      min: vals[0],
+      max: vals[vals.length - 1],
+      med: vals.length % 2 ? vals[mid] : (vals[mid - 1] + vals[mid]) / 2,
+    };
+  }
+
+  /** Share of members below a threshold, e.g. "dry" = precipitation < 0.1 mm. */
+  function shareBelow(j, key, i, limit) {
+    const vals = members(j, key).map(s => (s ? s[i] : null)).filter(v => v != null);
+    if (!vals.length) return null;
+    return { hit: vals.filter(v => v < limit).length, n: vals.length };
+  }
+
+  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, classify,
+           ensemble, spread, shareBelow, members, levelsUpTo, stdHeight,
+           HOURLY, LEVELS, ENS_HOURLY, M_TO_FT };
+})();
