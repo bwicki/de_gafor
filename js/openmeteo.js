@@ -69,8 +69,16 @@ const OM = (() => {
     { key: 'gfs_global',        name: 'GFS',         note: 'NOAA, 13 km',   hours: 384 },
     { key: '',                  name: 'Auto',        note: 'nahtloser Mix', hours: 384 },
   ];
-  /** Horizont eines Modells in Stunden. */
-  const modelHours = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[MODELS.length - 1]).hours;
+  /* Wie weit der gemeinsame Zeitschieber überhaupt reicht. GFS rechnet 16
+     Tage, aber ein Höhenprofil auf zwei Wochen hinaus ist Zahlenmystik, und
+     die Druckflächen für 16 Tage wären ein Vielfaches an Daten. Sieben Tage
+     decken jede Fahrtplanung ab; darauf werden alle Modelle gedeckelt. */
+  const SPAN_H = 168;
+  const FETCH_DAYS = 8;              // ein Tag Reserve, damit +168 h auch drin ist
+
+  /** Horizont eines Modells in Stunden, auf die Spannweite der App gedeckelt. */
+  const modelHours = (key) =>
+    Math.min(SPAN_H, (MODELS.find(m => m.key === (key || '')) || MODELS[MODELS.length - 1]).hours);
   /** Modelle, die eine Vorhersage für +hours noch abdecken. */
   const modelName = (key) => (MODELS.find(m => m.key === (key || '')) || MODELS[0]).name;
 
@@ -214,6 +222,62 @@ const OM = (() => {
     return { level: lvl, txt: TXT[lvl] };
   }
 
+  /* ---------------------------------------------------------- Startfenster
+   * Eine Ampel je Stunde für die Frage „kann ich starten?". Bewusst streng und
+   * bewusst einfach: sie ersetzt keine Beratung, sondern sagt, welche Stunden
+   * man überhaupt anschauen muss.
+   *
+   * Die Schwellen sind die üblichen Werte für den Heissluftballon:
+   *   Bodenwind   bis 4 m/s gut, bis 6 m/s grenzwertig, darüber nein
+   *   Böen        bis 6 m/s gut, bis 8 m/s grenzwertig, darüber nein
+   *   Böigkeit    Böe minus Wind über 4 m/s ist grenzwertig, über 6 m/s nein
+   *   Niederschlag ab 0,1 mm/h nein
+   *   CAPE        ab 300 J/kg grenzwertig, ab 800 nein (Gewitterneigung)
+   *   Sicht/Nebel unter 1,5 km nein, Nebelrisiko „mässig" grenzwertig
+   *   Wolkenbasis unter 1000 ft AGL grenzwertig
+   *   Dämmerung   ausserhalb bürgerlicher Dämmerung nein
+   *
+   * `light` ist true, wenn die Stunde zwischen Anfang und Ende der
+   * bürgerlichen Dämmerung liegt (js/sun.js rechnet das für den Punkt).
+   */
+  const FLY = { GOOD: 2, LIMIT: 1, NO: 0 };
+  const FLY_TXT = { 2: 'fahrbar', 1: 'grenzwertig', 0: 'nein' };
+
+  function flyRating(rec, light) {
+    if (!rec) return { level: null, txt: '—', why: [] };
+    const why = [];
+    let lvl = FLY.GOOD;
+    const down = (to, reason) => { if (to < lvl) lvl = to; why.push(reason); };
+
+    if (light === false) down(FLY.NO, 'ausserhalb der bürgerlichen Dämmerung');
+
+    const w = rec.w10, g = rec.gust;
+    if (w != null) {
+      if (w > 6) down(FLY.NO, `Bodenwind ${w.toFixed(1)} m/s`);
+      else if (w > 4) down(FLY.LIMIT, `Bodenwind ${w.toFixed(1)} m/s`);
+    }
+    if (g != null) {
+      if (g > 8) down(FLY.NO, `Böen ${g.toFixed(1)} m/s`);
+      else if (g > 6) down(FLY.LIMIT, `Böen ${g.toFixed(1)} m/s`);
+    }
+    if (w != null && g != null) {
+      const d = g - w;
+      if (d > 6) down(FLY.NO, `sehr böig (+${d.toFixed(1)} m/s)`);
+      else if (d > 4) down(FLY.LIMIT, `böig (+${d.toFixed(1)} m/s)`);
+    }
+    if (rec.precip != null && rec.precip >= 0.1) down(FLY.NO, `Niederschlag ${rec.precip.toFixed(1)} mm/h`);
+    if (rec.cape != null) {
+      if (rec.cape >= 800) down(FLY.NO, `CAPE ${Math.round(rec.cape)} J/kg`);
+      else if (rec.cape >= 300) down(FLY.LIMIT, `CAPE ${Math.round(rec.cape)} J/kg`);
+    }
+    if (rec.vis != null && rec.vis < 1500) down(FLY.NO, `Sicht ${(rec.vis / 1000).toFixed(1)} km`);
+    else if (fogRisk(rec).level >= 2) down(FLY.LIMIT, 'Nebelrisiko');
+    const base = cloudBaseFt(rec);
+    if (base != null && base < 1000) down(FLY.LIMIT, `Wolkenbasis ${base} ft AGL`);
+
+    return { level: lvl, txt: FLY_TXT[lvl], why };
+  }
+
   /** Rough base of the lowest deck in ft AGL, from the LCL. null if no low cloud. */
   function cloudBaseFt(rec) {
     if (!rec || rec.cloudLow == null || rec.cloudLow < 25) return null;
@@ -264,7 +328,8 @@ const OM = (() => {
     return { hit: vals.filter(v => v < limit).length, n: vals.length };
   }
 
-  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint,
+  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint, flyRating, FLY,
+           SPAN_H, FETCH_DAYS,
            MODELS, modelName, modelHours,
            ensemble, spread, shareBelow, levelsUpTo, stdHeight, M_TO_FT };
 })();

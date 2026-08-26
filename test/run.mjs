@@ -699,6 +699,44 @@ head('Open-Meteo: Profil, Nebel, Ensemble');
     ? ok('5 kt → nur die halbe Fahne')
     : bad(`barb(5): ${JSON.stringify(kinds(5))}`);
 
+  // --- Startfenster ---
+  const rec = (o) => Object.assign({ temp: 15, dew: 5, rh: 50, w10: 2, gust: 3,
+                                     precip: 0, cape: 0, vis: 20000, rad: 400,
+                                     cloudLow: 0 }, o);
+  OM.flyRating(rec({}), true).level === OM.FLY.GOOD
+    ? ok('ruhige Lage am Tag → fahrbar') : bad('ruhige Lage wird nicht als fahrbar erkannt');
+  OM.flyRating(rec({}), false).level === 0
+    ? ok('dieselbe Lage nachts → nein') : bad('Dämmerung wird nicht berücksichtigt');
+  OM.flyRating(rec({ w10: 5 }), true).level === 1
+    ? ok('5 m/s Bodenwind → grenzwertig') : bad('Windschwelle 4 m/s greift nicht');
+  OM.flyRating(rec({ w10: 7 }), true).level === 0
+    ? ok('7 m/s Bodenwind → nein') : bad('Windschwelle 6 m/s greift nicht');
+  OM.flyRating(rec({ gust: 9 }), true).level === 0
+    ? ok('Böen 9 m/s → nein') : bad('Böenschwelle greift nicht');
+  {
+    // Böigkeit zählt für sich: schwacher Mittelwind, kräftige Böen
+    const a = OM.flyRating(rec({ w10: 1, gust: 5.5 }), true);
+    const b2 = OM.flyRating(rec({ w10: 0.5, gust: 7.5 }), true);
+    a.level === 1 && a.why.some(w => /böig/.test(w)) && b2.level === 0
+      ? ok('4,5 m/s Böigkeit grenzwertig, 7 m/s nein — auch bei schwachem Mittelwind')
+      : bad(`Böigkeit: ${a.level}/${JSON.stringify(a.why)}, ${b2.level}`);
+  }
+  OM.flyRating(rec({ precip: 0.4 }), true).level === 0
+    ? ok('Niederschlag → nein') : bad('Niederschlag wird nicht bewertet');
+  OM.flyRating(rec({ cape: 500 }), true).level === 1 &&
+  OM.flyRating(rec({ cape: 1200 }), true).level === 0
+    ? ok('CAPE 500 grenzwertig, 1200 nein') : bad('CAPE wird nicht bewertet');
+  OM.flyRating(rec({ vis: 800 }), true).level === 0
+    ? ok('Sicht 800 m → nein') : bad('Sichtschwelle greift nicht');
+  {
+    const r = OM.flyRating(rec({ w10: 5, cape: 400 }), true);
+    r.why.length === 2 && r.why.some(w => /Bodenwind/.test(w)) && r.why.some(w => /CAPE/.test(w))
+      ? ok(`beide Gründe werden genannt: ${r.why.join(', ')}`)
+      : bad(`Gründe: ${JSON.stringify(r.why)}`);
+  }
+  OM.flyRating(null, true).level === null
+    ? ok('ohne Daten keine Bewertung') : bad('flyRating erfindet eine Bewertung');
+
   // --- Modelle und ihr Vorhersagehorizont ---
   OM.MODELS.every((m, i) => i === 0 || m.hours >= OM.MODELS[i - 1].hours)
     ? ok(`Modelle aufsteigend nach Horizont (${OM.MODELS.map(m => m.hours).join(' ≤ ')})`)
@@ -706,12 +744,59 @@ head('Open-Meteo: Profil, Nebel, Ensemble');
   OM.MODELS[0].key === 'icon_d2' && OM.MODELS[OM.MODELS.length - 1].key === ''
     ? ok('ICON-D2 steht vorn, „Auto" zuletzt')
     : bad(`erstes/letztes Modell: ${OM.MODELS[0].key} / ${OM.MODELS[OM.MODELS.length - 1].key}`);
-  OM.modelHours('icon_d2') === 48 && OM.modelHours('') === 384
-    ? ok('Horizont je Modell abfragbar (ICON-D2 48 h, Auto 384 h)')
+  OM.modelHours('icon_d2') === 48 && OM.modelHours('') === OM.SPAN_H
+    ? ok(`Horizont je Modell abfragbar (ICON-D2 48 h, Auto ${OM.SPAN_H} h)`)
     : bad(`modelHours: ${OM.modelHours('icon_d2')} / ${OM.modelHours('')}`);
-  OM.modelHours('gibtsnicht') === 384
+  OM.modelHours('gfs_global') === OM.SPAN_H && OM.MODELS.find(m => m.key === 'gfs_global').hours === 384
+    ? ok(`GFS rechnet 384 h, die App deckelt auf ${OM.SPAN_H} h`)
+    : bad(`GFS-Deckel: ${OM.modelHours('gfs_global')}`);
+  OM.modelHours('gibtsnicht') === OM.SPAN_H
     ? ok('unbekanntes Modell fällt auf den weitesten Horizont zurück')
     : bad(`modelHours(unbekannt) = ${OM.modelHours('gibtsnicht')}`);
+}
+
+// ------------------------------------------------- 3b0. Sonnenstand
+head('Sonnenstand und Dämmerung');
+{
+  const SUN = new Function(`${await readFile('js/sun.js', 'utf8')}; return SUN;`)();
+  const hhmm = (ms) => new Date(ms).toISOString().slice(11, 16);
+  // Berlin, Sommersonnenwende: SA 04:43 MESZ = 02:43 UTC, SU 21:33 MESZ = 19:33 UTC
+  {
+    const t = SUN.times(52.52, 13.405, Date.parse('2026-06-21T12:00:00Z'));
+    hhmm(t.sunrise) === '02:44' && hhmm(t.sunset) === '19:34'
+      ? ok(`Berlin 21.06.: Aufgang ${hhmm(t.sunrise)} UTC, Untergang ${hhmm(t.sunset)} UTC`)
+      : bad(`Berlin 21.06.: ${hhmm(t.sunrise)} / ${hhmm(t.sunset)} UTC`);
+    t.dawn < t.sunrise && t.sunrise < t.noon && t.noon < t.sunset && t.sunset < t.dusk
+      ? ok('Dämmerung, Aufgang, Mittag, Untergang, Dämmerung in dieser Reihenfolge')
+      : bad('Reihenfolge der Sonnenzeiten stimmt nicht');
+    const civ = (t.sunrise - t.dawn) / 60000;
+    civ > 35 && civ < 60
+      ? ok(`bürgerliche Dämmerung dauert ${Math.round(civ)} min (Sommer, 52° N)`)
+      : bad(`Dämmerungsdauer: ${civ.toFixed(0)} min`);
+  }
+  // Greenwich zur Tagundnachtgleiche: rund 06:00 und 18:00 UTC
+  {
+    const t = SUN.times(51.48, 0, Date.parse('2026-03-20T12:00:00Z'));
+    Math.abs(Date.parse('2026-03-20T06:00Z') - t.sunrise) < 15 * 60e3 &&
+    Math.abs(Date.parse('2026-03-20T18:00Z') - t.sunset) < 15 * 60e3
+      ? ok(`Greenwich zur Tagundnachtgleiche: ${hhmm(t.sunrise)} / ${hhmm(t.sunset)} UTC`)
+      : bad(`Tagundnachtgleiche: ${hhmm(t.sunrise)} / ${hhmm(t.sunset)}`);
+  }
+  // Winter ist kürzer als Sommer
+  {
+    const s = SUN.times(52.52, 13.405, Date.parse('2026-06-21T12:00:00Z'));
+    const w = SUN.times(52.52, 13.405, Date.parse('2026-12-21T12:00:00Z'));
+    const len = (t) => (t.sunset - t.sunrise) / 3600e3;
+    len(s) > 16 && len(w) < 8
+      ? ok(`Tageslänge Berlin: ${len(s).toFixed(1)} h im Juni, ${len(w).toFixed(1)} h im Dezember`)
+      : bad(`Tageslängen: ${len(s).toFixed(1)} / ${len(w).toFixed(1)} h`);
+  }
+  // Mitternacht ist Nacht, Mittag ist Tag — auch über den Tageswechsel hinweg
+  SUN.isDaylight(52.52, 13.405, Date.parse('2026-08-26T10:00:00Z')) &&
+  !SUN.isDaylight(52.52, 13.405, Date.parse('2026-08-26T01:00:00Z')) &&
+  !SUN.isDaylight(52.52, 13.405, Date.parse('2026-08-26T22:00:00Z'))
+    ? ok('Tageslicht: Mittag ja, ein und zehn Uhr nachts nein')
+    : bad('isDaylight liegt daneben');
 }
 
 // ------------------------------------------------- 3b1. Peilung zur METAR-Station

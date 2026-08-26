@@ -19,7 +19,11 @@
     rhStart: U.load('rhStart', 85),        // rF-Schwelle, ab der schattiert wird
     lastFetchLat: null, lastFetchLon: null,
     om: null, ens: null, metars: null, tafs: null,
-    windOffset: 0,                            // gewählte Stunde relativ zu „jetzt"
+    hour: 0,                                  // gewählte Stunde, gilt für alle Karten
+    model2: U.load('model2', ''),             // zweites Modell zum Vergleich im Profil
+    om2: null,
+    autoRefresh: U.load('autoRefresh', 1),
+    lastLoad: { model: 0, metar: 0, dwd: 0 },
     model: U.load('model', ''),               // '' = Auto-Mix, sonst ein Open-Meteo-Modell
   };
 
@@ -47,7 +51,7 @@
     try {
       MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom, onMove: onMapMove });
     } catch (e) { console.error('Karte konnte nicht starten:', e); }
-    try { wireUI(); } catch (e) { console.error('Bedienung nicht vollständig verdrahtet:', e); }
+    try { wireUI(); wireTimeBar(); } catch (e) { console.error('Bedienung nicht vollständig verdrahtet:', e); }
     renderPlace();
     footer();
 
@@ -58,15 +62,18 @@
     MAPVIEW.setRegions(GAFOR.regionCollection());
     MAPVIEW.setAreas(GAFOR.collection());
     renderLegend();
+    paintFavourites();
     if (!GAFOR.count()) {
       U.$('mapHint').textContent = 'Gebietsgrenzen fehlen — data/gafor-areas.geojson ist leer';
     }
     resolveArea();
     if (!state.place) namePlace(state.lat, state.lon);
 
-    try { await DWD.load(); } catch (e) { console.warn('DWD index not available:', e.message); }
+    try { await DWD.load(); state.lastLoad.dwd = Date.now(); }
+    catch (e) { console.warn('DWD index not available:', e.message); }
     renderReports();
     loadPointData(true);
+    startAutoRefresh();
 
     if ('serviceWorker' in navigator && location.protocol === 'https:') {
       navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -182,6 +189,7 @@
         paintProfile();
         const hs = U.$('windBody').querySelector('.hour-slider');
         if (hs && hs._place) hs._place();          // Marke folgt der neuen Breite
+        if (state.om) markTime();
         // die Spaltenaufteilung hängt an der Breite und muss mit
         for (const w of document.querySelectorAll('.report-cols')) {
           if (w._balance) w._balance();
@@ -273,7 +281,8 @@
   async function reloadDwd() {
     const b = U.$('reloadBtn');
     b.classList.add('spinning');
-    try { await DWD.load(true); } catch { /* die Karten zeigen es selbst */ }
+    try { await DWD.load(true); state.lastLoad.dwd = Date.now(); }
+    catch { /* die Karten zeigen es selbst */ }
     renderReports();
     b.classList.remove('spinning');
   }
@@ -284,12 +293,56 @@
     if (b.classList.contains('spinning')) return;
     b.classList.add('spinning');
     METAR.reload();                       // die Repo-Kopie neu ziehen, nicht die alte nehmen
-    try { await DWD.load(true); } catch { /* die Karten zeigen es selbst */ }
+    try { await DWD.load(true); state.lastLoad.dwd = Date.now(); }
+    catch { /* die Karten zeigen es selbst */ }
     renderReports();
     try { await loadPointData(true); } catch { /* dito */ }
     b.classList.remove('spinning');
     b.classList.add('ok');
     setTimeout(() => b.classList.remove('ok'), 1400);
+  }
+
+  /* ------------------------------------------------- automatisches Nachladen
+   * Solange der Tab sichtbar ist, holt die App still nach: METAR alle zehn
+   * Minuten (sie werden halbstündlich ausgegeben), den DWD-Index alle zwanzig
+   * (der Workflow läuft dreimal pro Stunde), das Modell alle dreissig.
+   *
+   * Im Hintergrund läuft nichts — ein schlafender Tab würde weder zuverlässig
+   * ticken noch nützt es jemandem. Beim Zurückkommen wird einmal geprüft und
+   * das Überfällige nachgeholt. Abschaltbar in den Einstellungen.
+   */
+  const AUTO = { metar: 10 * 60e3, dwd: 20 * 60e3, model: 30 * 60e3 };
+  let autoTimer = 0;
+  let autoWired = false;
+
+  function startAutoRefresh() {
+    clearInterval(autoTimer);
+    if (!state.autoRefresh) return;
+    autoTimer = setInterval(autoTick, 60e3);
+    if (!autoWired) {                     // sonst hinge nach jedem Einstellen ein Horcher mehr
+      autoWired = true;
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) autoTick(); });
+    }
+  }
+
+  async function autoTick() {
+    if (!state.autoRefresh || document.hidden) return;
+    const now = Date.now();
+    const due = (k) => now - (state.lastLoad[k] || 0) > AUTO[k];
+
+    if (due('dwd')) {
+      state.lastLoad.dwd = now;                 // vor dem Abruf setzen: kein Doppellauf
+      try { await DWD.load(true); renderReports(); } catch { /* still */ }
+    }
+    if (due('metar')) {
+      state.lastLoad.metar = now;
+      METAR.reload();
+      try { await loadPointData(true, ['metar']); } catch { /* still */ }
+    }
+    if (due('model')) {
+      state.lastLoad.model = now;
+      try { await loadPointData(true, ['model', 'ens']); } catch { /* still */ }
+    }
   }
 
   // ------------------------------------------------------------- Drucken
@@ -574,12 +627,30 @@
    */
   function currentPeriod(b) {
     if (!b || !b.codes || !b.codes.length) return null;
-    const nowUtc = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
-    let i = (b.periods || []).findIndex(p => inPeriod(p, nowUtc));
-    if (i < 0) i = 0;
-    return { i, now: (b.periods || []).some(p => inPeriod(p, nowUtc)),
+    const hUtc = selectedUtcHour();
+    let i = (b.periods || []).findIndex(p => inPeriod(p, hUtc));
+    const hit = i >= 0;
+    if (!hit) i = 0;
+    return { i, now: hit,
              ci: GAFOR.codeInfo(b.codes[i] || ''),
              remark: (b.detail && b.detail.remarks && b.detail.remarks[i]) || '' };
+  }
+
+  /**
+   * Die gewählte Stunde als UTC-Dezimalstunde. Der Zeitschieber steuert auch
+   * das GAFOR-Band: steht er auf „jetzt", ist es die aktuelle Stunde, sonst
+   * die gewählte. Ohne Modelldaten bleibt es bei der Uhr.
+   */
+  function selectedUtcHour() {
+    const j = state.om;
+    if (j && j.hourly) {
+      const off = (j.utc_offset_seconds || 0) * 1000;
+      const ms = Date.parse(j.hourly.time[tIndex(j)] + ':00Z') - off;
+      const d = new Date(ms);
+      return d.getUTCHours() + d.getUTCMinutes() / 60;
+    }
+    const n = new Date();
+    return n.getUTCHours() + n.getUTCMinutes() / 60;
   }
 
   function renderLegend() {
@@ -643,6 +714,9 @@
     tAge.textContent = [b.bereich, span, b.issued ? U.ago(b.issued) : ''].filter(Boolean).join(' · ');
     tAge.className = U.ageClass(b.issued, 300, 600);
 
+    const st = staleness(b);
+    if (st) tiles.appendChild(staleWarning(st));
+
     if (b.detail && b.detail.remark) {
       const r = U.el('div', 'note');
       r.style.margin = '9px 13px 0';
@@ -673,16 +747,15 @@
     const wrap = U.el('div', 'gbar-wrap');
     const bar = U.el('div', 'gafor-bar');
     const foot = U.el('div', 'gbar-foot');
-    const nowUtc = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
     const segs = [];
 
     const show = (i) => {
       const ci = GAFOR.codeInfo(b.codes[i] || '');
       const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
-      const cur = inPeriod(b.periods[i], nowUtc);
+      const sel = inPeriod(b.periods[i], selectedUtcHour());
       U.clear(foot);
       const left = U.el('div', 'gf-l');
-      left.innerHTML = `${cur ? 'jetzt' : b.periods[i].replace('-', '–') + ' UTC'} ` +
+      left.innerHTML = `${sel && state.hour === 0 ? 'jetzt' : b.periods[i].replace('-', '–') + ' UTC'} ` +
         `<strong class="k ${ci.key}">${ci.word || ci.letter || '—'}</strong>` +
         (ci.vis ? ` · ${ci.vis} · ${ci.base}` : '') +
         (rem ? ` · <span class="k ${ci.key}">${rem}</span>` : '');
@@ -717,6 +790,62 @@
     wrap.appendChild(foot);
     show(start);
     return wrap;
+  }
+
+  /* ------------------------------------------------------- Alter der Daten
+   * Ein GAFOR-Bulletin gilt für einen festen Zeitraum. Läuft dieser ab, steht
+   * die Codereihe zwar noch da, sagt aber nichts mehr — und genau das ist der
+   * gefährliche Fall, weil die Kacheln unverändert aussehen. Die Warnung muss
+   * deshalb dorthin, wo man hinschaut, nicht in die kleine Altersanzeige.
+   */
+  const STALE_MIN = 3 * 60;              // ab drei Stunden ohne Aktualisierung
+
+  /**
+   * Ende der Gültigkeit in Millisekunden. Das Bulletin nennt es nicht direkt;
+   * es steckt im letzten Zeitraum („15-17") und in der Ausgabezeit. Läuft die
+   * Reihe über Mitternacht, gehört das Ende auf den Folgetag.
+   */
+  function validUntil(b) {
+    if (!b || !b.issued || !b.periods || !b.periods.length) return null;
+    const last = /(\d{1,2})\s*[-–]\s*(\d{1,2})$/.exec(b.periods[b.periods.length - 1]);
+    const first = /^(\d{1,2})/.exec(b.periods[0]);
+    if (!last || !first) return null;
+    const iss = new Date(b.issued);
+    if (isNaN(iss)) return null;
+    const end = Date.UTC(iss.getUTCFullYear(), iss.getUTCMonth(), iss.getUTCDate(), +last[2], 0, 0);
+    // über Mitternacht: das Ende liegt am Folgetag
+    return +last[2] <= +first[1] ? end + 86400000 : end;
+  }
+
+  /** Warum die Daten fragwürdig sind, oder null wenn alles frisch ist. */
+  function staleness(b) {
+    if (!b) return null;
+    const now = Date.now();
+    const end = validUntil(b);
+    if (end != null && now > end) {
+      return { hard: true,
+               txt: `Gültig war dieses Bulletin nur bis ${U.fmtUTC(new Date(end))} — ` +
+                    `das ist ${U.ago(new Date(end).toISOString())} her. Die Stufen unten ` +
+                    'sagen für jetzt nichts mehr aus.' };
+    }
+    if (b.issued) {
+      const age = (now - Date.parse(b.issued)) / 60000;
+      if (isFinite(age) && age > STALE_MIN) {
+        return { hard: age > 2 * STALE_MIN,
+                 txt: `Ausgegeben ${U.ago(b.issued)} — der Workflow holt normalerweise ` +
+                      'dreimal pro Stunde. Läuft er noch?' };
+      }
+    }
+    return null;
+  }
+
+  function staleWarning(st) {
+    const d = U.el('div', 'stale' + (st.hard ? ' hard' : ''));
+    d.innerHTML = `<span class="ic">!</span><span>${st.txt}</span>`;
+    const b = U.el('button', 'btn small', 'neu laden');
+    b.onclick = reloadAll;
+    d.appendChild(b);
+    return d;
   }
 
   /** Flugwetterübersicht eines Bereichs in die eigene Karte. */
@@ -761,17 +890,39 @@
       }
     }
     if (cur.title || cur.body.join('').trim()) blocks.push(cur);
-    return blocks.map(b => {
-      const body = b.body.join('\n').replace(/^\n+|\n+$/g, '');
-      /* Der DWD-Text ist auf etwa 68 Zeichen hart umbrochen, und die
-         Leerzeilen sitzen mitten im Satz — ein Artefakt der HTML-Umwandlung.
-         In einer schmalen Spalte gäbe das lauter halbleere Zeilen, deshalb
-         wird Fliesstext wieder zusammengefügt. Tabellarische Abschnitte
-         (Höhenwind, mit "|") bleiben, wie sie sind. */
-      const tabular = /\|/.test(body);
-      return { title: b.title, tabular,
-               body: tabular ? body : body.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim() };
-    }).filter(b => b.title || b.body);
+    return blocks
+      .map(b => ({ title: b.title, parts: splitParts(b.body.join('\n')) }))
+      .filter(b => b.title || b.parts.length);
+  }
+
+  /**
+   * Einen Abschnitt in Fliesstext- und Tabellenstücke zerlegen.
+   *
+   * Bis 1.13.0 galt ein ganzer Abschnitt als Tabelle, sobald **irgendwo** darin
+   * ein „|" vorkam — und damit stand „Inversionen" samt seinem Prosaabsatz in
+   * der Schreibmaschinenschrift, nur weil weiter unten die Dämmerungszeiten
+   * folgen. Getrennt wird deshalb absatzweise (an Leerzeilen): ein Absatz ist
+   * eine Tabelle, wenn er „|" enthält oder wenn seine Zeilen mit mehrfachen
+   * Leerzeichen ausgerichtet sind. Nur die bekommen die feste Breite, alles
+   * andere läuft in der Grundschrift des Berichts.
+   */
+  function splitParts(raw) {
+    const out = [];
+    for (const para of String(raw || '').split(/\n\s*\n/)) {
+      const text = para.replace(/^\n+|\n+$/g, '');
+      if (!text.trim()) continue;
+      const lines = text.split('\n').filter(l => l.trim());
+      const aligned = lines.filter(l => /\S {2,}\S/.test(l)).length;
+      const tabular = /\|/.test(text) || (lines.length > 1 && aligned >= lines.length / 2);
+      /* Der DWD-Text ist auf etwa 68 Zeichen hart umbrochen, und die Umbrüche
+         sitzen mitten im Satz — ein Artefakt der HTML-Umwandlung. In einer
+         schmalen Spalte gäbe das lauter halbleere Zeilen, deshalb wird
+         Fliesstext wieder zusammengefügt. */
+      out.push({ tabular,
+                 text: tabular ? text
+                               : text.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim() });
+    }
+    return out;
   }
 
   /**
@@ -797,10 +948,10 @@
     const groups = blocks.map(b => {
       const g = [];
       if (b.title) g.push(U.el('h4', 'report-h', b.title));
-      if (b.body) {
-        g.push(b.tabular
-          ? Object.assign(U.el('pre', 'report'), { textContent: b.body })
-          : U.el('p', 'report-p', b.body));
+      for (const part of b.parts) {
+        g.push(part.tabular
+          ? Object.assign(U.el('pre', 'report'), { textContent: part.text })
+          : U.el('p', 'report-p', part.text));
       }
       return g;
     });
@@ -817,7 +968,8 @@
 
     /* Startaufteilung nach Zeichenzahl — nur, damit nichts flackert, bevor
        gemessen werden kann. Die Feineinstellung macht balanceReport(). */
-    const len = blocks.map(b => b.title.length + 2 + b.body.length);
+    const len = blocks.map(b => b.title.length + 2 +
+      b.parts.reduce((a, p) => a + p.text.length, 0));
     const total = len.reduce((a, v) => a + v, 0);
     let run = 0, k0 = blocks.length - 1;
     for (let i = 0; i < blocks.length - 1; i++) {
@@ -1004,6 +1156,7 @@
         if (state.showTaf && list.length) {
           try { state.tafs = await METAR.taf(list.map(m => m.icaoId)); } catch { /* ohne TAF */ }
         }
+        state.lastLoad.metar = Date.now();
         renderMetar();
       };
       jobs.push((async () => {
@@ -1030,18 +1183,37 @@
     if (want('model')) {
       U.$('modelAge').textContent = 'lädt…';
       U.$('windAge').textContent = 'lädt…';
-      jobs.push(OM.forecast(lat, lon, 3, state.profileTop, state.model).then(j => {
+      jobs.push(OM.forecast(lat, lon, OM.FETCH_DAYS, state.profileTop, state.model).then(j => {
         if (lat !== state.lat || lon !== state.lon) return;
         state.om = j;
+        state.lastLoad.model = Date.now();
+        renderTimeBar();
         renderModel();
         renderWind();
+        renderFly();
       }).catch(e => {
         state.om = null;
         const msg = 'Open-Meteo nicht erreichbar: ' + e.message;
         U.clear(U.$('modelBody')).appendChild(wrapNote(msg));
         U.clear(U.$('windBody')).appendChild(wrapNote(msg));
+        U.clear(U.$('flyBody')).appendChild(wrapNote(msg));
+        U.$('timeBar').hidden = true;
         U.$('modelAge').textContent = ''; U.$('windAge').textContent = '';
       }));
+
+      /* Zweites Modell zum Vergleich — nur wenn eines gewählt ist. Es füllt
+         allein die gestrichelten Kurven im Stüve; scheitert es, fehlt eben der
+         Vergleich, die Karte steht trotzdem. */
+      if (state.model2 && state.model2 !== state.model) {
+        jobs.push(OM.forecast(lat, lon, OM.FETCH_DAYS, state.profileTop, state.model2)
+          .then(j2 => {
+            if (lat !== state.lat || lon !== state.lon) return;
+            state.om2 = j2;
+            paintProfile();
+          }).catch(() => { state.om2 = null; }));
+      } else {
+        state.om2 = null;
+      }
     }
 
     // Ensemble — eigener Host, deshalb ein zweiter Abruf, abschaltbar
@@ -1225,13 +1397,133 @@
 
   const fmt = (v) => (v == null || !isFinite(v)) ? '—' : Math.round(v);
 
+  // ------------------------------------------------------------ Startfenster
+  /**
+   * Eine Ampel je Stunde: fahrbar, grenzwertig, nein — und der Grund dazu.
+   *
+   * Das ist die Frage, mit der man die App öffnet, und sie steht deshalb ganz
+   * oben. Gerechnet wird ausschliesslich aus dem Punktmodell (Open-Meteo) und
+   * der bürgerlichen Dämmerung für genau diesen Ort; es ist **keine** Aussage
+   * des DWD und ersetzt die Beratung nicht. Die Schwellen stehen in
+   * `OM.flyRating`.
+   */
+  const FLY_CLS = { 2: 'ok', 1: 'limit', 0: 'no' };
+
+  /** Bewertung der Stunde `i`, mit Tageslicht für genau diesen Ort. */
+  function flyAt(j, i) {
+    const rec = OM.at(j, i);
+    const off = (j.utc_offset_seconds || 0) * 1000;
+    const ms = Date.parse(j.hourly.time[i] + ':00Z') - off;
+    return OM.flyRating(rec, SUN.isDaylight(state.lat, state.lon, ms));
+  }
+
+  function renderFly() {
+    const body = U.clear(U.$('flyBody'));
+    const j = state.om;
+    if (!j || !j.hourly) return;
+    const sel = tIndex(j);
+    const i0 = OM.nowIndex(j);
+    const reach = reachHours();
+    const last = Math.min(i0 + reach, j.hourly.time.length - 1);
+
+    U.$('flyAge').textContent = `${OM.modelName(j._model)} · eigene Bewertung, keine DWD-Aussage`;
+    U.$('flyAge').className = 'age';
+
+    // --- der gewählte Zeitpunkt gross ---
+    const r = flyAt(j, sel);
+    const head = U.el('div', `fly-head ${FLY_CLS[r.level]}`);
+    const badge = U.el('div', 'fly-badge', r.txt);
+    head.appendChild(badge);
+    const txt = U.el('div', 'fly-txt');
+    txt.appendChild(U.el('div', 'fly-when',
+      `${stampOf(j.hourly.time[sel], j.timezone_abbreviation)}` +
+      (sel === i0 ? ' · jetzt' : '')));
+    txt.appendChild(U.el('div', 'fly-why',
+      r.why.length ? r.why.join(' · ') : 'Wind, Böen, Niederschlag, Gewitter, Sicht und Dämmerung sprechen nicht dagegen'));
+    head.appendChild(txt);
+    body.appendChild(head);
+
+    // --- Streifen über den ganzen Vorhersagezeitraum ---
+    /* Eigene Tagesbeschriftung: der Streifen beginnt bei „jetzt" und endet am
+       Modellhorizont, hat also eine andere Skala als der Zeitschieber oben. */
+    const days = U.el('div', 'fly-days');
+    for (let i = i0; i <= last; i++) {
+      const hh = j.hourly.time[i].slice(11, 13);
+      if (i > i0 && hh !== '00') continue;
+      const lab = U.el('span', 'fly-day');
+      const d = new Date(j.hourly.time[i].slice(0, 10) + 'T12:00:00Z');
+      lab.textContent = `${d.toLocaleDateString('de-CH', { weekday: 'short' }).replace('.', '')} ${d.getUTCDate()}.`;
+      lab.style.left = `${((i - i0) / Math.max(1, last - i0)) * 100}%`;
+      days.appendChild(lab);
+    }
+    body.appendChild(days);
+
+    const strip = U.el('div', 'fly-strip');
+    for (let i = i0; i <= last; i++) {
+      const f = flyAt(j, i);
+      const cell = U.el('button', `fly-cell ${FLY_CLS[f.level]}${i === sel ? ' sel' : ''}`);
+      cell.style.flex = '1 1 0';
+      const hh = j.hourly.time[i].slice(11, 13);
+      if (hh === '00') cell.classList.add('day');
+      cell.title = `${stampOf(j.hourly.time[i], j.timezone_abbreviation)} — ${f.txt}` +
+                   (f.why.length ? `: ${f.why.join(', ')}` : '');
+      cell.onclick = () => { state.hour = i - i0; U.$('timeSlider').value = String(state.hour); repaintForHour(); };
+      strip.appendChild(cell);
+    }
+    body.appendChild(strip);
+
+    // --- die nächsten fahrbaren Fenster ---
+    const win = flyWindows(j, i0, last).slice(0, 3);
+    const list = U.el('div', 'fly-list');
+    if (!win.length) {
+      list.appendChild(U.el('div', 'fly-none',
+        `Bis +${reach} h keine durchgehend fahrbare Stunde.`));
+    } else {
+      for (const w of win) {
+        const row = U.el('div', 'fly-win');
+        row.innerHTML =
+          `<span class="d">${stampOf(j.hourly.time[w.from], '').replace(' · ', ' ')}</span>` +
+          `<span class="t">bis ${j.hourly.time[w.to].slice(11, 16)} ${j.timezone_abbreviation || ''}</span>` +
+          `<span class="n">${w.to - w.from + 1} h</span>`;
+        row.onclick = () => { state.hour = w.from - i0; U.$('timeSlider').value = String(state.hour); repaintForHour(); };
+        list.appendChild(row);
+      }
+    }
+    body.appendChild(list);
+
+    body.appendChild(explainNote(
+      'Eigene Einschätzung aus dem Punktmodell, <strong>keine DWD-Aussage</strong>. ' +
+      '<em>fahrbar</em> heisst: Bodenwind bis 4 m/s, Böen bis 6 m/s, kein Niederschlag, ' +
+      'CAPE unter 300 J/kg, Sicht über 1,5 km, Wolkenbasis über 1000 ft AGL und innerhalb ' +
+      'der bürgerlichen Dämmerung. <em>grenzwertig</em> bis 6 bzw. 8 m/s. Massgebend ist ' +
+      'immer die amtliche Beratung und die Einschätzung vor Ort.'));
+    body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
+  }
+
+  /** Zusammenhängende Läufe mit Bewertung „fahrbar", mindestens eine Stunde. */
+  function flyWindows(j, from, to) {
+    const out = [];
+    let start = -1;
+    for (let i = from; i <= to; i++) {
+      const good = flyAt(j, i).level === OM.FLY.GOOD;
+      if (good && start < 0) start = i;
+      if (!good && start >= 0) { out.push({ from: start, to: i - 1 }); start = -1; }
+    }
+    if (start >= 0) out.push({ from: start, to });
+    return out;
+  }
+
   function renderModel() {
     const body = U.clear(U.$('modelBody'));
     const j = state.om;
     if (!j) return;
-    const i0 = OM.nowIndex(j);
+    /* Die Karte zeigt die Stunde, die der gemeinsame Schieber gewählt hat —
+       „jetzt" ist nur ihr Sonderfall (Schieber auf 0). */
+    const i0 = tIndex(j);
     const now = OM.at(j, i0);
-    U.$('modelAge').textContent = `${OM.modelName(j._model)} · ${j.timezone_abbreviation || ''} · Open-Meteo`;
+    U.$('modelAge').textContent =
+      `${OM.modelName(j._model)} · ${j.hourly.time[i0].slice(11, 16)} ` +
+      `${j.timezone_abbreviation || ''} · Open-Meteo`;
     U.$('modelAge').className = 'age';
 
     // headline stats
@@ -1264,8 +1556,11 @@
     // hourly strip
     const wrap = U.el('div', 'fc-scroll');
     const t = U.el('table', 'fc-table');
+    /* Zwölf Stunden um die gewählte herum, drei davon rückwärts — so sieht man
+       auch, woher die Lage kommt, ohne den Schieber zu bewegen. */
     const hours = [];
-    for (let i = i0; i < Math.min(i0 + 13, j.hourly.time.length); i++) hours.push(i);
+    const from = Math.max(0, Math.min(i0 - 3, j.hourly.time.length - 13));
+    for (let i = from; i < Math.min(from + 13, j.hourly.time.length); i++) hours.push(i);
     // Bewölkung als Fläche: je dichter, desto kräftiger die Füllung
     const cloudCell = (v) => {
       if (v == null) return { h: '·' };
@@ -1398,7 +1693,7 @@
     if (!j) return;
 
     body.appendChild(modelChips());
-    body.appendChild(hourSlider(j));
+    body.appendChild(compareChips());
 
     const holder = U.el('div', 'wp-holder');
     holder.id = 'windProfile';
@@ -1420,7 +1715,7 @@
     U.clear(holder);
 
     const i0 = OM.nowIndex(j);
-    const idx = Math.min(i0 + state.windOffset, j.hourly.time.length - 1);
+    const idx = tIndex(j);
     const metres = state.altUnit === 'm';
     const ground = state.elev != null ? state.elev : (j.elevation || 0);
     const levels = OM.profile(j, idx, ground)
@@ -1493,7 +1788,25 @@
       fzlFt: fzlA,
       pblFt: pblA,
       rhStart: state.rhStart,
+      cmp: comparisonLevels(idx, metres),
+      cmpName: state.model2 ? OM.modelName(state.model2) : '',
     });
+  }
+
+  /**
+   * Höhenprofil des Vergleichsmodells zur selben Stunde. Gesucht wird über die
+   * Uhrzeit, nicht über den Index: das zweite Modell kann eine andere
+   * Startstunde haben.
+   */
+  function comparisonLevels(idx, metres) {
+    const j = state.om, j2 = state.om2;
+    if (!j || !j2 || !j2.hourly || !state.model2) return null;
+    const want = j.hourly.time[idx];
+    const i2 = j2.hourly.time.indexOf(want);
+    if (i2 < 0) return null;
+    const ground = state.elev != null ? state.elev : (j2.elevation || 0);
+    return OM.profile(j2, i2, ground)
+      .map(l => Object.assign({}, l, { ft: metres ? Math.round(l.m) : l.ft }));
   }
 
   /**
@@ -1527,72 +1840,169 @@
     return `${wd} ${+m[3]}. ${mo} · ${m[4]}:${m[5]}${tzAbbr ? ' ' + tzAbbr : ''}`;
   }
 
-  /**
-   * Zeitwahl als Schieber in Ein-Stunden-Schritten. Sein oberes Ende ist der
-   * Vorhersagehorizont des gewählten Modells — weiter als ICON-D2 rechnet,
-   * lässt er sich mit ICON-D2 also gar nicht erst ziehen. Die Beschriftung
-   * läuft unter dem Griff mit, damit man beim Ziehen nicht zwischen Griff und
-   * einer festen Zeile hin- und herschauen muss.
+  /* ------------------------------------------------------- Zeitschieber
+   * Ein Schieber für die ganze Seite: Startfenster, GAFOR-Band, Höhenwind und
+   * Modellprognose zeigen alle die Stunde, die hier gewählt ist.
+   *
+   * Die Skala ist **fest** — sie reicht immer über die volle Spannweite der App
+   * (OM.SPAN_H, sieben Tage), unabhängig vom gewählten Modell. Nur so bleiben
+   * Tageseinteilung und Nachtschattierung an derselben Stelle, wenn man das
+   * Modell wechselt. Was das gewählte Modell nicht mehr abdeckt, wird
+   * abgegraut, und der Griff lässt sich nicht dorthin ziehen.
    */
-  function hourSlider(j) {
+  const HOUR_MS = 3600000;
+
+  /** Reichweite in Stunden: Modellhorizont, begrenzt durch die Daten. */
+  function reachHours() {
+    const j = state.om;
+    if (!j || !j.hourly) return 0;
     const i0 = OM.nowIndex(j);
-    const maxData = Math.max(0, j.hourly.time.length - 1 - i0);
-    const maxHours = Math.min(maxData, OM.modelHours(j._model));
-    state.windOffset = U.clamp(state.windOffset, 0, maxHours);
+    const data = Math.max(0, j.hourly.time.length - 1 - i0);
+    return Math.min(data, OM.modelHours(j._model), OM.SPAN_H);
+  }
 
-    const box = U.el('div', 'hour-slider');
-    const lab = U.el('div', 'hs-label');
-    const input = Object.assign(U.el('input'), {
-      type: 'range', min: '0', max: String(maxHours), step: '1',
-      value: String(state.windOffset),
-    });
-    input.setAttribute('aria-label', 'Vorhersagezeitpunkt');
+  /** Ortszeit der Stunde +off als UTC-Millisekunden des Zeitstempels. */
+  function hourAt(off) {
+    const j = state.om;
+    if (!j || !j.hourly) return null;
+    const i = Math.min(OM.nowIndex(j) + off, j.hourly.time.length - 1);
+    return j.hourly.time[i];
+  }
 
-    const stamp = (off) => {
-      const i = Math.min(i0 + off, j.hourly.time.length - 1);
-      return `${stampOf(j.hourly.time[i], j.timezone_abbreviation)} · ` +
-             `${off === 0 ? 'jetzt' : '+' + off + ' h'}`;
-    };
+  /** Index in der Reihe von state.om für die gewählte Stunde. */
+  function tIndex(j) {
+    const src = j || state.om;
+    if (!src || !src.hourly) return 0;
+    return Math.min(OM.nowIndex(src) + state.hour, src.hourly.time.length - 1);
+  }
 
-    /* Der Griff wandert nicht über die volle Spurbreite, sondern über
-       Spurbreite minus Griffbreite — sonst liefe die Beschriftung an den
-       Enden aus dem Tritt. Am Rand wird sie in die Spur zurückgeschoben,
-       damit sie nicht über den Kasten hinausragt. */
+  function renderTimeBar() {
+    const bar = U.$('timeBar');
+    const j = state.om;
+    if (!j || !j.hourly || j.hourly.time.length < 2) { bar.hidden = true; return; }
+    bar.hidden = false;
+
+    const span = OM.SPAN_H;
+    const reach = reachHours();
+    state.hour = U.clamp(state.hour, 0, Math.max(0, reach));
+
+    const input = U.$('timeSlider');
+    input.max = String(span);
+    input.value = String(state.hour);
+
+    paintNight(j, span);
+    paintTicks(j, span);
+    U.$('timeBeyond').style.left = `${(reach / span) * 100}%`;
+    U.$('timeBeyond').title = `${OM.modelName(j._model)} rechnet nur bis +${reach} h`;
+    paintDays(j, span);
+    markTime();
+  }
+
+  /** Nachtschattierung als ein Farbverlauf mit harten Kanten. */
+  function paintNight(j, span) {
+    const el = U.$('timeNight');
+    const off = (j.utc_offset_seconds || 0) * 1000;
+    const t0 = Date.parse(j.hourly.time[OM.nowIndex(j)] + ':00Z') - off;
+    const stops = [];
+    let prev = null;
+    for (let h = 0; h <= span; h++) {
+      const light = SUN.isDaylight(state.lat, state.lon, t0 + h * HOUR_MS);
+      if (light !== prev) {
+        const pct = (h / span) * 100;
+        if (prev !== null) stops.push(`${col(prev)} ${pct}%`);
+        stops.push(`${col(light)} ${pct}%`);
+        prev = light;
+      }
+    }
+    stops.push(`${col(prev)} 100%`);
+    el.style.background = `linear-gradient(90deg, ${stops.join(',')})`;
+    function col(light) { return light ? 'var(--ts-day)' : 'var(--ts-night)'; }
+  }
+
+  /** Feine Striche alle zwei Stunden, kräftige alle sechs. */
+  function paintTicks(j, span) {
+    const el = U.clear(U.$('timeTicks'));
+    for (let h = 0; h <= span; h += 2) {
+      const t = U.el('span', 'ts-tick' + (h % 6 === 0 ? ' major' : ''));
+      t.style.left = `${(h / span) * 100}%`;
+      el.appendChild(t);
+    }
+  }
+
+  /** Wochentage über dem Schieber, jeweils über der Mitte ihres Tages. */
+  function paintDays(j, span) {
+    const el = U.clear(U.$('timeDays'));
+    const off = (j.utc_offset_seconds || 0) * 1000;
+    const t0 = Date.parse(j.hourly.time[OM.nowIndex(j)] + ':00Z') - off;
+    // Tagesgrenzen in Ortszeit finden
+    let h = 0;
+    while (h <= span) {
+      const start = h;
+      const day = new Date(t0 + h * HOUR_MS + off).toISOString().slice(0, 10);
+      while (h <= span &&
+             new Date(t0 + h * HOUR_MS + off).toISOString().slice(0, 10) === day) h++;
+      const mid = (start + Math.min(h, span)) / 2;
+      const lab = U.el('span', 'ts-day');
+      const d = new Date(day + 'T12:00:00Z');
+      lab.textContent = `${d.toLocaleDateString('de-CH', { weekday: 'short' }).replace('.', '')} ${d.getUTCDate()}.`;
+      lab.style.left = `${(mid / span) * 100}%`;
+      if (start > 0) {
+        const sep = U.el('span', 'ts-daysep');
+        sep.style.left = `${(start / span) * 100}%`;
+        el.appendChild(sep);
+      }
+      el.appendChild(lab);
+    }
+  }
+
+  /** Marke und Fusszeile auf die gewählte Stunde setzen. */
+  function markTime() {
+    const j = state.om;
+    if (!j) return;
+    const span = OM.SPAN_H;
+    const input = U.$('timeSlider');
+    const mark = U.$('timeMark');
+    const w = input.clientWidth;
     const THUMB = 13;
-    const place = () => {
-      const w = input.clientWidth;
-      if (!w) return;
-      const max = Math.max(1, maxHours);
-      const frac = U.clamp(+input.value, 0, max) / max;
-      const x = THUMB / 2 + frac * (w - THUMB);
-      const half = (lab.offsetWidth || 120) / 2;
-      lab.style.left = `${U.clamp(x, half, Math.max(half, w - half))}px`;
-    };
-    const setLabel = (off) => { lab.textContent = stamp(off); place(); };
+    const frac = state.hour / Math.max(1, span);
+    const x = THUMB / 2 + frac * (w - THUMB);
+    mark.textContent = `${stampOf(hourAt(state.hour), j.timezone_abbreviation)} · ` +
+      (state.hour === 0 ? 'jetzt' : `+${state.hour} h`);
+    const half = (mark.offsetWidth || 140) / 2;
+    mark.style.left = `${U.clamp(x, half, Math.max(half, w - half))}px`;
 
+    const reach = reachHours();
+    U.$('timeNote').textContent =
+      `${OM.modelName(j._model)} bis +${reach} h · Skala ${span} h · Nacht grau hinterlegt`;
+  }
+
+  /** Alle Karten auf die gewählte Stunde nachziehen. */
+  function repaintForHour() {
+    markTime();
+    paintProfile();
+    renderModel();
+    renderFly();
+    renderAreaHead();          // die Stufenkachel folgt derselben Stunde
+    renderGafor();
+  }
+
+  function wireTimeBar() {
+    const input = U.$('timeSlider');
     let t = 0;
     input.oninput = () => {
-      state.windOffset = +input.value;
-      setLabel(state.windOffset);
+      const reach = reachHours();
+      let v = +input.value;
+      if (v > reach) { v = reach; input.value = String(v); }   // nicht ins Abgegraute
+      state.hour = v;
+      markTime();
       clearTimeout(t);
-      t = setTimeout(paintProfile, 90);
+      t = setTimeout(repaintForHour, 90);
     };
-
-    const track = U.el('div', 'hs-track');
-    track.appendChild(input);
-    track.appendChild(lab);
-
-    const row = U.el('div', 'hs-row');
-    row.appendChild(U.el('span', 'hs-cap', 'jetzt'));
-    row.appendChild(track);
-    row.appendChild(U.el('span', 'hs-cap', `+${maxHours} h`));
-    box.appendChild(row);
-
-    setLabel(state.windOffset);
-    // die Breite steht erst nach dem Einhängen fest
-    requestAnimationFrame(place);
-    box._place = place;
-    return box;
+    U.$('timeNow').onclick = () => {
+      state.hour = 0;
+      U.$('timeSlider').value = '0';
+      repaintForHour();
+    };
   }
 
   /**
@@ -1609,7 +2019,31 @@
         if (m.key === state.model) return;
         state.model = m.key; U.save('model', m.key);
         // weiter als das neue Modell rechnet, geht nicht
-        state.windOffset = Math.min(state.windOffset, m.hours);
+        state.hour = Math.min(state.hour, OM.modelHours(m.key));
+        loadPointData(true, ['model']);
+      };
+      row.appendChild(b);
+    }
+    return row;
+  }
+
+  /**
+   * Zweites Modell zum Vergleich. Übereinstimmung zweier unabhängiger Modelle
+   * ist das ehrlichste Vertrauensmass, das ohne Ensemble zu haben ist —
+   * laufen die gestrichelten Kurven eng an den durchgezogenen, kann man sich
+   * auf die Aussage stützen; laufen sie auseinander, eben nicht.
+   */
+  function compareChips() {
+    const row = U.el('div', 'chips models cmp');
+    row.appendChild(U.el('span', 'chips-label', 'Vergleich'));
+    const opts = [{ key: '', name: 'aus' }].concat(OM.MODELS.filter(m => m.key));
+    for (const m of opts) {
+      const on = m.key === state.model2;
+      const b = U.el('button', 'chip' + (on ? ' on' : ''), m.name);
+      b.title = m.key ? `${m.note} · gestrichelt im Diagramm` : 'kein Vergleichsmodell';
+      b.onclick = () => {
+        if (m.key === state.model2) return;
+        state.model2 = m.key; U.save('model2', m.key);
         loadPointData(true, ['model']);
       };
       row.appendChild(b);
@@ -1636,6 +2070,7 @@
     U.$('setAlt').value = state.altUnit;
     U.$('setEns').value = state.showEns ? '1' : '0';
     U.$('setRh').value = String(state.rhStart);
+    U.$('setAuto').value = state.autoRefresh ? '1' : '0';
     U.$('setOverlay').classList.remove('hidden');
   }
   const hideSettings = () => U.$('setOverlay').classList.add('hidden');
@@ -1658,6 +2093,9 @@
     state.altUnit = U.$('setAlt').value; U.save('altUnit', state.altUnit);
     state.showEns = ens ? 1 : 0; U.save('showEns', state.showEns);
     state.rhStart = STUEVE.rhStartOf(+U.$('setRh').value); U.save('rhStart', state.rhStart);
+    state.autoRefresh = U.$('setAuto').value === '1' ? 1 : 0;
+    U.save('autoRefresh', state.autoRefresh);
+    startAutoRefresh();
     if (!ens) state.ens = null;
     state.unit = U.$('setUnit').value; U.save('unit', state.unit);
     applyTheme(U.$('setTheme').value);
@@ -1681,7 +2119,14 @@
     }
     favs.unshift({ name, lat: state.lat, lon: state.lon });
     U.save('favs', favs.slice(0, 24));
+    paintFavourites();
     flash('Ort gespeichert');
+  }
+
+  /** Die gemerkten Orte als Nadeln auf die Karte legen. */
+  function paintFavourites() {
+    MAPVIEW.setFavourites(U.load('favs', []),
+      (f) => goTo(f.lat, f.lon, f.name, PICK_ZOOM.place));
   }
 
   function showFavourites() {

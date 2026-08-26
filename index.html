@@ -146,7 +146,36 @@
 
   </div>
 
+  <!-- ---------- gemeinsamer Zeitschieber ----------
+       Steuert Startfenster, GAFOR-Band, Höhenwind und Modellprognose. -->
+  <div class="time-bar" id="timeBar" hidden>
+    <div class="ts-days" id="timeDays"></div>
+    <div class="ts-scale" id="timeScale">
+      <div class="ts-night" id="timeNight"></div>
+      <div class="ts-ticks" id="timeTicks"></div>
+      <div class="ts-beyond" id="timeBeyond"></div>
+      <input id="timeSlider" type="range" min="0" max="0" step="1" value="0"
+             aria-label="Vorhersagezeitpunkt">
+      <div class="ts-mark" id="timeMark"></div>
+    </div>
+    <div class="ts-foot">
+      <button class="btn small" id="timeNow">jetzt</button>
+      <span class="ts-note" id="timeNote"></span>
+    </div>
+  </div>
+
   <main class="content">
+
+    <!-- Startfenster -->
+    <section class="card wide" id="cardFly">
+      <div class="card-head">
+        <span class="section-title">Startfenster</span>
+        <span class="age" id="flyAge"></span>
+      </div>
+      <div class="card-body tight" id="flyBody">
+        <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
+      </div>
+    </section>
 
     <!-- GAFOR -->
     <section class="card wide" id="cardGafor">
@@ -296,6 +325,16 @@
         Schattierung kräftiger.</div>
 
       <label class="field">
+        <span>Automatisch nachladen</span>
+        <select id="setAuto">
+          <option value="1">ja</option>
+          <option value="0">nein</option>
+        </select>
+      </label>
+      <div class="note">Solange der Tab sichtbar ist: METAR alle 10 min, DWD alle 20 min,
+        Modell alle 30 min. Im Hintergrund läuft nichts.</div>
+
+      <label class="field">
         <span>Ensemble-Streubreite</span>
         <select id="setEns">
           <option value="1">anzeigen</option>
@@ -334,6 +373,7 @@
 <script src="js/dwd.js"></script>
 <script src="js/metar.js"></script>
 <script src="js/openmeteo.js"></script>
+<script src="js/sun.js"></script>
 <script src="js/wind.js"></script>
 <script src="js/stueve.js"></script>
 <script src="js/mapview.js"></script>

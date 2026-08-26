@@ -164,6 +164,8 @@ const DWD_INDEX = {
   },
   balloon: {}, errors: [],
 };
+let dwdIndex = DWD_INDEX;
+
 const METAR_REPO = {
   generated: new Date(Date.now() - 11 * 60e3).toISOString(), via: 'awc',
   metar: JSON.parse(await readFile('test/sample-metar.json', 'utf8')),
@@ -173,7 +175,7 @@ const METAR_REPO = {
 await page.route('**/*', async (route) => {
   const url = route.request().url();
   if (url.includes('data/dwd/metar.json')) return route.fulfill({ json: METAR_REPO });
-  if (url.includes('data/dwd/index.json')) return route.fulfill({ json: DWD_INDEX });
+  if (url.includes('data/dwd/index.json')) return route.fulfill({ json: dwdIndex });
   if (url.startsWith(base)) return route.continue();
   if (url.includes('ensemble-api.open-meteo.com'))
     return route.fulfill({ json: ensembleJSON() });
@@ -273,13 +275,17 @@ barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahne
 (await page.locator('#windBody .wp-mrow.pbl').count()) >= 1
   ? ok('Grenzschicht im Profil markiert') : bad('Grenzschicht fehlt');
 {
-  const models = await page.locator('#windBody .chips.models .chip').count();
+  const models = await page.locator('#windBody .chips.models:not(.cmp) .chip').count();
   models === 8 ? ok('acht Modelle zur Wahl') : bad(`Modell-Chips: ${models}`);
-  (await page.locator('#windBody .chips.models .chip.on').innerText()) === 'Auto'
+  (await page.locator('#windBody .chips.models:not(.cmp) .chip.on').innerText()) === 'Auto'
     ? ok('„Auto" ist vorgewählt') : bad('kein Modell vorgewählt');
+  // Vergleichsmodell: aus plus die sieben benannten Modelle
+  (await page.locator('#windBody .chips.cmp .chip').count()) === 8 &&
+  (await page.locator('#windBody .chips.cmp .chip.on').innerText()) === 'aus'
+    ? ok('Vergleichsmodell wählbar, ab Werk aus') : bad('Vergleichsreihe fehlt');
 
   // Reihenfolge der Modellpillen: aufsteigend nach Vorhersagehorizont
-  const horizons = await page.locator('#windBody .chips.models .chip').evaluateAll(
+  const horizons = await page.locator('#windBody .chips.models:not(.cmp) .chip').evaluateAll(
     ns => ns.map(n => +(/\+(\d+)\s*h/.exec(n.title || '') || [0, -1])[1]));
   horizons.every((h, i) => i === 0 || h >= horizons[i - 1])
     ? ok(`Modelle aufsteigend nach Horizont (${horizons.join(' ≤ ')})`)
@@ -287,29 +293,39 @@ barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahne
   horizons[0] === 48
     ? ok('kürzestes Modell (ICON-D2, 48 h) steht vorn') : bad(`erster Horizont: ${horizons[0]}`);
 
-  // Zeitwahl als Schieber statt als Pillenreihe
+  // Zeitwahl: ein gemeinsamer Schieber für die ganze Seite
   (await page.locator('#windBody .chips:not(.models) .chip').count()) === 0
     ? ok('keine Stunden-Pillen mehr') : bad('Stunden-Pillen sind noch da');
-  const slider = page.locator('#windBody .hour-slider input[type=range]');
-  (await slider.count()) === 1 ? ok('Zeitschieber vorhanden') : bad('kein Zeitschieber');
+  (await page.locator('#windBody .hour-slider').count()) === 0
+    ? ok('kein eigener Schieber mehr in der Höhenwindkarte')
+    : bad('die Höhenwindkarte hat noch einen eigenen Schieber');
+  const slider = page.locator('#timeSlider');
+  (await slider.count()) === 1 && await page.locator('#timeBar').isVisible()
+    ? ok('gemeinsamer Zeitschieber vorhanden') : bad('kein Zeitschieber');
   (await slider.getAttribute('step')) === '1'
     ? ok('Schieber rastet in Ein-Stunden-Schritten') : bad('falsche Schrittweite');
-  // „Auto" reicht weiter als jedes Einzelmodell — hier bis ans Ende der Daten
-  const maxAuto = +(await slider.getAttribute('max'));
-  maxAuto > 48 && maxAuto <= H - 1
-    ? ok(`Schieber reicht bei „Auto" bis +${maxAuto} h (Ende der Daten)`)
-    : bad(`Schiebermaximum bei „Auto": ${maxAuto}`);
-  const hsl = await page.locator('#windBody .hs-label').innerText();
+  // die Skala ist fest, unabhängig vom Modell
+  +(await slider.getAttribute('max')) === 168
+    ? ok('Skala reicht immer über 168 h') : bad(`Skala: ${await slider.getAttribute('max')}`);
+  const hsl = await page.locator('#timeMark').innerText();
   /^(Mo|Di|Mi|Do|Fr|Sa|So) \d{1,2}\. \w+ · \d\d:\d\d/.test(hsl)
     ? ok(`Schieber nennt Wochentag und Datum: „${hsl}"`) : bad(`Schieberbeschriftung: ${hsl}`);
   /jetzt/.test(hsl) ? ok('bei Position 0 steht „jetzt"') : bad('kein „jetzt" am Anfang');
-  // die Marke sitzt unter dem Griff, nicht in einer festen Zeile
+  (await page.locator('#timeDays .ts-day').count()) >= 3
+    ? ok(`${await page.locator('#timeDays .ts-day').count()} Tagesbeschriftungen über dem Schieber`)
+    : bad('keine Tagesbeschriftungen');
+  (await page.locator('#timeTicks .ts-tick').count()) === 85
+    ? ok('Striche alle zwei Stunden über 168 h')
+    : bad(`Striche: ${await page.locator('#timeTicks .ts-tick').count()}`);
+  /linear-gradient/.test(await page.locator('#timeNight').evaluate(n => n.style.background))
+    ? ok('Nacht ist als Verlauf hinterlegt') : bad('keine Nachtschattierung');
   {
-    const tr = await page.locator('#windBody .hs-track').boundingBox();
-    const lb = await page.locator('#windBody .hs-label').boundingBox();
-    tr && lb && lb.x < tr.x + tr.width * 0.35
-      ? ok('Marke steht am linken Ende, wo der Griff steht')
-      : bad(`Marke bei x=${lb && Math.round(lb.x)}, Spur ab ${tr && Math.round(tr.x)}`);
+    // der Bereich jenseits des Modellhorizonts ist abgegraut
+    const left = await page.locator('#timeBeyond').evaluate(n => n.style.left);
+    const pct = parseFloat(left);
+    pct > 0 && pct <= 100
+      ? ok(`unerreichbarer Bereich beginnt bei ${Math.round(pct)} % der Skala`)
+      : bad(`ts-beyond: ${left}`);
   }
   // Tabelle links, Grafik rechts
   const split = page.locator('#windBody .wp-split');
@@ -356,6 +372,18 @@ await page.waitForTimeout(300);
     (await page.locator('#gaforBody .report-h').count()) >= 2
       ? ok('Abschnittstitel sind eigene, fette Überschriften')
       : bad('keine Abschnittstitel');
+    /* Nur echte Tabellen dürfen in der festen Breite stehen. Bis 1.13.0 kippte
+       ein ganzer Abschnitt in die Schreibmaschinenschrift, sobald irgendwo
+       darin ein „|" vorkam — „Inversionen" traf es jedes Mal. */
+    const pres = await page.locator('#gaforBody pre.report').allInnerTexts();
+    pres.length >= 1 && pres.every(t => /\|/.test(t))
+      ? ok(`${pres.length} Blöcke in fester Breite, alle mit Tabellenzeichen`)
+      : bad(`Blöcke fester Breite: ${pres.map(t => t.slice(0, 30)).join(' / ')}`);
+    const inv = await page.locator('#gaforBody .report-p')
+      .filter({ hasText: 'Inversion' }).count();
+    inv >= 1
+      ? ok('der Prosaabsatz von „Inversionen" steht in der Grundschrift')
+      : bad('„Inversionen" steht immer noch in fester Breite');
   } else {
     console.log('  --   keine Flugwetterübersicht im Testindex, Spaltenprüfung entfällt');
   }
@@ -417,7 +445,7 @@ await page.waitForTimeout(250);
 
 // Stundenwechsel über den Schieber
 const setSlider = async (v) => {
-  await page.locator('#windBody .hour-slider input[type=range]').evaluate((n, val) => {
+  await page.locator('#timeSlider').evaluate((n, val) => {
     n.value = String(val);
     n.dispatchEvent(new Event('input', { bubbles: true }));
   }, v);
@@ -428,21 +456,25 @@ await setSlider(4);
 const secondAlt = await page.locator('#windBody .wp-table tbody tr td.spd').first().innerText();
 firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
                        : bad(`Schieber ohne Wirkung (${firstAlt})`);
-/\+4 h/.test(await page.locator('#windBody .hs-label').innerText())
+/\+4 h/.test(await page.locator('#timeMark').innerText())
   ? ok('Beschriftung folgt dem Schieber') : bad('Beschriftung folgt dem Schieber nicht');
 {
   // ans obere Ende: die Marke muss mitwandern
-  const left0 = (await page.locator('#windBody .hs-label').boundingBox()).x;
-  const max = +(await page.locator('#windBody .hour-slider input[type=range]').getAttribute('max'));
+  const left0 = (await page.locator('#timeMark').boundingBox()).x;
+  const max = +(await page.locator('#timeSlider').getAttribute('max'));
   await setSlider(max);
-  const lb = await page.locator('#windBody .hs-label').boundingBox();
-  const tr = await page.locator('#windBody .hs-track').boundingBox();
+  const lb = await page.locator('#timeMark').boundingBox();
+  const tr = await page.locator('#timeScale').boundingBox();
   lb.x > left0 + 40 && lb.x + lb.width <= tr.x + tr.width + 2
     ? ok('am Ende steht die Marke rechts und bleibt in der Spur')
     : bad(`Marke am Ende: x=${Math.round(lb.x)} (Start ${Math.round(left0)}), Spur bis ${Math.round(tr.x + tr.width)}`);
-  const txt = await page.locator('#windBody .hs-label').innerText();
-  /^(Mo|Di|Mi|Do|Fr|Sa|So) \d{1,2}\. \w+ · \d\d:\d\d/.test(txt) && txt.includes(`+${max} h`)
+  const txt = await page.locator('#timeMark').innerText();
+  /^(Mo|Di|Mi|Do|Fr|Sa|So) \d{1,2}\. \w+ · \d\d:\d\d/.test(txt) && /\+\d+ h$/.test(txt)
     ? ok(`spätester Zeitpunkt vollständig datiert: „${txt}"`) : bad(`Endbeschriftung: ${txt}`);
+  // über die Daten hinaus lässt sich der Griff nicht ziehen
+  +(await page.locator('#timeSlider').inputValue()) <= H - 1
+    ? ok('der Griff bleibt innerhalb der vorhandenen Daten')
+    : bad(`Griff auf ${await page.locator('#timeSlider').inputValue()}`);
   await setSlider(4);
 }
 // die Erklärung unter dem Stüve ist weg
@@ -476,15 +508,105 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
 
 // Modellhorizont begrenzt den Schieber
 {
-  await page.locator('#windBody .chips.models .chip:text-is("ICON-D2")').click();
+  await page.locator('#windBody .chips.models:not(.cmp) .chip:text-is("ICON-D2")').click();
   await page.waitForTimeout(700);
-  const max = +(await page.locator('#windBody .hour-slider input[type=range]').getAttribute('max'));
-  max === 48
-    ? ok('ICON-D2 kürzt den Schieber auf +48 h') : bad(`Schiebermaximum bei ICON-D2: ${max}`);
-  (await page.locator('#windBody .chips.models .chip.on').innerText()) === 'ICON-D2'
+  const pct = parseFloat(await page.locator('#timeBeyond').evaluate(n => n.style.left));
+  Math.abs(pct - (48 / 168) * 100) < 1
+    ? ok(`ICON-D2 graut alles ab +48 h ab (${Math.round(pct)} % der Skala)`)
+    : bad(`Grenze bei ICON-D2: ${pct} %`);
+  await setSlider(60);
+  +(await page.locator('#timeSlider').inputValue()) === 48
+    ? ok('der Griff rastet am Modellhorizont ein')
+    : bad(`Griff bei ICON-D2: ${await page.locator('#timeSlider').inputValue()}`);
+  (await page.locator('#windBody .chips.models:not(.cmp) .chip.on').innerText()) === 'ICON-D2'
     ? ok('Modellwechsel wird angezeigt') : bad('Modellwechsel ohne Wirkung');
-  await page.locator('#windBody .chips.models .chip:text-is("Auto")').click();
+  await page.locator('#windBody .chips.models:not(.cmp) .chip:text-is("Auto")').click();
   await page.waitForTimeout(700);
+  await page.locator('#timeNow').click();          // zurück auf jetzt für die Folgeprüfungen
+  await page.waitForTimeout(300);
+}
+
+// Startfenster
+{
+  const strip = page.locator('#flyBody .fly-strip .fly-cell');
+  (await strip.count()) > 24
+    ? ok(`Startfenster: ${await strip.count()} Stundenzellen`)
+    : bad(`Startfenster-Zellen: ${await strip.count()}`);
+  const cls = await strip.evaluateAll(ns => ns.map(n => n.className));
+  cls.some(c => /\bok\b/.test(c)) && cls.some(c => /\bno\b/.test(c))
+    ? ok('es gibt fahrbare und nicht fahrbare Stunden') : bad('alle Stunden gleich bewertet');
+  (await page.locator('#flyBody .fly-cell.sel').count()) === 1
+    ? ok('die gewählte Stunde ist im Streifen markiert') : bad('keine Markierung im Streifen');
+  const head = await page.locator('#flyBody .fly-head').innerText();
+  /(fahrbar|grenzwertig|nein)/.test(head) && /^(Mo|Di|Mi|Do|Fr|Sa|So)/m.test(head)
+    ? ok(`Kopfzeile nennt Urteil und Zeitpunkt: „${head.replace(/\n/g, ' · ').slice(0, 70)}…"`)
+    : bad(`Startfensterkopf: ${head}`);
+  // nachts muss die Bewertung „nein" heissen — die Dämmerung ist die harte Grenze
+  const night = await page.locator('#flyBody .fly-cell').evaluateAll(ns =>
+    ns.map(n => ({ t: n.title, c: n.className }))
+      .filter(x => /· (0[0-2]|2[2-3]):00/.test(x.t)));
+  night.length === 0 || night.every(x => /\bno\b/.test(x.c))
+    ? ok(`${night.length} Nachtstunden, alle als „nein" bewertet`)
+    : bad(`Nachtstunden falsch bewertet: ${night.slice(0, 2).map(x => x.t).join(' | ')}`);
+  // ein Klick in den Streifen bewegt den gemeinsamen Schieber
+  const before = await page.locator('#timeSlider').inputValue();
+  await page.locator('#flyBody .fly-cell').nth(6).click();
+  await page.waitForTimeout(300);
+  const after = await page.locator('#timeSlider').inputValue();
+  after !== before && after === '6'
+    ? ok('Klick in den Streifen setzt den Zeitschieber') : bad(`Schieber: ${before} → ${after}`);
+  await page.locator('#timeNow').click();
+  await page.waitForTimeout(300);
+}
+
+// Vergleichsmodell im Stüve
+{
+  await page.locator('#windBody .chips.cmp .chip:text-is("ICON-D2")').click();
+  await page.waitForTimeout(900);
+  const cmp = await page.locator('#windBody .sv-svg .sv-cmp').count();
+  cmp >= 2
+    ? ok(`Vergleichsmodell gestrichelt eingezeichnet (${cmp} Kurven)`)
+    : bad(`Vergleichskurven: ${cmp}`);
+  /ICON-D2/.test(await page.locator('#windBody .sv-cmplab').textContent().catch(() => ''))
+    ? ok('das Vergleichsmodell ist am Diagramm benannt') : bad('keine Beschriftung des Vergleichs');
+  await page.locator('#windBody .chips.cmp .chip:text-is("aus")').click();
+  await page.waitForTimeout(900);
+  (await page.locator('#windBody .sv-svg .sv-cmp').count()) === 0
+    ? ok('„aus" nimmt den Vergleich wieder weg') : bad('Vergleich lässt sich nicht abschalten');
+}
+
+// Merkorte als Nadeln auf der Karte
+{
+  await page.locator('#savePlaceBtn').click();
+  await page.waitForTimeout(400);
+  (await page.locator('.leaflet-pane path.fav-pin').count()) >= 1
+    ? ok('gespeicherter Ort erscheint als Nadel auf der Karte')
+    : bad('keine Nadel für den gespeicherten Ort');
+}
+
+// Warnhinweis bei abgelaufenem Bulletin
+{
+  (await page.locator('#tileBody .stale').count()) === 0
+    ? ok('bei frischen Daten steht kein Warnhinweis') : bad('Warnhinweis ohne Anlass');
+
+  /* Dasselbe Bulletin, aber von gestern ausgegeben: die Codereihe sieht
+     unverändert aus — genau deshalb muss der Hinweis erscheinen. */
+  const old = JSON.parse(JSON.stringify(DWD_INDEX));
+  old.gafor.EDZM.issued = new Date(Date.now() - 26 * 3600e3).toISOString();
+  dwdIndex = old;
+  await page.locator('#reloadBtn').click();
+  await page.waitForTimeout(1200);
+  const st = page.locator('#tileBody .stale');
+  (await st.count()) === 1
+    ? ok(`abgelaufenes Bulletin wird gemeldet: „${(await st.innerText()).replace(/\n/g, ' ').slice(0, 80)}…"`)
+    : bad('kein Warnhinweis bei abgelaufenem Bulletin');
+  (await page.locator('#tileBody .stale.hard').count()) === 1
+    ? ok('abgelaufen wird als harter Fall gekennzeichnet') : bad('Warnstufe fehlt');
+  dwdIndex = DWD_INDEX;
+  await page.locator('#reloadBtn').click();
+  await page.waitForTimeout(1200);
+  (await page.locator('#tileBody .stale').count()) === 0
+    ? ok('mit frischen Daten verschwindet der Hinweis wieder') : bad('Hinweis bleibt hängen');
 }
 
 // Modellkarte
@@ -813,6 +935,8 @@ if (shotArg > 0) {
   await page.locator('#cardWind').screenshot({ path: path.replace('.png', '-wind-desktop.png') });
   await page.locator('#cardGafor').screenshot({ path: path.replace('.png', '-gafor-desktop.png') });
   await page.locator('.top-grid').screenshot({ path: path.replace('.png', '-top-desktop.png') });
+  await page.locator('#timeBar').screenshot({ path: path.replace('.png', '-time.png') });
+  await page.locator('#cardFly').screenshot({ path: path.replace('.png', '-fly.png') });
   await page.setViewportSize({ width: 430, height: 3200 });
   await page.waitForTimeout(300);
   // ganz Deutschland, damit die Maske ausserhalb der Gebiete zu sehen ist

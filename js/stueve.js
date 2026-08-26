@@ -61,7 +61,8 @@ const STUEVE = (() => {
 
   /**
    * levels: [{hPa, ft, m, spd (m/s), dir, temp (°C), dew (°C), rh (%)}] von oben nach unten
-   * opts:   {w, h, unit, unitFactor, altUnit, fzlFt, pblFt, groundHpa, rhStart}
+   * opts:   {w, h, unit, unitFactor, altUnit, fzlFt, pblFt, groundHpa, rhStart,
+   *          cmp (Profil eines zweiten Modells), cmpName}
    * Rückgabe: <svg> oder null, wenn zu wenig Daten da sind.
    */
   function chart(levels, opts) {
@@ -211,6 +212,23 @@ const STUEVE = (() => {
     curve('dew', 'dew', 'Td');
     curve('temp', 'temp', 'T');
 
+    /* Zweites Modell zum Vergleich: dieselben beiden Kurven, gestrichelt und
+       blasser. Sie werden über dieselbe Höhenachse gelegt — laufen sie eng
+       beieinander, sind sich die Modelle einig, und das ist das ehrlichste
+       Vertrauensmass, das ohne Ensemble zu haben ist. */
+    const cmp = Array.isArray(o.cmp) ? o.cmp.filter(l => l.hPa != null && l.temp != null) : [];
+    if (cmp.length >= 3) {
+      for (const [key, cls] of [['dew', 'dew'], ['temp', 'temp']]) {
+        const pts = [...cmp].filter(l => l[key] != null && isFinite(l[key]))
+          .sort((a, b) => a.hPa - b.hPa);
+        if (pts.length < 2) continue;
+        svg.appendChild(mk('polyline', {
+          points: pts.map(l => `${xT(U.clamp(l[key], tMin, tMax)).toFixed(1)},${y(l.hPa).toFixed(1)}`).join(' '),
+          class: `sv-curve ${cls} sv-cmp`,
+        }));
+      }
+    }
+
     // ---------------------------------------------------- Marken
     const mark = (ft, label, cls) => {
       if (ft == null) return;
@@ -241,6 +259,15 @@ const STUEVE = (() => {
       }
     }
     svg.appendChild(mk('rect', { x: wL, y: plotT, width: wR - wL, height: plotH, class: 'sv-frame' }));
+    if (cmp.length >= 3) {
+      const cw = [...cmp].filter(l => l.spd != null).sort((a, b) => a.hPa - b.hPa);
+      if (cw.length > 1) {
+        svg.appendChild(mk('polyline', {
+          points: cw.map(l => `${xW(U.clamp(l.spd * conv, 0, maxV)).toFixed(1)},${y(l.hPa).toFixed(1)}`).join(' '),
+          class: 'sv-wind sv-cmp',
+        }));
+      }
+    }
     if (wind.length > 1) {
       svg.appendChild(mk('polyline', {
         points: wind.map(l => `${xW(l.spd * conv).toFixed(1)},${yOf(l).toFixed(1)}`).join(' '),
@@ -267,6 +294,10 @@ const STUEVE = (() => {
     svg.appendChild(mk('text', { x: sL - 5, y: plotT - 4, class: 'sv-ax', 'text-anchor': 'end' }, 'hPa'));
     svg.appendChild(mk('text', { x: sL - ALT_X, y: plotT - 4, class: 'sv-ax sv-alt',
                                  'text-anchor': 'end' }, `${o.altUnit || 'ft'} AMSL`));
+    if (cmp.length >= 3 && o.cmpName) {
+      svg.appendChild(mk('text', { x: sR - 2, y: plotB + 24, class: 'sv-ax sv-cmplab',
+                                   'text-anchor': 'end' }, `– – ${o.cmpName}`));
+    }
 
     return svg;
   }

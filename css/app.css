@@ -151,6 +151,93 @@ header.topbar{
 .area-state .t{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);margin-top:4px;
   letter-spacing:.06em;text-transform:uppercase;}
 
+/* ---------- gemeinsamer Zeitschieber ----------
+   Die Skala ist fest (OM.SPAN_H), damit Tageseinteilung und Nachtschattierung
+   beim Modellwechsel an derselben Stelle bleiben. Was das gewählte Modell
+   nicht mehr abdeckt, liegt unter .ts-beyond und ist nicht erreichbar. */
+:root{ --ts-day:transparent; --ts-night:rgba(120,140,170,.20); }
+:root[data-theme="light"]{ --ts-night:rgba(60,80,110,.13); }
+
+.time-bar{margin:12px 14px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);padding:8px 13px 9px;}
+.time-bar[hidden]{display:none;}
+
+.ts-days{position:relative;height:14px;}
+.ts-day{position:absolute;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-dim);}
+.ts-daysep{position:absolute;top:12px;width:1px;height:26px;background:var(--line);}
+
+.ts-scale{position:relative;height:38px;}
+.ts-night,.ts-ticks,.ts-beyond{position:absolute;left:0;right:0;top:0;height:22px;
+  border-radius:4px;pointer-events:none;}
+.ts-night{border:1px solid var(--line-soft);}
+.ts-tick{position:absolute;top:14px;width:1px;height:6px;background:var(--line);opacity:.7;}
+.ts-tick.major{top:10px;height:10px;opacity:1;}
+/* der Bereich, den das gewählte Modell nicht mehr rechnet */
+.ts-beyond{left:100%;right:0;background:repeating-linear-gradient(135deg,
+  color-mix(in srgb,var(--text-dim) 26%,transparent) 0 4px,transparent 4px 8px);
+  border-left:1px solid var(--text-dim);border-radius:0 4px 4px 0;}
+.ts-mark{position:absolute;top:24px;left:0;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--text-strong);white-space:nowrap;
+  pointer-events:none;transition:left .06s linear;}
+
+.time-bar input[type=range]{position:absolute;left:0;top:0;width:100%;height:22px;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.time-bar input[type=range]:focus{outline:none;}
+.time-bar input[type=range]:focus-visible{outline:1px solid var(--amber);outline-offset:2px;
+  border-radius:4px;}
+.time-bar input[type=range]::-webkit-slider-runnable-track{height:22px;background:transparent;}
+.time-bar input[type=range]::-moz-range-track{height:22px;background:transparent;}
+.time-bar input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:13px;height:22px;border-radius:3px;background:var(--amber);border:none;
+  box-shadow:0 0 0 1px var(--bg);}
+.time-bar input[type=range]::-moz-range-thumb{width:13px;height:22px;border-radius:3px;
+  background:var(--amber);border:none;box-shadow:0 0 0 1px var(--bg);}
+
+.ts-foot{display:flex;align-items:center;gap:10px;margin-top:18px;}
+.ts-note{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);}
+.btn.small{height:26px;padding:0 10px;font-size:11px;}
+
+/* ---------- Startfenster ---------- */
+.fly-head{display:flex;align-items:center;gap:13px;margin:11px 14px 0;padding:9px 12px;
+  border:1px solid var(--line);border-left:4px solid var(--gafor-none);border-radius:8px;
+  background:var(--panel-2);}
+.fly-head.ok{border-left-color:var(--gafor-c);}
+.fly-head.limit{border-left-color:var(--gafor-d);}
+.fly-head.no{border-left-color:var(--gafor-x);}
+.fly-badge{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.02em;
+  flex:0 0 auto;color:var(--gafor-none);}
+.fly-head.ok .fly-badge{color:var(--gafor-c);}
+.fly-head.limit .fly-badge{color:var(--gafor-d);}
+.fly-head.no .fly-badge{color:var(--gafor-x);}
+.fly-txt{min-width:0;}
+.fly-when{font-family:var(--mono);font-size:11px;color:var(--text-strong);}
+.fly-why{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+.fly-days{position:relative;height:13px;margin:10px 14px 0;}
+.fly-day{position:absolute;font-family:var(--mono);font-size:9.5px;color:var(--text-dim);
+  white-space:nowrap;}
+.fly-day:first-child{transform:none;}
+.fly-strip{display:flex;gap:1px;margin:2px 14px 0;height:22px;}
+.fly-cell{border:none;padding:0;min-width:0;cursor:pointer;border-radius:2px;
+  background:var(--gafor-none);opacity:.55;}
+.fly-cell.ok{background:var(--gafor-c);}
+.fly-cell.limit{background:var(--gafor-d);}
+.fly-cell.no{background:var(--gafor-x);}
+.fly-cell.day{box-shadow:inset 1px 0 0 var(--text-dim);}
+.fly-cell:hover{opacity:.85;}
+.fly-cell.sel{opacity:1;box-shadow:0 0 0 2px var(--amber);}
+
+.fly-list{margin:11px 14px 0;display:grid;gap:4px;}
+.fly-win{display:flex;gap:10px;align-items:baseline;cursor:pointer;
+  font-family:var(--mono);font-size:11px;padding:4px 8px;border-radius:6px;
+  border:1px solid var(--line);background:var(--panel-2);}
+.fly-win:hover{border-color:var(--amber);}
+.fly-win .d{color:var(--text-strong);}
+.fly-win .t{color:var(--text-dim);flex:1;}
+.fly-win .n{color:var(--gafor-c);font-weight:600;}
+.fly-none{font-size:12.5px;color:var(--text-dim);}
+
 /* ---------- content ---------- */
 main.content{padding:12px 14px 0;}
 @media (min-width:900px){
@@ -169,6 +256,17 @@ main.content{padding:12px 14px 0;}
   display:flex;flex-direction:column;}
 .tb-body > .code-legend{margin-top:auto;}
 .tb-body > .note{margin:9px 13px;}
+
+.stale{display:flex;align-items:center;gap:9px;margin:9px 13px 0;padding:6px 9px;
+  border:1px solid var(--gafor-d);border-radius:7px;font-size:12px;line-height:1.35;
+  background:color-mix(in srgb,var(--gafor-d) 12%,transparent);color:var(--text);}
+.stale.hard{border-color:var(--gafor-x);
+  background:color-mix(in srgb,var(--gafor-x) 14%,transparent);}
+.stale .ic{flex:0 0 auto;width:17px;height:17px;border-radius:50%;display:grid;
+  place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;
+  background:var(--gafor-d);color:var(--bg);}
+.stale.hard .ic{background:var(--gafor-x);}
+.stale .btn{flex:0 0 auto;margin-left:auto;}
 
 /* ---------- GAFOR-Zeitreihe als Zeitband ----------
    Ein Abschnitt je Zeitraum, in der Farbe seiner Stufe; der laufende ist
@@ -308,6 +406,9 @@ main.content{padding:12px 14px 0;}
   letter-spacing:.01em;}
 .report-col > .report-h:first-child{margin-top:2px;}
 .report-cols pre.report{margin:0;font-size:11px;}
+/* Ein Abschnitt kann aus mehreren Absätzen und Tabellen bestehen — ohne
+   Zwischenraum liefen sie zusammen und der Absatzwechsel wäre unsichtbar. */
+.report-p + .report-p,.report-p + pre.report,pre.report + .report-p{margin-top:.6em;}
 .report-p{margin:0;font-size:13px;line-height:1.55;color:var(--text);hyphens:auto;}
 
 
@@ -335,6 +436,10 @@ main.content{padding:12px 14px 0;}
 .sv-mlab{font-family:var(--mono);font-size:8px;}
 .sv-mlab.fzl{fill:var(--dew);} .sv-mlab.pbl{fill:var(--gafor-c);}
 .sv-wind{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-opacity:.8;}
+/* zweites Modell: dieselben Kurven, gestrichelt und blasser */
+.sv-cmp{stroke-dasharray:4 3;stroke-opacity:.5;stroke-width:1.2;}
+.sv-cmp.sv-curve{fill:none;}
+.sv-cmplab{opacity:.75;}
 .sv-barb path{stroke:var(--text-strong);stroke-width:1.3;fill:none;stroke-linecap:round;}
 .sv-barb path.sv-fill{fill:var(--text-strong);}
 .sv-calm{fill:none;stroke:var(--text-strong);stroke-width:1.2;}
@@ -509,7 +614,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
 
   /* alles Bedienbare weg */
   .gate,.menu,.search-block,.map-btns,.map-hint,.header-tools,.modal,
-  .code-legend,.chips,.explain,.ens-note,.hs-row,
+  .code-legend,.chips,.explain,.ens-note,.hs-row,.time-bar,.stale .btn,
   #savePlaceBtn,#favBtn,#gpsBtn,.leaflet-control-zoom,.leaflet-control-attribution{
     display:none !important;
   }
@@ -541,7 +646,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
     color:#333;gap:0 2mm;}
 
   .map-block{padding:0 0 2.5mm;}
-  .map-wrap{height:42mm;min-height:0;max-height:none;border:1px solid #bbb;
+  .map-wrap{height:36mm;min-height:0;max-height:none;border:1px solid #bbb;
     border-radius:2mm;break-inside:avoid;}
 
   main.content{padding:0;display:block;}
@@ -563,6 +668,15 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .gseg .ghr{font-size:7pt;}
   .gbar-foot{font-size:6.5pt;margin-top:1.2mm;}
 
+  /* Startfenster: Ampel und Streifen reichen, die Fensterliste ist Bedienung */
+  .fly-list{display:none !important;}
+  .fly-head{margin:1.5mm 2.5mm 0;padding:1mm 2mm;border-radius:1.5mm;gap:2.5mm;}
+  .fly-badge{font-size:9pt;}
+  .fly-when{font-size:6.5pt;} .fly-why{font-size:6.5pt;margin-top:0;}
+  .fly-strip{margin:0.6mm 2.5mm 0;height:3.5mm;}
+  .fly-days{margin:1.2mm 2.5mm 0;height:2.6mm;}
+  .fly-day{font-size:5.5pt;}
+
   pre.raw,pre.report{font-size:7.2pt;line-height:1.3;background:#fafafa;border:1px solid #eee;
     padding:1.5mm 2mm;white-space:pre-wrap;}
   /* Im Druck echte Mehrspaltigkeit statt Grid: nur so darf der Text über den
@@ -570,6 +684,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .report-cols{display:block;column-count:3;column-gap:4mm;}
   .report-col{display:block;}
   .report-p{font-size:6.2pt;line-height:1.22;text-align:justify;hyphens:auto;}
+  .report-p + .report-p,.report-p + pre.report,pre.report + .report-p{margin-top:0.8mm;}
   .report-cols pre.report{font-size:6pt;line-height:1.2;padding:1mm;}
   .report-h{font-size:7pt;margin:1.5mm 0 0.6mm;}
   .report-h{font-size:8pt;margin:2mm 0 1mm;}

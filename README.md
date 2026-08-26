@@ -65,8 +65,8 @@ gegebenenfalls `CNAME` — und die Ordner `css/ data/ icons/ img/ js/ scripts/ t
 Menü → **Einstellungen**: METAR/TAF-Umkreis (25–300 km, Vorgabe 100 km), Höchstzahl der
 angezeigten Plätze, Windeinheit (kt · km/h · m/s), hell/dunkel, TAF an/aus, Obergrenze des
 Höhenprofils (700/500/400/300 hPa), Höhen in Fuss oder Meter, die relative Feuchte, ab der
-die möglichen Wolkenbänder schattiert werden (70 – 95 %, Vorgabe 85 %), und die
-Ensemble-Streubreite an/aus. Alles liegt im `localStorage` des Geräts, nichts wird
+die möglichen Wolkenbänder schattiert werden (70 – 95 %, Vorgabe 85 %), automatisches
+Nachladen an/aus und die Ensemble-Streubreite an/aus. Alles liegt im `localStorage` des Geräts, nichts wird
 übertragen.
 
 ## Die vier Knöpfe in der Kopfzeile
@@ -75,6 +75,16 @@ Sie stehen links vom Logo.
 
 **⟳ Aktualisieren** holt alles neu — DWD-Index, Ballonbericht, METAR/TAF, Modell und Ensemble.
 Wer nur eine Karte auffrischen will, klickt auf deren Altersanzeige rechts in der Kartenkopfzeile.
+
+Ausserdem lädt die App **von selbst nach**, solange der Tab sichtbar ist: METAR alle 10
+Minuten, DWD alle 20, Modell alle 30. Im Hintergrund läuft nichts — ein schlafender Tab
+würde weder zuverlässig ticken noch nützte es jemandem; beim Zurückkommen wird das
+Überfällige einmal nachgeholt. Abschaltbar in den Einstellungen.
+
+Ist ein GAFOR-Bulletin **über seinen letzten Zeitraum hinaus** oder seit über drei Stunden
+nicht mehr aktualisiert, steht ein deutlicher **Warnhinweis** direkt über den Stufen, mit
+Knopf zum Neuladen. Das ist der gefährliche Fall: die Kacheln sehen unverändert aus und
+sagen trotzdem nichts mehr.
 
 **⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Zeitband und
 Flugwetterübersicht auf die erste, Ballonbericht, Höhenwind, METAR/TAF und Modellprognose auf die
@@ -104,6 +114,50 @@ darunter — für den Abschnitt, den man antippt, sonst für den laufenden. Ein 
 oben rechts markiert die Abschnitte, zu denen ein Zusatz vorliegt. So braucht die Reihe rund
 ein Viertel der Höhe der früheren Kacheln und wächst auch bei sechs Zeiträumen nicht in eine
 zweite Zeile.
+
+## Startfenster
+
+Die oberste Karte beantwortet die Frage, mit der man die App öffnet: **kann ich starten?**
+Je Stunde eine Ampel — *fahrbar*, *grenzwertig*, *nein* — mit dem Grund dahinter, ein
+Streifen über den ganzen Vorhersagezeitraum und darunter die nächsten drei durchgehend
+fahrbaren Fenster mit Dauer. Ein Klick auf eine Stunde oder ein Fenster setzt den
+Zeitschieber dorthin.
+
+Bewertet wird (Schwellen in `OM.flyRating`):
+
+| Grösse | grenzwertig ab | nein ab |
+|---|---|---|
+| Bodenwind 10 m | 4 m/s | 6 m/s |
+| Böen | 6 m/s | 8 m/s |
+| Böigkeit (Böe − Wind) | 4 m/s | 6 m/s |
+| Niederschlag | — | 0,1 mm/h |
+| CAPE | 300 J/kg | 800 J/kg |
+| Sicht | Nebelrisiko mässig | 1,5 km |
+| Wolkenbasis | 1000 ft AGL | — |
+| Dämmerung | — | ausserhalb |
+
+Das ist eine **eigene Einschätzung aus dem Punktmodell, keine DWD-Aussage**; der Hinweis
+steht auch unter der Karte. Massgebend bleibt die amtliche Beratung und die Einschätzung
+vor Ort.
+
+Die **bürgerliche Dämmerung** wird für genau den gewählten Punkt gerechnet (`js/sun.js`,
+Sonnenhöhe −6°, übliche NOAA-Formel). Open-Meteo liefert nur Auf- und Untergang, der DWD
+nennt die Dämmerung nur für einzelne Städte.
+
+## Der Zeitschieber
+
+Zwischen Karte und Berichten steht **ein** Schieber für die ganze Seite. Er steuert
+Startfenster, GAFOR-Band, Gebietskopf, Höhenwind und Modellprognose gemeinsam.
+
+Die Skala ist **fest** über `OM.SPAN_H` = 168 Stunden, unabhängig vom gewählten Modell —
+nur so bleiben Tageseinteilung und Nachtschattierung beim Modellwechsel an derselben
+Stelle. Über dem Schieber die Wochentage, in der Spur Striche alle zwei Stunden und die
+**Nacht grau hinterlegt**. Was das gewählte Modell nicht mehr rechnet, ist **schraffiert
+und nicht erreichbar**: der Griff rastet am Horizont ein, mit ICON-D2 also bei +48 h.
+
+GFS rechnet eigentlich 384 Stunden, ICON global 180. Die App deckelt alle Modelle auf 168
+und holt acht Tage: ein Höhenprofil zwei Wochen im Voraus ist Zahlenmystik, und die
+Druckflächen für 16 Tage wären ein Vielfaches an Daten auf dem Handy.
 
 ## Karte beim Öffnen
 
@@ -231,16 +285,18 @@ gerechnet — Open-Meteo liefert ihn auf den Flächen nicht. Die bodennahen Flä
 Auf dem Desktop steht die **Tabelle links (45 %), die Grafik rechts (55 %)**; die Grafik ist
 genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
 
-Über beiden steht die **Modellwahl**, aufsteigend nach Vorhersagehorizont: ICON-D2 (48 h),
+Über beiden steht die **Modellwahl** und darunter eine zweite Reihe **Vergleich**: das dort
+gewählte Modell wird **gestrichelt und blasser** über das erste gelegt — Temperatur,
+Taupunkt und Windprofil. Laufen die Kurven eng beieinander, sind sich die Modelle einig;
+laufen sie auseinander, weiss man es auch. Das ist das ehrlichste Vertrauensmass, das ohne
+Ensemble zu haben ist. „aus" nimmt den Vergleich wieder weg.
+
+Die Modellwahl steht aufsteigend nach Vorhersagehorizont: ICON-D2 (48 h),
 ARPEGE (96), ICON-EU (120), ECMWF IFS (144), UKMO (168), ICON global (180), GFS (384) und
 zuletzt Auto (nahtloser Mix). Jedes Modell bleibt wählbar.
 
-Darunter wählt ein **Schieber in Ein-Stunden-Schritten** den Zeitpunkt. Sein oberes Ende ist
-der Horizont des gewählten Modells — mit ICON-D2 lässt er sich also gar nicht erst über
-+48 h ziehen; wer von einem weiten auf ein kurzes Modell wechselt, dessen Zeitpunkt rückt
-auf dessen Horizont zurück. Unter dem Schieber steht der gewählte Zeitpunkt mit Uhrzeit und,
-ab einem Tag Vorlauf, dem Datum. Im Ausdruck fällt der Schieber weg, seine Beschriftung
-bleibt als Zeitangabe stehen.
+Den Zeitpunkt wählt der **gemeinsame Schieber** oberhalb der Karten (siehe *Der
+Zeitschieber*); die Höhenwindkarte hat seit 1.14.0 keinen eigenen mehr.
 
 Die Werte kommen aus den Druckflächen 1000 bis 300 hPa desselben Open-Meteo-Abrufs, ergänzt
 um 10, 80 und 180 m über Grund; Flächen unterhalb des Geländes fallen heraus. Die Höhe stammt
@@ -306,7 +362,7 @@ bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 ## Aufbau
 
 ```
-index.html                  eine Seite: Kopfbereich (Suche · Ort · Gebiet · Stufen | Karte) · fünf Karten
+index.html                  Kopfbereich (Suche · Ort · Gebiet · Stufen | Karte) · Zeitschieber · sechs Karten
 css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
@@ -315,7 +371,8 @@ js/gafor.js                 Gebietsgeometrie laden, Punkt → Gebiet, Code-Legen
 js/geo.js                   Ortssuche (Open-Meteo), Koordinateneingabe, ICAO, Reverse-Geocoding
 js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ballonbericht aus
 js/metar.js                 METAR/TAF: erst die Repo-Kopie, dann still die NOAA; Ceiling/Sicht/Einstufung, Bundeslandtabelle
-js/openmeteo.js             Punktprognose, Druckflächen-Windprofil, Nebel- und Basisschätzung, Ensemble
+js/openmeteo.js             Punktprognose, Druckflächen-Windprofil, Nebel/Basis, Ensemble, Startfensterampel
+js/sun.js                   Sonnenauf-/-untergang und bürgerliche Dämmerung für den Punkt
 js/wind.js                  Windfahnen und das einfache Windprofil (Rückfall ohne Feuchte)
 js/stueve.js                Stüve-Diagramm mit Windfeld, einstellbare Feuchteschattierung (reines SVG)
 js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
@@ -370,6 +427,10 @@ Drei Produkte, drei Zuschnitte:
   Eine Schätzung über die Zeichenzahl lag verlässlich daneben — Überschriften haben Abstände und
   eine Höhenwindtabelle wiegt pro Zeichen ein Vielfaches. Ändert sich die Fensterbreite, wird neu
   ausgemessen; im Ausdruck fliesst der Text stattdessen dreispaltig über den Seitenrand.
+  Die **feste Breite** bekommen nur Absätze, die selbst ein `|` enthalten oder deren Zeilen
+  mit mehrfachen Leerzeichen ausgerichtet sind — also die Höhenwindtabellen und die
+  Dämmerungszeiten. Alles andere, auch der Prosaabsatz unter „Inversionen", steht in der
+  Grundschrift.
 * **Ballonwetterbericht** — einer je GAFOR-Gebiet, 67 Stück (Gebiet 00 über See hat keinen). Die
   Seiten stehen nicht als Links auf der Übersicht, sondern in deren anklickbarer Bildkarte; der
   Fetcher liest Ziel, Name und Bezugshöhe aus den `<area>`-Tags. Nichts geraten, und eine

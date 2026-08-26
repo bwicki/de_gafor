@@ -54,7 +54,8 @@ const MAPVIEW = (() => {
 
     // eigene Ebenen, damit die Reihenfolge feststeht
     for (const [name, z] of [['gafor-mask', 405], ['gafor-areas', 410], ['gafor-land', 420],
-                             ['gafor-regions', 430], ['gafor-labels', 450]]) {
+                             ['gafor-regions', 430], ['gafor-labels', 450],
+                             ['gafor-favs', 460]]) {
       map.createPane(name).style.zIndex = z;
     }
     map.getPane('gafor-labels').style.pointerEvents = 'none';
@@ -163,6 +164,31 @@ const MAPVIEW = (() => {
     applyLevel();
   }
 
+  /* ------------------------------------------------------------ Merkorte
+   * Die gespeicherten Orte als kleine Nadeln auf der Karte. Ein Klick fährt
+   * hin — das ist der schnellste Weg zwischen zwei Startplätzen.
+   */
+  let favLayer = null;
+
+  function setFavourites(list, onPick) {
+    if (!map) return;
+    if (favLayer) { map.removeLayer(favLayer); favLayer = null; }
+    if (!list || !list.length) return;
+    favLayer = L.layerGroup([], { pane: 'gafor-favs' });
+    for (const f of list) {
+      if (f.lat == null || f.lon == null) continue;
+      const m = L.circleMarker([f.lat, f.lon], {
+        pane: 'gafor-favs', radius: 5, weight: 2,
+        color: 'var(--amber)', fillColor: 'var(--amber)', fillOpacity: .55,
+        className: 'fav-pin',
+      });
+      m.bindTooltip(f.name || '', { direction: 'top', offset: [0, -6], className: 'fav-tip' });
+      if (onPick) m.on('click', () => onPick(f));
+      favLayer.addLayer(m);
+    }
+    favLayer.addTo(map);
+  }
+
   function highlight(id) {
     if (!areaLayer) return;
     highlighted = id == null ? null : String(id);
@@ -208,6 +234,6 @@ const MAPVIEW = (() => {
   }
   const get = () => map;
 
-  return { init, setAreas, setRegions, setLand, setMask, setMaskTheme,
+  return { init, setAreas, setRegions, setLand, setMask, setMaskTheme, setFavourites,
            highlight, setLevel, regionColor, center, germany, get };
 })();

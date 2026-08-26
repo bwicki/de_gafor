@@ -5,6 +5,65 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.14.0 — 2026-08-26
+
+Sechs neue Funktionen aus der Vorschlagsliste.
+
+* **Startfenster.** Die neue oberste Karte beantwortet die Frage, mit der man die App
+  öffnet: eine Ampel je Stunde — *fahrbar*, *grenzwertig*, *nein* — mit dem Grund dahinter,
+  ein Streifen über den ganzen Vorhersagezeitraum und darunter die nächsten drei
+  durchgehend fahrbaren Fenster mit Dauer. Ein Klick auf eine Stunde oder ein Fenster setzt
+  den Zeitschieber dorthin. Bewertet werden Bodenwind (4 / 6 m/s), Böen (6 / 8 m/s),
+  Böigkeit, Niederschlag, CAPE (300 / 800 J/kg), Sicht, Wolkenbasis und die **bürgerliche
+  Dämmerung**. Ausdrücklich eine eigene Einschätzung aus dem Punktmodell, keine DWD-Aussage
+  — das steht auch unter der Karte.
+* **Dämmerung wird gerechnet, nicht geschätzt.** Neu `js/sun.js`: Sonnenauf- und
+  -untergang und die bürgerliche Dämmerung (Sonnenhöhe −6°) für genau den gewählten Punkt,
+  nach der üblichen NOAA-Formel. Open-Meteo liefert nur Auf- und Untergang, der DWD nennt
+  die Dämmerung nur für einzelne Städte.
+* **Ein Zeitschieber für die ganze Seite.** Er steht jetzt zwischen Karte und Berichten und
+  steuert Startfenster, GAFOR-Band, Gebietskopf, Höhenwind und Modellprognose gemeinsam.
+  Die Skala ist **fest** über sieben Tage — so bleiben Tageseinteilung und
+  Nachtschattierung beim Modellwechsel an derselben Stelle. Darüber die Wochentage, in der
+  Spur Striche alle zwei Stunden und die **Nacht grau hinterlegt**; was das gewählte Modell
+  nicht mehr rechnet, ist **schraffiert und nicht erreichbar** — der Griff rastet am
+  Horizont ein. Mit ICON-D2 endet er also bei +48 h, mit ECMWF bei +144 h.
+* **Zwei Modelle im Höhenprofil.** Über dem Diagramm eine zweite Reihe „Vergleich": das
+  gewählte Modell wird **gestrichelt und blasser** über das erste gelegt — Temperatur,
+  Taupunkt und Windprofil. Laufen die Kurven eng, sind sich die Modelle einig; laufen sie
+  auseinander, weiss man es auch. Das ist das ehrlichste Vertrauensmass ohne Ensemble.
+* **Automatisches Nachladen.** Solange der Tab sichtbar ist: METAR alle 10 Minuten, DWD
+  alle 20, Modell alle 30. Im Hintergrund läuft nichts; beim Zurückkommen wird das
+  Überfällige einmal nachgeholt. Abschaltbar in den Einstellungen.
+* **Gespeicherte Orte als Nadeln auf der Karte.** Ein Klick fährt hin — der schnellste Weg
+  zwischen zwei Startplätzen.
+* **Warnhinweis bei alten Daten.** Ist ein GAFOR-Bulletin über seinen letzten Zeitraum
+  hinaus oder seit über drei Stunden nicht mehr aktualisiert, steht ein deutlicher Hinweis
+  direkt über den Stufen — mit Knopf zum Neuladen. Das ist der gefährliche Fall: die
+  Kacheln sehen unverändert aus und sagen trotzdem nichts mehr.
+* Nebenbei: Die Modellprognose zeigt zwölf Stunden **um** die gewählte herum (drei
+  rückwärts), nicht mehr zwölf ab jetzt.
+
+### Was dabei gedeckelt wurde
+
+GFS rechnet 384 Stunden, ICON global 180. Die App deckelt **alle Modelle auf 168 Stunden**
+(`OM.SPAN_H`) und holt acht Tage. Ein Höhenprofil zwei Wochen im Voraus ist Zahlenmystik,
+und die Druckflächen für 16 Tage wären ein Vielfaches an Daten auf dem Handy. Sieben Tage
+decken jede Fahrtplanung ab.
+
+## 1.13.1 — 2026-08-26
+
+* **Behoben: „Inversionen" und alles danach stand in der Schreibmaschinenschrift.** Ein
+  Abschnitt galt als Tabelle, sobald **irgendwo** darin ein `|` vorkam — und unter
+  „Inversionen" folgen die Dämmerungszeiten, also kippte auch der Prosaabsatz davor mit,
+  samt den harten Zeilenumbrüchen des DWD. Jetzt wird **absatzweise** entschieden: ein
+  Absatz bekommt die feste Breite nur, wenn er selbst `|` enthält oder wenn seine Zeilen
+  mit mehrfachen Leerzeichen ausgerichtet sind. Fliesstext steht damit im ganzen Bericht in
+  derselben Schrift; die beiden Höhenwindtabellen und die Dämmerungszeiten behalten ihre
+  Ausrichtung, weil sie ohne feste Breite unlesbar wären.
+* Zwischen mehreren Absätzen eines Abschnitts steht jetzt Luft — vorher liefen sie
+  zusammen und der Absatzwechsel war unsichtbar.
+
 ## 1.13.0 — 2026-08-26
 
 * **Behoben: die rechte Spalte der Flugwetterübersicht war die längere.** Der Schnitt wurde
