@@ -16,6 +16,7 @@
     profileTop: U.load('profileTop', 500),   // hPa, oberste Fläche im Höhenprofil
     altUnit: U.load('altUnit', 'ft'),
     showEns: U.load('showEns', 1),
+    rhStart: U.load('rhStart', 85),        // rF-Schwelle, ab der schattiert wird
     lastFetchAt: 0,
     lastFetchLat: null, lastFetchLon: null,
     om: null, ens: null, metars: null, tafs: null,
@@ -179,20 +180,51 @@
     window.addEventListener('resize', () => {
       clearTimeout(rt);
       // nur Tabelle und Grafik neu — der Schieber behält Wert und Fokus
-      rt = setTimeout(() => { if (state.om) paintProfile(); }, 220);
+      rt = setTimeout(() => {
+        if (!state.om) return;
+        paintProfile();
+        const hs = U.$('windBody').querySelector('.hour-slider');
+        if (hs && hs._place) hs._place();          // Marke folgt der neuen Breite
+      }, 220);
     });
   }
 
   // ------------------------------------------------------------------ Sperre
+  /* Nach zwei Stunden ohne Benutzung wird wieder gefragt. Gemessen wird die
+     letzte Berührung, nicht die Anmeldung: wer die App den ganzen Tag offen
+     hat und benutzt, wird nicht herausgeworfen; wer sie liegen lässt, schon.
+     Der Zeitstempel liegt im localStorage, die Sperre greift also auch, wenn
+     das Fenster zwischendurch geschlossen war. */
+  const GATE_IDLE_MS = 2 * 60 * 60 * 1000;
+  let idleTimer = 0;
+
+  const touchGate = () => {
+    if (U.load('unlocked', 0) !== 1) return;
+    U.save('unlockedAt', Date.now());
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(lockAgain, GATE_IDLE_MS);
+  };
+
+  /** Ist die Anmeldung abgelaufen? Fehlt der Zeitstempel, gilt sie als alt. */
+  const gateExpired = () =>
+    Date.now() - (+U.load('unlockedAt', 0) || 0) > GATE_IDLE_MS;
+
   function initGate() {
     const g = U.$('gate');
     if (!g) return;
-    if (U.load('unlocked', 0) === 1) { g.remove(); return; }
+    if (U.load('unlocked', 0) === 1 && !gateExpired()) {
+      g.remove();
+      armIdle();
+      return;
+    }
+    U.save('unlocked', 0);
     g.hidden = false;
     U.$('gateForm').onsubmit = (e) => {
       e.preventDefault();
       if (U.$('gatePw').value.trim() === GATE_PW) {
         U.save('unlocked', 1);
+        touchGate();
+        armIdle();
         g.remove();
         const map = MAPVIEW.get();
         if (map) setTimeout(() => map.invalidateSize(), 30);
@@ -205,8 +237,22 @@
     setTimeout(() => U.$('gatePw').focus(), 60);
   }
 
+  /** Uhr für die Untätigkeit starten und auf jede Berührung zurücksetzen. */
+  function armIdle() {
+    touchGate();
+    for (const ev of ['pointerdown', 'keydown', 'wheel', 'touchstart']) {
+      window.addEventListener(ev, touchGate, { passive: true });
+    }
+    /* Aus dem Hintergrund zurück: die Uhr lief währenddessen weiter, ein
+       Timer im schlafenden Tab aber nicht zuverlässig — deshalb hier prüfen. */
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) { if (gateExpired()) lockAgain(); else touchGate(); }
+    });
+  }
+
   function lockAgain() {
     U.save('unlocked', 0);
+    U.save('unlockedAt', 0);
     location.reload();
   }
 
@@ -550,98 +596,133 @@
 
   function renderGafor() {
     const body = U.clear(U.$('gaforBody'));
+    const tiles = U.clear(U.$('tileBody'));
     const age = U.$('gaforAge');
+    const tAge = U.$('tileAge');
+    age.textContent = ''; age.className = 'age';
+    tAge.textContent = ''; tAge.className = 'age';
     const a = state.area;
     const b = a ? DWD.gaforFor(a) : null;
 
     if (!DWD.raw()) {
-      age.textContent = '';
-      body.appendChild(note('Die Berichtsdatei <strong>data/dwd/index.json</strong> fehlt oder ist leer. ' +
+      const msg = 'Die Berichtsdatei <strong>data/dwd/index.json</strong> fehlt oder ist leer. ' +
         'Sie wird vom Workflow <em>DWD-Berichte holen</em> erzeugt — im Actions-Tab einmal starten. ' +
-        'Wird das ZIP über ein bestehendes Repo gelegt, darf diese Datei nicht mit überschrieben werden.'));
+        'Wird das ZIP über ein bestehendes Repo gelegt, darf diese Datei nicht mit überschrieben werden.';
+      body.appendChild(note(msg));
+      tiles.appendChild(note('Keine Berichtsdatei.'));
       return;
     }
-    if (!a) { age.textContent = ''; body.appendChild(note(`<strong>${OUTSIDE}</strong>`)); return; }
+    if (!a) {
+      body.appendChild(note(`<strong>${OUTSIDE}</strong>`));
+      tiles.appendChild(note(OUTSIDE));
+      return;
+    }
     if (!b) {
       const ov = DWD.overviewFor(a);
-      age.textContent = ov && ov.bereich ? `Bereich ${ov.bereich}` : '';
-      body.appendChild(note(`Für Gebiet ${a.id} liegt derzeit keine GAFOR-Codetabelle vor` +
-        (ov ? ' — die Flugwetterübersicht des Bereichs steht darunter.' : '.')));
-      if (ov) {
-        const meta = U.el('div', 'note');
-        meta.style.margin = '12px 0 8px';
-        meta.innerHTML = [
-          ov.bulletin ? `<strong>${ov.bulletin}</strong>` : '',
-          ov.validFrom && ov.validTo
-            ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
-        ].filter(Boolean).join(' · ');
-        body.appendChild(meta);
-        renderReport(body, ov.text);
-        body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
-      }
+      tAge.textContent = ov && ov.bereich ? `Bereich ${ov.bereich}` : '';
+      tiles.appendChild(note(`Für Gebiet ${a.id} liegt derzeit keine GAFOR-Codetabelle vor` +
+        (ov ? ' — die Flugwetterübersicht des Bereichs steht unten.' : '.')));
+      if (ov) renderOverview(body, age, ov);
       return;
     }
 
     const span = (b.periods && b.periods.length)
       ? `${b.periods[0].slice(0, 2)}–${b.periods[b.periods.length - 1].slice(3)} UTC` : '';
-    age.textContent = [b.bereich, span, b.issued ? U.ago(b.issued) : ''].filter(Boolean).join(' · ');
-    age.className = U.ageClass(b.issued, 300, 600);
+    tAge.textContent = [b.bereich, span, b.issued ? U.ago(b.issued) : ''].filter(Boolean).join(' · ');
+    tAge.className = U.ageClass(b.issued, 300, 600);
 
     if (b.detail && b.detail.remark) {
       const r = U.el('div', 'note');
-      r.style.marginBottom = '10px';
+      r.style.margin = '9px 13px 0';
       r.innerHTML = `Zusatz für Gebiet ${a.id}: <strong>${b.detail.remark}</strong>`;
-      body.appendChild(r);
+      tiles.appendChild(r);
     }
 
     if (b.codes && b.codes.length && b.periods && b.periods.length) {
-      const nowUtc = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
-      const tiles = U.el('div', 'gafor-tiles');
-      for (let i = 0; i < b.periods.length; i++) {
-        const p = b.periods[i];
-        const ci = GAFOR.codeInfo(b.codes[i] || '');
-        const tile = U.el('div', `gtile ${ci.key}${inPeriod(p, nowUtc) ? ' now' : ''}`);
-        tile.appendChild(U.el('div', 'gt', p.replace('-', '–')));
-        const code = U.el('div', 'gc');
-        code.appendChild(U.el('span', 'l', ci.letter));
-        if (ci.digit) code.appendChild(U.el('span', 'd', ci.digit));
-        tile.appendChild(code);
-        tile.appendChild(U.el('div', 'gw', ci.word || '—'));
-        if (ci.vis) {
-          tile.appendChild(U.el('div', 'gv', `${ci.vis} · ${ci.base}`));
-        }
-        const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
-        if (rem) tile.appendChild(U.el('div', 'gr', rem));
-        tile.title = ci.desc;
-        tiles.appendChild(tile);
-      }
-      body.appendChild(tiles);
-      const ref = a.refAltFt != null ? ` · Bezugshöhe Gebiet ${a.id}: ${a.refAltFt} ft MSL` : '';
-      body.appendChild(U.el('div', 'gafor-unit',
-        `Zeiten in UTC · laufender Zeitraum hervorgehoben${ref}`));
-      body.appendChild(codeLegend());
+      tiles.appendChild(gaforBar(a, b));
+      tiles.appendChild(codeLegend());
     }
 
-    // the prose Flugwetterübersicht for the Bereich this area belongs to
+    // der Fliesstext des Bereichs, zu dem dieses Gebiet gehört
     const ov = DWD.overviewFor(a);
-    if (ov) {
-      const h = U.el('div', 'section-title');
-      h.style.margin = '16px 0 6px';
-      h.textContent = `Flugwetterübersicht Bereich ${ov.bereich || ''}`.trim();
-      body.appendChild(h);
+    if (ov) renderOverview(body, age, ov);
+    else if (b.source) body.appendChild(sourceLine(b.title || 'DWD', b.source));
+  }
+
+  /**
+   * Die GAFOR-Stufen als durchgehendes Zeitband: ein Abschnitt je Zeitraum, in
+   * der Farbe seiner Stufe, der laufende kräftiger und amber unterstrichen.
+   * Sicht, Untergrenze und ein etwaiger Zusatz stehen in der Fusszeile — für
+   * den Abschnitt, auf den man tippt, sonst für den laufenden. So braucht die
+   * ganze Reihe rund ein Viertel der Höhe der früheren Kacheln und wächst auch
+   * bei sechs Zeiträumen nicht in die zweite Zeile.
+   */
+  function gaforBar(a, b) {
+    const wrap = U.el('div', 'gbar-wrap');
+    const bar = U.el('div', 'gafor-bar');
+    const foot = U.el('div', 'gbar-foot');
+    const nowUtc = new Date().getUTCHours() + new Date().getUTCMinutes() / 60;
+    const segs = [];
+
+    const show = (i) => {
+      const ci = GAFOR.codeInfo(b.codes[i] || '');
+      const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
+      const cur = inPeriod(b.periods[i], nowUtc);
+      U.clear(foot);
+      const left = U.el('div', 'gf-l');
+      left.innerHTML = `${cur ? 'jetzt' : b.periods[i].replace('-', '–') + ' UTC'} ` +
+        `<strong class="k ${ci.key}">${ci.word || ci.letter || '—'}</strong>` +
+        (ci.vis ? ` · ${ci.vis} · ${ci.base}` : '') +
+        (rem ? ` · <span class="k ${ci.key}">${rem}</span>` : '');
+      foot.appendChild(left);
+      const right = U.el('div', 'gf-r');
+      right.textContent = a.refAltFt != null
+        ? `Bezugshöhe ${a.refAltFt} ft MSL` : 'Zeiten in UTC';
+      foot.appendChild(right);
+      segs.forEach((s2, k) => s2.classList.toggle('sel', k === i));
+    };
+
+    let start = 0;
+    for (let i = 0; i < b.periods.length; i++) {
+      const p = b.periods[i];
+      const ci = GAFOR.codeInfo(b.codes[i] || '');
+      const cur = inPeriod(p, nowUtc);
+      if (cur) start = i;
+      const seg = U.el('button', `gseg ${ci.key}${cur ? ' now' : ''}`);
+      const rem = (b.detail && b.detail.remarks && b.detail.remarks[i]) || '';
+      if (rem) seg.appendChild(U.el('span', 'gflag'));
+      const code = U.el('span', 'gcd');
+      code.appendChild(U.el('span', 'l', ci.letter));
+      if (ci.digit) code.appendChild(U.el('span', 'g', ci.digit));
+      seg.appendChild(code);
+      seg.appendChild(U.el('span', 'ghr', p.replace('-', '–')));
+      seg.title = [ci.desc, rem].filter(Boolean).join(' · ');
+      seg.onclick = () => show(i);
+      segs.push(seg);
+      bar.appendChild(seg);
+    }
+    wrap.appendChild(bar);
+    wrap.appendChild(foot);
+    show(start);
+    return wrap;
+  }
+
+  /** Flugwetterübersicht eines Bereichs in die eigene Karte. */
+  function renderOverview(body, age, ov) {
+    age.textContent = [
+      ov.bereich ? `Bereich ${ov.bereich}` : '',
+      ov.validFrom && ov.validTo
+        ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
+    ].filter(Boolean).join(' · ');
+    age.className = 'age';
+    if (ov.bulletin) {
       const meta = U.el('div', 'note');
       meta.style.marginBottom = '8px';
-      meta.innerHTML = [
-        ov.bulletin ? `<strong>${ov.bulletin}</strong>` : '',
-        ov.validFrom && ov.validTo
-          ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
-      ].filter(Boolean).join(' · ');
+      meta.innerHTML = `<strong>${ov.bulletin}</strong>`;
       body.appendChild(meta);
-      renderReport(body, ov.text);
-      body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
-    } else if (b.source) {
-      body.appendChild(sourceLine(b.title || 'DWD', b.source));
     }
+    renderReport(body, ov.text);
+    body.appendChild(sourceLine('DWD Flugwetterübersicht', ov.source));
   }
 
   /* -------------------------------------------------------- Berichtstext
@@ -680,7 +761,12 @@
     }).filter(b => b.title || b.body);
   }
 
-  /** Zwei Spalten, an der Stelle geteilt, wo beide etwa gleich lang werden. */
+  /**
+   * Zwei Spalten, an der Stelle geteilt, wo beide etwa gleich lang werden —
+   * mit einer Regel: geht es nicht auf, bekommt die **linke** Spalte den
+   * längeren Teil. Ein Text, der links unten weiterläuft und rechts früher
+   * endet, liest sich angenehmer als umgekehrt.
+   */
   function renderReport(parent, text) {
     const blocks = reportBlocks(text);
     if (blocks.length < 2) {
@@ -689,12 +775,19 @@
     }
     const len = blocks.map(b => b.title.length + 2 + b.body.length);
     const total = len.reduce((a, v) => a + v, 0);
-    let best = 1, bestDiff = Infinity, run = 0;
+    let best = 0, bestDiff = Infinity;     // bester Schnitt mit links ≥ rechts
+    let fall = 1, fallDiff = Infinity;     // Rückfall, falls es keinen gibt
+    let run = 0;
     for (let i = 0; i < blocks.length - 1; i++) {
       run += len[i];
-      const diff = Math.abs(run - (total - run));
-      if (diff < bestDiff) { bestDiff = diff; best = i + 1; }
+      const rest = total - run;
+      const diff = Math.abs(run - rest);
+      if (diff < fallDiff) { fallDiff = diff; fall = i + 1; }
+      if (run >= rest && diff < bestDiff) { bestDiff = diff; best = i + 1; }
     }
+    /* Kein Schnitt macht links schwerer? Dann ist der letzte Abschnitt allein
+       länger als alles davor — da bleibt nur der ausgewogenste Schnitt. */
+    if (!best) best = fall;
     const wrap = U.el('div', 'report-cols');
     for (const part of [blocks.slice(0, best), blocks.slice(best)]) {
       const col = U.el('div', 'report-col');
@@ -1270,16 +1363,9 @@
     holder.id = 'windProfile';
     body.appendChild(holder);
 
-    body.appendChild(explainNote(
-      'Links ein <strong>Stüve-Diagramm</strong>: senkrecht der Druck in p<sup>0,286</sup>, ' +
-      'waagrecht die Temperatur — dadurch sind die feinen Schräglinien ' +
-      '<strong>Trockenadiabaten</strong> und damit Geraden. Rot die Temperatur, blau der ' +
-      'Taupunkt; wo beide zusammenlaufen, ist die Luft gesättigt. Die blaue Schattierung ' +
-      'beginnt bei 85 % relativer Feuchte und wird bis 100 % kräftiger. ' +
-      'Rechts dasselbe Höhenraster mit der Windgeschwindigkeit; die <strong>Windfahne</strong> ' +
-      'zeigt wie in der Luftfahrtkarte in den Wind, die Federn geben Knoten (halb 5, ganz 10, ' +
-      'Wimpel 50). Der <strong>Pfeil in der Tabelle</strong> zeigt dagegen die Richtung, in die ' +
-      'es treibt. Feuchtadiabaten und Mischungsverhältnislinien sind nicht eingezeichnet.'));
+    /* Die Erklärung zum Stüve stand hier bis 1.11.0. Sie ist in den README
+       gewandert: wer das Diagramm einmal verstanden hat, liest sie nie wieder,
+       und sie kostete jedes Mal ein Drittel der Kartenhöhe. */
     body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
 
     paintProfile();
@@ -1322,14 +1408,14 @@
     const wrapT = U.el('div', 'wp-col-table fc-scroll');
     const t = U.el('table', 'wp-table');
     const th = U.el('tr');
-    for (const h of [metres ? 'm AMSL' : 'ft AMSL', 'Fläche', 'Drift',
-                     U.unitLabel[state.unit], '°C', 'Td', 'rF']) th.appendChild(U.el('th', '', h));
+    for (const h of [metres ? 'm AMSL' : 'ft AMSL', 'Fläche', 'Wind',
+                     U.unitLabel[state.unit], '°C', 'TP', 'rF']) th.appendChild(U.el('th', '', h));
     const thead = U.el('thead'); thead.appendChild(th); t.appendChild(thead);
     const tb = U.el('tbody');
 
     const unitTxt = metres ? ' m' : ' ft';
     const entries = levels.map(l => ({ alt: l.ft, lvl: l }));
-    if (fzlA != null) entries.push({ alt: fzlA, mark: 'Nullgradgrenze ' + fzlA.toLocaleString('de-CH') + unitTxt, cls: 'fzl' });
+    if (fzlA != null) entries.push({ alt: fzlA, mark: '0°-Grenze ' + fzlA.toLocaleString('de-CH') + unitTxt, cls: 'fzl' });
     if (pblA != null) entries.push({ alt: pblA, mark: 'Grenzschicht bis ' + pblA.toLocaleString('de-CH') + unitTxt, cls: 'pbl' });
     entries.sort((a, b) => b.alt - a.alt || (a.mark ? -1 : 1));
 
@@ -1340,14 +1426,14 @@
       tr.appendChild(U.el('td', 'alt', l.ft.toLocaleString('de-CH')));
       tr.appendChild(U.el('td', 'lvl', l.hPa ? `${l.hPa} hPa` : l.label));
       const d = U.el('td', 'dir');
-      d.innerHTML = `${U.dirArrow(l.dir)} ${U.dirName(l.dir)}`;
+      d.innerHTML = `<span class="ar">${U.dirArrow(l.dir)}</span>${U.dirName(l.dir)}`;
       tr.appendChild(d);
       tr.appendChild(U.el('td', 'spd', U.wind(l.spd, state.unit)));
       tr.appendChild(U.el('td', 'tmp', l.temp == null ? '·' : String(Math.round(l.temp))));
       tr.appendChild(U.el('td', 'tmp', l.dew == null ? '·' : String(Math.round(l.dew))));
       const rh = U.el('td', 'rh', l.rh == null ? '·' : `${Math.round(l.rh)} %`);
-      if (l.rh != null && l.rh > STUEVE.RH_START) {
-        rh.style.background = `color-mix(in srgb, var(--sv-humid) ${Math.round(STUEVE.rhAlpha(l.rh) * 130)}%, transparent)`;
+      if (l.rh != null && l.rh > state.rhStart) {
+        rh.style.background = `color-mix(in srgb, var(--sv-humid) ${Math.round(STUEVE.rhAlpha(l.rh, state.rhStart) * 130)}%, transparent)`;
       }
       tr.appendChild(rh);
       tb.appendChild(tr);
@@ -1365,6 +1451,7 @@
       groundFt: toAlt(ground),
       fzlFt: fzlA,
       pblFt: pblA,
+      rhStart: state.rhStart,
     });
   }
 
@@ -1389,10 +1476,22 @@
     requestAnimationFrame(draw);
   }
 
+  /** "Mi 26. Aug · 14:00 CEST" aus einem Open-Meteo-Zeitstempel. */
+  function stampOf(iso, tzAbbr) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(iso || ''));
+    if (!m) return String(iso || '');
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    const wd = d.toLocaleDateString('de-CH', { weekday: 'short' }).replace('.', '');
+    const mo = d.toLocaleDateString('de-CH', { month: 'short' }).replace('.', '');
+    return `${wd} ${+m[3]}. ${mo} · ${m[4]}:${m[5]}${tzAbbr ? ' ' + tzAbbr : ''}`;
+  }
+
   /**
    * Zeitwahl als Schieber in Ein-Stunden-Schritten. Sein oberes Ende ist der
    * Vorhersagehorizont des gewählten Modells — weiter als ICON-D2 rechnet,
-   * lässt er sich mit ICON-D2 also gar nicht erst ziehen.
+   * lässt er sich mit ICON-D2 also gar nicht erst ziehen. Die Beschriftung
+   * läuft unter dem Griff mit, damit man beim Ziehen nicht zwischen Griff und
+   * einer festen Zeile hin- und herschauen muss.
    */
   function hourSlider(j) {
     const i0 = OM.nowIndex(j);
@@ -1410,12 +1509,25 @@
 
     const stamp = (off) => {
       const i = Math.min(i0 + off, j.hourly.time.length - 1);
-      const t = j.hourly.time[i];
-      return `${off === 0 ? 'jetzt' : '+' + off + ' h'} · ${t.slice(11, 16)} ` +
-             `${j.timezone_abbreviation || ''}${off >= 24 ? ' · ' + t.slice(8, 10) + '.' : ''}`;
+      return `${stampOf(j.hourly.time[i], j.timezone_abbreviation)} · ` +
+             `${off === 0 ? 'jetzt' : '+' + off + ' h'}`;
     };
-    const setLabel = (off) => { lab.textContent = stamp(off); };
-    setLabel(state.windOffset);
+
+    /* Der Griff wandert nicht über die volle Spurbreite, sondern über
+       Spurbreite minus Griffbreite — sonst liefe die Beschriftung an den
+       Enden aus dem Tritt. Am Rand wird sie in die Spur zurückgeschoben,
+       damit sie nicht über den Kasten hinausragt. */
+    const THUMB = 13;
+    const place = () => {
+      const w = input.clientWidth;
+      if (!w) return;
+      const max = Math.max(1, maxHours);
+      const frac = U.clamp(+input.value, 0, max) / max;
+      const x = THUMB / 2 + frac * (w - THUMB);
+      const half = (lab.offsetWidth || 120) / 2;
+      lab.style.left = `${U.clamp(x, half, Math.max(half, w - half))}px`;
+    };
+    const setLabel = (off) => { lab.textContent = stamp(off); place(); };
 
     let t = 0;
     input.oninput = () => {
@@ -1425,12 +1537,20 @@
       t = setTimeout(paintProfile, 90);
     };
 
+    const track = U.el('div', 'hs-track');
+    track.appendChild(input);
+    track.appendChild(lab);
+
     const row = U.el('div', 'hs-row');
     row.appendChild(U.el('span', 'hs-cap', 'jetzt'));
-    row.appendChild(input);
+    row.appendChild(track);
     row.appendChild(U.el('span', 'hs-cap', `+${maxHours} h`));
     box.appendChild(row);
-    box.appendChild(lab);
+
+    setLabel(state.windOffset);
+    // die Breite steht erst nach dem Einhängen fest
+    requestAnimationFrame(place);
+    box._place = place;
     return box;
   }
 
@@ -1474,6 +1594,7 @@
     U.$('setTop').value = String(state.profileTop);
     U.$('setAlt').value = state.altUnit;
     U.$('setEns').value = state.showEns ? '1' : '0';
+    U.$('setRh').value = String(state.rhStart);
     U.$('setOverlay').classList.remove('hidden');
   }
   const hideSettings = () => U.$('setOverlay').classList.add('hidden');
@@ -1495,6 +1616,7 @@
     state.profileTop = top;    U.save('profileTop', top);
     state.altUnit = U.$('setAlt').value; U.save('altUnit', state.altUnit);
     state.showEns = ens ? 1 : 0; U.save('showEns', state.showEns);
+    state.rhStart = STUEVE.rhStartOf(+U.$('setRh').value); U.save('rhStart', state.rhStart);
     if (!ens) state.ens = null;
     state.unit = U.$('setUnit').value; U.save('unit', state.unit);
     applyTheme(U.$('setTheme').value);

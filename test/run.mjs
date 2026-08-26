@@ -754,6 +754,16 @@ head('Stüve-Diagramm');
   SV.RH_START === 85 ? ok('Schattierung beginnt bei 85 % Feuchte') : bad(`RH_START = ${SV.RH_START}`);
   SV.rhAlpha(80) === 0 && SV.rhAlpha(85) === 0
     ? ok('unter 85 % keine Schattierung') : bad('Schattierung beginnt zu früh');
+  // einstellbare Schwelle
+  SV.rhAlpha(88, 95) === 0 && SV.rhAlpha(97, 95) > 0
+    ? ok('höhere Schwelle (95 %) lässt 88 % ungeschattet')
+    : bad(`Schwelle 95: 88→${SV.rhAlpha(88, 95)}, 97→${SV.rhAlpha(97, 95)}`);
+  SV.rhAlpha(88, 70) > SV.rhAlpha(88, 85)
+    ? ok('tiefere Schwelle (70 %) schattiert kräftiger')
+    : bad(`Schwelle 70 gegen 85 bei 88 %: ${SV.rhAlpha(88, 70)} / ${SV.rhAlpha(88, 85)}`);
+  SV.rhStartOf(120) === 99 && SV.rhStartOf(10) === 50 && SV.rhStartOf('x') === 85
+    ? ok('Unsinn wird auf 50 – 99 % begrenzt, Leeres auf die Vorgabe')
+    : bad(`rhStartOf: ${SV.rhStartOf(120)} / ${SV.rhStartOf(10)} / ${SV.rhStartOf('x')}`);
   SV.rhAlpha(100) > SV.rhAlpha(92) && SV.rhAlpha(92) > SV.rhAlpha(86)
     ? ok('Schattierung wird zu 100 % hin kräftiger')
     : bad(`Verlauf: 86→${SV.rhAlpha(86)} 92→${SV.rhAlpha(92)} 100→${SV.rhAlpha(100)}`);

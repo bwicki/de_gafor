@@ -5,6 +5,40 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.12.0 — 2026-08-26
+
+* **Neuer Kopfbereich.** Ab 900 px teilt er sich 40 / 60: rechts aussen die Karte, links
+  untereinander Suchfeld, Ortszeile, GAFOR-Gebiet und ein neuer Kasten mit den
+  GAFOR-Stufen. Die vier Kästchen zusammen sind so hoch wie die Karte. Auf dem Handy
+  stapelt alles wie bisher.
+* **GAFOR-Stufen als Zeitband.** Die Kacheln sind weg; an ihrer Stelle steht ein
+  durchgehendes Band, ein Abschnitt je Zeitraum in der Farbe seiner Stufe, der laufende
+  kräftiger und amber unterstrichen. Sicht, Untergrenze und ein etwaiger Zusatz stehen in
+  der Fusszeile — für den Abschnitt, den man antippt, sonst für den laufenden; ein Punkt
+  oben rechts markiert die Abschnitte mit Zusatz. Statt rund 230 px braucht die Reihe
+  jetzt knapp 50 und wächst auch bei sechs Zeiträumen nicht in die zweite Zeile.
+* **Erneutes Kennwort nach zwei Stunden Pause.** Gemessen wird die letzte Berührung, nicht
+  die Anmeldung: wer die App benutzt, wird nicht herausgeworfen; wer sie liegen lässt,
+  schon. Der Zeitstempel liegt im `localStorage`, die Sperre greift also auch, wenn das
+  Fenster zwischendurch zu war.
+* **Höhenwind:** Tabelle und Stüve-Diagramm teilen sich die Breite jetzt hälftig — die
+  Tabelle war deutlich zu breit. Im Diagramm ist die **Null der Windachse beschriftet**,
+  und links stehen **zwei Zahlenspalten**: aussen die Höhe in Fuss oder Meter AMSL (je
+  nach Einstellung), innen der Druck.
+* **Tabelle:** „Drift" heisst jetzt **Wind** und steht rechtsbündig unter seiner
+  Überschrift; „Td" heisst **TP** (Taupunkt); aus „Nullgradgrenze" wird **0°-Grenze**.
+* **Der Zeitstempel läuft mit dem Schieber mit** und steht immer unter dem Griff, statt in
+  einer festen Zeile. Er nennt jetzt immer **Wochentag und Datum**: `Mi 26. Aug · 14:00
+  CEST · +4 h`.
+* **Feuchteschattierung einstellbar.** In den Einstellungen lässt sich die relative
+  Feuchte wählen, ab der die möglichen Wolkenbänder schattiert werden (70 – 95 %, Vorgabe
+  85 %). Gilt für das Stüve-Diagramm und die Spalte *rF*.
+* Die **Erklärung unter dem Stüve-Diagramm** ist entfallen — sie steht im README. Wer das
+  Diagramm einmal verstanden hat, liest sie nie wieder, und sie kostete ein Drittel der
+  Kartenhöhe.
+* Bricht die **Flugwetterübersicht** in zwei Spalten nicht gleichmässig um, ist ab jetzt
+  die **linke die längere**; das liest sich angenehmer als umgekehrt.
+
 ## 1.11.0 — 2026-08-26
 
 * **Ort und GAFOR-Gebiet stehen nebeneinander.** Auf Schirmen ab 820 px teilen sich die

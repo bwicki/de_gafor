@@ -217,6 +217,25 @@ await page.waitForTimeout(200);
 (await page.locator('#gate').count()) === 0
   ? ok('richtiges Kennwort öffnet die App') : bad('Sperre bleibt trotz richtigem Kennwort');
 
+// Nach zwei Stunden Untätigkeit wird wieder gefragt
+{
+  const stamp = await page.evaluate(() => +(localStorage.getItem('gaforcast.unlockedAt') || 0));
+  stamp > 0 ? ok('Zeitpunkt der Anmeldung wird vermerkt') : bad('kein Anmeldezeitpunkt');
+  // Uhr zwei Stunden zurückdrehen und neu laden
+  await page.evaluate(() => localStorage.setItem('gaforcast.unlockedAt',
+    String(Date.now() - 2.5 * 3600e3)));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  (await page.locator('#gate').count()) === 1
+    ? ok('nach zwei Stunden Pause fragt die App wieder nach dem Kennwort')
+    : bad('Sperre greift nach zwei Stunden Pause nicht');
+  await page.fill('#gatePw', '1234');
+  await page.locator('#gateForm button[type=submit]').click();
+  await page.waitForTimeout(250);
+  (await page.locator('#gate').count()) === 0
+    ? ok('nach erneuter Eingabe ist die App wieder offen') : bad('Sperre bleibt hängen');
+}
+
 await page.waitForFunction(() => {
   const n = document.querySelector('#windBody .wp-table');
   return n && n.querySelectorAll('tbody tr').length > 3;
@@ -278,8 +297,18 @@ barbs >= 8 ? ok(`Windfahnen gezeichnet: ${barbs}`) : bad(`nur ${barbs} Windfahne
   maxAuto > 48 && maxAuto <= H - 1
     ? ok(`Schieber reicht bei „Auto" bis +${maxAuto} h (Ende der Daten)`)
     : bad(`Schiebermaximum bei „Auto": ${maxAuto}`);
-  /jetzt/.test(await page.locator('#windBody .hs-label').innerText())
-    ? ok('Schieber beschriftet den gewählten Zeitpunkt') : bad('keine Schieberbeschriftung');
+  const hsl = await page.locator('#windBody .hs-label').innerText();
+  /^(Mo|Di|Mi|Do|Fr|Sa|So) \d{1,2}\. \w+ · \d\d:\d\d/.test(hsl)
+    ? ok(`Schieber nennt Wochentag und Datum: „${hsl}"`) : bad(`Schieberbeschriftung: ${hsl}`);
+  /jetzt/.test(hsl) ? ok('bei Position 0 steht „jetzt"') : bad('kein „jetzt" am Anfang');
+  // die Marke sitzt unter dem Griff, nicht in einer festen Zeile
+  {
+    const tr = await page.locator('#windBody .hs-track').boundingBox();
+    const lb = await page.locator('#windBody .hs-label').boundingBox();
+    tr && lb && lb.x < tr.x + tr.width * 0.35
+      ? ok('Marke steht am linken Ende, wo der Griff steht')
+      : bad(`Marke bei x=${lb && Math.round(lb.x)}, Spur ab ${tr && Math.round(tr.x)}`);
+  }
   // Tabelle links, Grafik rechts
   const split = page.locator('#windBody .wp-split');
   (await split.locator('.wp-col-table').count()) === 1 &&
@@ -318,6 +347,10 @@ await page.waitForTimeout(300);
     Math.abs(a.height - b2.height) / Math.max(a.height, b2.height) < 0.45
       ? ok(`Spalten etwa gleich hoch (${Math.round(a.height)} / ${Math.round(b2.height)} px)`)
       : bad(`Spaltenhöhen: ${Math.round(a.height)} / ${Math.round(b2.height)} px`);
+    // geht es nicht auf, ist die linke die längere
+    a.height >= b2.height - 1
+      ? ok('die linke Spalte ist die längere')
+      : bad(`links ${Math.round(a.height)} px, rechts ${Math.round(b2.height)} px`);
     (await page.locator('#gaforBody .report-h').count()) >= 2
       ? ok('Abschnittstitel sind eigene, fette Überschriften')
       : bad('keine Abschnittstitel');
@@ -325,12 +358,37 @@ await page.waitForTimeout(300);
     console.log('  --   keine Flugwetterübersicht im Testindex, Spaltenprüfung entfällt');
   }
 
-  // Ortskästchen und GAFOR-Gebiet nebeneinander
-  const pb = await page.locator('.place-row .place-bar').boundingBox();
-  const ah = await page.locator('.place-row .area-head').boundingBox();
-  pb && ah && ah.x >= pb.x + pb.width - 2 && Math.abs(ah.y - pb.y) < 12
-    ? ok('Ort und GAFOR-Gebiet stehen auf einer Zeile nebeneinander')
-    : bad(`Ortszeile: Ort x=${pb && Math.round(pb.x)} b=${pb && Math.round(pb.width)}, Gebiet x=${ah && Math.round(ah.x)} y=${ah && Math.round(ah.y)}`);
+  // Kopfbereich: Karte rechts, vier Kästchen links, gleich hoch
+  {
+    const grid = await page.locator('.top-grid').boundingBox();
+    const left = await page.locator('.top-grid > .top-left').boundingBox();
+    const map = await page.locator('.top-grid > .map-block > .map-wrap').boundingBox();
+    map && left && map.x >= left.x + left.width - 2
+      ? ok('die Karte steht rechts neben den Kästchen') : bad('Karte steht nicht rechts');
+    const share = map && grid ? map.width / grid.width : 0;
+    share > 0.55 && share < 0.65
+      ? ok(`Karte nimmt ${Math.round(share * 100)} % der Breite`)
+      : bad(`Kartenbreite: ${Math.round(share * 100)} %`);
+    // rechts bündig mit den Karten darunter (beide haben 14 px Seitenrand)
+    const card = await page.locator('#cardGafor').boundingBox();
+    map && card && Math.abs((map.x + map.width) - (card.x + card.width)) <= 2
+      ? ok('Karte schliesst rechts bündig mit den Karten darunter ab')
+      : bad(`rechte Kanten: Karte ${map && Math.round(map.x + map.width)}, Bericht ${card && Math.round(card.x + card.width)}`);
+    map && left && Math.abs(map.height - left.height) <= 4
+      ? ok(`Kästchen und Karte gleich hoch (${Math.round(left.height)} zu ${Math.round(map.height)} px)`)
+      : bad(`Höhen: Kästchen ${left && Math.round(left.height)}, Karte ${map && Math.round(map.height)}`);
+
+    // Reihenfolge in der linken Spalte
+    const ys = [];
+    for (const sel of ['.top-left .search-block', '.top-left .place-bar',
+                       '.top-left .area-head', '.top-left #tileBox']) {
+      const b = await page.locator(sel).boundingBox();
+      ys.push(b ? Math.round(b.y) : -1);
+    }
+    ys.every((y, i) => y > 0 && (i === 0 || y > ys[i - 1]))
+      ? ok(`links untereinander: Suche, Ort, Gebiet, Stufen (y = ${ys.join(', ')})`)
+      : bad(`Reihenfolge links: ${ys.join(', ')}`);
+  }
 
   // Knöpfe links vom Logo
   const tools = await page.locator('.header-tools').boundingBox();
@@ -360,6 +418,49 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
                        : bad(`Schieber ohne Wirkung (${firstAlt})`);
 /\+4 h/.test(await page.locator('#windBody .hs-label').innerText())
   ? ok('Beschriftung folgt dem Schieber') : bad('Beschriftung folgt dem Schieber nicht');
+{
+  // ans obere Ende: die Marke muss mitwandern
+  const left0 = (await page.locator('#windBody .hs-label').boundingBox()).x;
+  const max = +(await page.locator('#windBody .hour-slider input[type=range]').getAttribute('max'));
+  await setSlider(max);
+  const lb = await page.locator('#windBody .hs-label').boundingBox();
+  const tr = await page.locator('#windBody .hs-track').boundingBox();
+  lb.x > left0 + 40 && lb.x + lb.width <= tr.x + tr.width + 2
+    ? ok('am Ende steht die Marke rechts und bleibt in der Spur')
+    : bad(`Marke am Ende: x=${Math.round(lb.x)} (Start ${Math.round(left0)}), Spur bis ${Math.round(tr.x + tr.width)}`);
+  const txt = await page.locator('#windBody .hs-label').innerText();
+  /^(Mo|Di|Mi|Do|Fr|Sa|So) \d{1,2}\. \w+ · \d\d:\d\d/.test(txt) && txt.includes(`+${max} h`)
+    ? ok(`spätester Zeitpunkt vollständig datiert: „${txt}"`) : bad(`Endbeschriftung: ${txt}`);
+  await setSlider(4);
+}
+// die Erklärung unter dem Stüve ist weg
+(await page.locator('#windBody .explain').count()) === 0
+  ? ok('keine Erklärung mehr unter dem Diagramm') : bad('Erklärung steht noch da');
+
+// Schwelle der Feuchteschattierung in den Einstellungen
+{
+  const alpha = async () => +(await page.locator('#windBody .sv-svg linearGradient stop')
+    .evaluateAll(ns => Math.max(...ns.map(n => +n.getAttribute('stop-opacity')))));
+  const before = await alpha();
+  await page.locator('#menuBtn').click();
+  await page.locator('#mSettingsBtn').click();
+  await page.waitForTimeout(120);
+  (await page.locator('#setRh').inputValue()) === '85'
+    ? ok('Einstellung „Feuchteschattierung ab" steht auf 85 %') : bad('setRh fehlt oder falsch');
+  await page.locator('#setRh').selectOption('95');
+  await page.locator('#setOk').click();
+  await page.waitForTimeout(400);
+  const after = await alpha();
+  after < before - 0.02
+    ? ok(`höhere Schwelle schattiert schwächer (${before.toFixed(2)} → ${after.toFixed(2)})`)
+    : bad(`Schattierung unverändert: ${before.toFixed(2)} → ${after.toFixed(2)}`);
+  await page.locator('#menuBtn').click();
+  await page.locator('#mSettingsBtn').click();
+  await page.waitForTimeout(120);
+  await page.locator('#setRh').selectOption('85');
+  await page.locator('#setOk').click();
+  await page.waitForTimeout(400);
+}
 
 // Modellhorizont begrenzt den Schieber
 {
@@ -388,23 +489,42 @@ for (const [sel, name] of [['Wolken hoch', 'Wolken hoch'], ['Wolken mittel', 'Wo
 /\d+ von 20/.test(await page.locator('#modelBody .ens-note').innerText().catch(() => ''))
   ? ok('Ensemble: Trockenanteil ausgewiesen') : bad('Trockenanteil fehlt');
 
-// GAFOR-Kacheln und Legende
-const tiles = await page.locator('#gaforBody .gtile').count();
-tiles === 4 ? ok(`GAFOR-Zeitreihe als ${tiles} Kacheln`) : bad(`GAFOR-Kacheln: ${tiles}`);
-(await page.locator('#gaforBody .gtile.now').count()) === 1
+// GAFOR-Zeitband und Legende
+const tiles = await page.locator('#tileBody .gseg').count();
+tiles === 4 ? ok(`GAFOR-Zeitband mit ${tiles} Abschnitten`) : bad(`GAFOR-Abschnitte: ${tiles}`);
+(await page.locator('#tileBody .gseg.now').count()) === 1
   ? ok('laufender Zeitraum ist markiert') : bad('kein laufender Zeitraum markiert');
-(await page.locator('#gaforBody .gtile.c').count()) === 1 &&
-(await page.locator('#gaforBody .gtile.m').count()) === 1
-  ? ok('Kacheln tragen die Farbe ihrer Stufe') : bad('Kachelfarben fehlen');
-(await page.locator('#gaforBody .gtile .gc .d').allInnerTexts()).join('') === '48'
+(await page.locator('#tileBody .gseg.c').count()) === 1 &&
+(await page.locator('#tileBody .gseg.m').count()) === 1
+  ? ok('Abschnitte tragen die Farbe ihrer Stufe') : bad('Stufenfarben fehlen');
+(await page.locator('#tileBody .gseg .gcd .g').allInnerTexts()).join('') === '48'
   ? ok('die Ziffer des Codes wird mitgezeigt (D4, M8)')
-  : bad(`Ziffern: ${(await page.locator('#gaforBody .gtile .gc .d').allInnerTexts()).join(',')}`);
-(await page.locator('#gaforBody .gtile .gr').count()) === 2
-  ? ok('Zusätze stehen an ihrem eigenen Zeitraum')
-  : bad(`Zusätze: ${await page.locator('#gaforBody .gtile .gr').count()}`);
-/Bezugshöhe/.test(await page.locator('#gaforBody .gafor-unit').innerText())
-  ? ok('Bezugshöhe des Gebiets wird genannt') : bad('Bezugshöhe fehlt');
-const legend = page.locator('#gaforBody details.code-legend');
+  : bad(`Ziffern: ${(await page.locator('#tileBody .gseg .gcd .g').allInnerTexts()).join(',')}`);
+(await page.locator('#tileBody .gseg .gflag').count()) === 2
+  ? ok('Zusätze sind am Abschnitt markiert')
+  : bad(`Zusatzmarken: ${await page.locator('#tileBody .gseg .gflag').count()}`);
+{
+  // das Band ist deutlich flacher als die alten Kacheln
+  const h = (await page.locator('#tileBody .gafor-bar').boundingBox()).height;
+  h < 70 ? ok(`Zeitband ist ${Math.round(h)} px hoch`) : bad(`Zeitband zu hoch: ${Math.round(h)} px`);
+  // Fusszeile zeigt zunächst den laufenden Zeitraum
+  const f0 = await page.locator('#tileBody .gbar-foot').innerText();
+  /jetzt/.test(f0) && /Bezugshöhe/.test(f0)
+    ? ok(`Fusszeile nennt jetzt und Bezugshöhe: „${f0.replace(/\n/g, ' · ')}"`)
+    : bad(`Fusszeile: ${f0}`);
+  // ein anderer Abschnitt: die Fusszeile folgt
+  await page.locator('#tileBody .gseg').nth(3).click();
+  await page.waitForTimeout(120);
+  const f1 = await page.locator('#tileBody .gbar-foot').innerText();
+  /Mike/.test(f1) && /ISOL TSRA/.test(f1)
+    ? ok('Antippen zeigt Werte und Zusatz des Abschnitts')
+    : bad(`nach Klick: ${f1}`);
+  (await page.locator('#tileBody .gseg.sel').count()) === 1
+    ? ok('der gewählte Abschnitt ist hervorgehoben') : bad('keine Auswahlmarke');
+  await page.locator('#tileBody .gseg.now').click();
+  await page.waitForTimeout(80);
+}
+const legend = page.locator('#tileBody details.code-legend');
 (await legend.count()) === 1 ? ok('Legende ist vorhanden') : bad('Legende fehlt');
 !(await legend.evaluate(n => n.open))
   ? ok('Legende startet zugeklappt') : bad('Legende ist aufgeklappt');
@@ -564,10 +684,10 @@ await page.waitForTimeout(3200);
   !(await page.locator('.search-block').isVisible()) && !(await page.locator('.header-tools').isVisible())
     ? ok('Bedienelemente sind im Druck ausgeblendet')
     : bad('Suche oder Knöpfe stehen im Ausdruck');
-  const nTiles = await page.locator('#gaforBody .gtile').count();
-  nTiles > 0 && (await page.locator('#gaforBody .gtile').first().isVisible())
-    ? ok('die GAFOR-Kacheln stehen im Ausdruck')
-    : bad(`Kacheln im Ausdruck: ${nTiles} vorhanden, sichtbar ${nTiles > 0 && await page.locator('#gaforBody .gtile').first().isVisible()}`);
+  const nTiles = await page.locator('#tileBody .gseg').count();
+  nTiles > 0 && (await page.locator('#tileBody .gseg').first().isVisible())
+    ? ok('das GAFOR-Zeitband steht im Ausdruck')
+    : bad(`Zeitband im Ausdruck: ${nTiles} Abschnitte, sichtbar ${nTiles > 0 && await page.locator('#tileBody .gseg').first().isVisible()}`);
   await page.emulateMedia({ media: 'screen' });
 }
 
@@ -672,6 +792,7 @@ if (shotArg > 0) {
   await page.waitForTimeout(500);
   await page.locator('#cardWind').screenshot({ path: path.replace('.png', '-wind-desktop.png') });
   await page.locator('#cardGafor').screenshot({ path: path.replace('.png', '-gafor-desktop.png') });
+  await page.locator('.top-grid').screenshot({ path: path.replace('.png', '-top-desktop.png') });
   await page.setViewportSize({ width: 430, height: 3200 });
   await page.waitForTimeout(300);
   // ganz Deutschland, damit die Maske ausserhalb der Gebiete zu sehen ist

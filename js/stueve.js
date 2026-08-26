@@ -35,20 +35,33 @@ const STUEVE = (() => {
   const fp = (p) => Math.pow(p / 1000, KAPPA);
   const MS_TO_KT = 1.943844;
 
-  const PAD_T = 14, PAD_B = 30, PAD_L = 40, PAD_R = 30, GAP = 24;
+  /* Links stehen zwei Zahlenspalten übereinander gestaffelt: aussen die Höhe
+     (ft oder m AMSL, je nach Einstellung), innen der Druck. Deshalb ist der
+     linke Rand breiter als der rechte. */
+  const PAD_T = 14, PAD_B = 30, PAD_L = 74, PAD_R = 30, GAP = 26;
+  const ALT_X = 34;                    // Abstand der Höhenspalte vom Rahmen
 
   /** Anteil der Breite, den das Stüve bekommt; der Rest ist Wind. */
   const SPLIT = 0.66;
 
-  /* Schattierung feuchter Schichten: unter 85 % nichts, darüber linear bis
-     zum vollen Wert bei 100 %. */
+  /* Schattierung feuchter Schichten: unter der Schwelle nichts, darüber linear
+     bis zum vollen Wert bei 100 %. Die Schwelle ist einstellbar (Einstellungen)
+     — 85 % ist die Vorgabe, wer die Bänder enger oder weiter haben will, dreht
+     daran. Bei 100 % bliebe kein Verlauf mehr übrig, deshalb der Deckel bei 99. */
   const RH_START = 85, RH_MAX_ALPHA = 0.42;
-  const rhAlpha = (rh) => (rh == null || rh <= RH_START ? 0
-    : RH_MAX_ALPHA * Math.min(1, (rh - RH_START) / (100 - RH_START)));
+  const rhStartOf = (v) => {
+    const n = Number(v);
+    return isFinite(n) ? Math.min(99, Math.max(50, n)) : RH_START;
+  };
+  const rhAlpha = (rh, start) => {
+    const s = rhStartOf(start == null ? RH_START : start);
+    return (rh == null || rh <= s) ? 0
+      : RH_MAX_ALPHA * Math.min(1, (rh - s) / (100 - s));
+  };
 
   /**
    * levels: [{hPa, ft, m, spd (m/s), dir, temp (°C), dew (°C), rh (%)}] von oben nach unten
-   * opts:   {w, h, unit, unitFactor, altUnit, fzlFt, pblFt, groundHpa}
+   * opts:   {w, h, unit, unitFactor, altUnit, fzlFt, pblFt, groundHpa, rhStart}
    * Rückgabe: <svg> oder null, wenn zu wenig Daten da sind.
    */
   function chart(levels, opts) {
@@ -109,14 +122,15 @@ const STUEVE = (() => {
     clip.appendChild(mk('rect', { x: sL, y: plotT, width: sR - sL, height: plotH }));
     defs.appendChild(clip);
     const stops = [...lv].sort((a, b) => a.hPa - b.hPa);        // oben zuerst
-    if (stops.some(l => rhAlpha(l.rh) > 0)) {
+    const rhS = rhStartOf(o.rhStart);
+    if (stops.some(l => rhAlpha(l.rh, rhS) > 0)) {
       const grad = mk('linearGradient', { id: `${id}-rh`, x1: 0, y1: 0, x2: 0, y2: 1 });
       for (const l of stops) {
         const off = ((y(l.hPa) - plotT) / (plotH || 1));
         grad.appendChild(mk('stop', {
           offset: `${(U.clamp(off, 0, 1) * 100).toFixed(2)}%`,
           'stop-color': 'var(--sv-humid)',
-          'stop-opacity': rhAlpha(l.rh).toFixed(3),
+          'stop-opacity': rhAlpha(l.rh, rhS).toFixed(3),
         }));
       }
       defs.appendChild(grad);
@@ -149,11 +163,16 @@ const STUEVE = (() => {
     }
     svg.appendChild(ad);
 
-    // Isobaren, quer über beide Felder
+    /* Isobaren, quer über beide Felder. Beschriftet mit Druck (innen) und
+       Höhe (aussen) — zwei Spalten, die sich nicht ins Gehege kommen. */
     for (const l of stops) {
       grid.appendChild(mk('line', { x1: sL, y1: y(l.hPa), x2: wR, y2: y(l.hPa) }));
       svg.appendChild(mk('text', { x: sL - 5, y: y(l.hPa) + 3, class: 'sv-ax', 'text-anchor': 'end' },
         String(l.hPa)));
+      if (l.ft != null && isFinite(l.ft)) {
+        svg.appendChild(mk('text', { x: sL - ALT_X, y: y(l.hPa) + 3, class: 'sv-ax sv-alt',
+                                     'text-anchor': 'end' }, Math.round(l.ft).toLocaleString('de-CH')));
+      }
     }
     svg.insertBefore(minor, svg.firstChild.nextSibling);
     svg.insertBefore(grid, minor.nextSibling);
@@ -212,13 +231,11 @@ const STUEVE = (() => {
     // linken Rahmen kleben
     const wIn = 10;
     const xW = (v) => wL + wIn + (v / maxV) * (wR - wL - wIn);
-    // Die "0" fiele mit der letzten Zahl der Temperaturachse zusammen
-    const skipZero = true;
     const vStep = maxV > 60 ? 20 : 10;
     for (let v = 0; v <= maxV; v += vStep / 2) {
       (v % vStep === 0 ? grid : minor).appendChild(
         mk('line', { x1: xW(v), y1: plotT, x2: xW(v), y2: plotB }));
-      if (v % vStep === 0 && !(skipZero && v === 0)) {
+      if (v % vStep === 0) {
         svg.appendChild(mk('text', { x: xW(v), y: plotB + 12, class: 'sv-ax', 'text-anchor': 'middle' },
           String(v)));
       }
@@ -247,10 +264,12 @@ const STUEVE = (() => {
     svg.appendChild(mk('text', { x: sL, y: plotB + 24, class: 'sv-ax' }, '°C'));
     svg.appendChild(mk('text', { x: wR, y: plotB + 24, class: 'sv-ax', 'text-anchor': 'end' },
       o.unit || 'kt'));
-    svg.appendChild(mk('text', { x: 2, y: plotT - 4, class: 'sv-ax' }, 'hPa'));
+    svg.appendChild(mk('text', { x: sL - 5, y: plotT - 4, class: 'sv-ax', 'text-anchor': 'end' }, 'hPa'));
+    svg.appendChild(mk('text', { x: sL - ALT_X, y: plotT - 4, class: 'sv-ax sv-alt',
+                                 'text-anchor': 'end' }, `${o.altUnit || 'ft'} AMSL`));
 
     return svg;
   }
 
-  return { chart, rhAlpha, fp, RH_START };
+  return { chart, rhAlpha, rhStartOf, fp, RH_START };
 })();

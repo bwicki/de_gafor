@@ -19,7 +19,11 @@ damit beide Werkzeuge als eine Familie erkennbar sind.
 ## Kennwortabfrage
 
 Beim ersten Laden fragt die App ein Kennwort ab (`js/app.js`, Konstante `GATE_PW`). Menü →
-**Sperren** setzt das zurück.
+**Sperren** setzt das zurück, und **nach zwei Stunden ohne Benutzung** wird von selbst wieder
+gefragt (`GATE_IDLE_MS`). Gemessen wird die letzte Berührung, nicht die Anmeldung: wer die
+App den Tag über benutzt, wird nicht herausgeworfen; wer sie liegen lässt, schon. Der
+Zeitstempel liegt im `localStorage`, die Sperre greift also auch, wenn das Fenster
+zwischendurch geschlossen war.
 
 Das ist **kein Zugangsschutz.** Die Seite ist statisch und ihr Quelltext öffentlich, das Kennwort
 steht dort im Klartext, und wer die Daten will, holt sie ohnehin direkt aus `data/dwd/`. Der Zweck
@@ -60,8 +64,10 @@ gegebenenfalls `CNAME` — und die Ordner `css/ data/ icons/ img/ js/ scripts/ t
 
 Menü → **Einstellungen**: METAR/TAF-Umkreis (25–300 km, Vorgabe 100 km), Höchstzahl der
 angezeigten Plätze, Windeinheit (kt · km/h · m/s), hell/dunkel, TAF an/aus, Obergrenze des
-Höhenprofils (700/500/400/300 hPa), Höhen in Fuss oder Meter und die Ensemble-Streubreite
-an/aus. Alles liegt im `localStorage` des Geräts, nichts wird übertragen.
+Höhenprofils (700/500/400/300 hPa), Höhen in Fuss oder Meter, die relative Feuchte, ab der
+die möglichen Wolkenbänder schattiert werden (70 – 95 %, Vorgabe 85 %), und die
+Ensemble-Streubreite an/aus. Alles liegt im `localStorage` des Geräts, nichts wird
+übertragen.
 
 ## Die vier Knöpfe in der Kopfzeile
 
@@ -70,7 +76,7 @@ Sie stehen links vom Logo.
 **⟳ Aktualisieren** holt alles neu — DWD-Index, Ballonbericht, METAR/TAF, Modell und Ensemble.
 Wer nur eine Karte auffrischen will, klickt auf deren Altersanzeige rechts in der Kartenkopfzeile.
 
-**⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Kacheln und
+**⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Zeitband und
 Flugwetterübersicht auf die erste, Ballonbericht, Höhenwind, METAR/TAF und Modellprognose auf die
 zweite. Bedienelemente und Erklärtexte fallen weg, die Übersicht wird dreispaltig gesetzt, die
 Farben der GAFOR-Stufen bleiben. Ob es wirklich zwei Seiten bleiben, hängt an der Länge der
@@ -81,6 +87,23 @@ erzeugt das PDF und zählt die Seiten nach.
 html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in die Zwischenablage.
 
 **≡ Menü** enthält Hell/Dunkel, Einstellungen, Neuladen, Über und Sperren.
+
+## Der Kopfbereich
+
+Ab 900 px Bildschirmbreite teilt sich der obere Teil der Seite **40 / 60**: rechts aussen die
+Karte, links darunter — in dieser Reihenfolge — das **Suchfeld**, die **Ortszeile** mit
+Bundesland und Koordinaten, der **GAFOR-Gebietskopf** und der Kasten mit den
+**GAFOR-Stufen**. Die vier Kästchen zusammen sind genau so hoch wie die Karte; die freie
+Fläche sammelt sich im letzten Kasten zwischen Zeitband und Legende. Auf dem Handy stapelt
+alles in derselben Reihenfolge untereinander.
+
+Die **GAFOR-Stufen** stehen als durchgehendes **Zeitband**: ein Abschnitt je Zeitraum in der
+Farbe seiner Stufe, mit Code und Uhrzeit; der laufende Zeitraum ist kräftiger gefüllt und
+amber unterstrichen. Sicht, Untergrenze und ein etwaiger Zusatz stehen in der Fusszeile
+darunter — für den Abschnitt, den man antippt, sonst für den laufenden. Ein kleiner Punkt
+oben rechts markiert die Abschnitte, zu denen ein Zusatz vorliegt. So braucht die Reihe rund
+ein Viertel der Höhe der früheren Kacheln und wächst auch bei sechs Zeiträumen nicht in eine
+zweite Zeile.
 
 ## Karte beim Öffnen
 
@@ -189,9 +212,13 @@ in der Spalte *rF* der Tabelle.
 
 Rechts, auf demselben Höhenraster, das Windfeld. Die **Windfahne** zeigt wie in der
 Luftfahrtkarte in den Wind, die Federn geben Knoten (halb 5, ganz 10, Wimpel 50). Der
-**Pfeil in der Tabelle** zeigt umgekehrt die Richtung, in die es treibt — für die
-Fahrtplanung die brauchbarere Angabe. Nullgradgrenze und Grenzschichtobergrenze sind in
+**Pfeil in der Tabelle** (Spalte *Wind*) zeigt umgekehrt die Richtung, in die es treibt — für
+die Fahrtplanung die brauchbarere Angabe. 0°-Grenze und Grenzschichtobergrenze sind in
 beiden markiert.
+
+Am linken Rand des Diagramms stehen **zwei Zahlenspalten**: aussen die Höhe in Fuss oder
+Meter AMSL (je nach Einstellung), innen der Druck in hPa. Die Windachse rechts ist von 0 an
+beschriftet.
 
 **Nicht eingezeichnet** sind Feuchtadiabaten und Mischungsverhältnislinien. Beide brauchen
 Iteration und würden das Bild in dieser Grösse zustellen; der Hinweis steht auch unter dem
@@ -201,8 +228,8 @@ Die relative Feuchte kommt von allen Druckflächen mit, der Taupunkt wird daraus
 gerechnet — Open-Meteo liefert ihn auf den Flächen nicht. Die bodennahen Flächen (10, 80,
 180 m über Grund) haben keinen Druck und werden über ihre Höhe eingehängt.
 
-Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben; die Grafik füllt den
-verbleibenden Platz aus und ist genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
+Auf dem Desktop steht die **Tabelle links, die Grafik rechts** daneben, beide je zur Hälfte
+der Kartenbreite; die Grafik ist genauso hoch wie die Tabelle. Auf dem Handy stapeln sie sich.
 
 Über beiden steht die **Modellwahl**, aufsteigend nach Vorhersagehorizont: ICON-D2 (48 h),
 ARPEGE (96), ICON-EU (120), ECMWF IFS (144), UKMO (168), ICON global (180), GFS (384) und
@@ -279,7 +306,7 @@ bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 ## Aufbau
 
 ```
-index.html                  eine Seite: Suche · Karte · Ortszeile und Gebietskopf nebeneinander · fünf Karten
+index.html                  eine Seite: Kopfbereich (Suche · Ort · Gebiet · Stufen | Karte) · fünf Karten
 css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
@@ -290,7 +317,7 @@ js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ba
 js/metar.js                 METAR/TAF: erst die Repo-Kopie, dann still die NOAA; Ceiling/Sicht/Einstufung, Bundeslandtabelle
 js/openmeteo.js             Punktprognose, Druckflächen-Windprofil, Nebel- und Basisschätzung, Ensemble
 js/wind.js                  Windfahnen und das einfache Windprofil (Rückfall ohne Feuchte)
-js/stueve.js                Stüve-Diagramm mit Windfeld, Feuchteschattierung (reines SVG)
+js/stueve.js                Stüve-Diagramm mit Windfeld, einstellbare Feuchteschattierung (reines SVG)
 js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
 js/mapview.js               Leaflet-Karte, drei Grenzebenen, festes Fadenkreuz in der Mitte
 js/app.js                   Zustand, Bedienung, Rendering aller Karten

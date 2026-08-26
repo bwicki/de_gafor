@@ -73,6 +73,26 @@ header.topbar{
 .search-results .r1{font-size:14.5px;color:var(--text-strong);}
 .search-results .r2{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
 
+/* ---------- Kopfbereich: Kästchen links, Karte rechts ----------
+   Auf dem Handy stapelt alles in der Reihenfolge des Markups. Ab 900 px teilt
+   sich der Bereich 40 / 60: links Suche, Ort, Gebiet und die GAFOR-Stufen,
+   rechts aussen die Karte. Beide Spalten sind gleich hoch — die Kachelbox
+   nimmt als einzige Zeile mit 1fr den Rest auf, und die Karte streckt sich auf
+   dieselbe Höhe. */
+.top-grid{padding:12px 14px 0;display:grid;grid-template-columns:1fr;gap:10px;}
+.top-left{display:grid;gap:10px;min-width:0;}
+.top-grid > .map-block{padding:0;}
+.top-grid .search-block{padding:0;}
+.top-grid .place-bar,.top-grid .area-head{margin:0;}
+@media (min-width:900px){
+  .top-grid{grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:0 12px;
+    align-items:stretch;min-height:400px;}
+  .top-left{grid-template-rows:auto auto auto minmax(0,1fr);}
+  .top-grid > .map-block{display:flex;min-width:0;}
+  .top-grid > .map-block > .map-wrap{flex:1 1 auto;height:auto;
+    min-height:360px;max-height:none;}
+}
+
 /* ---------- map ---------- */
 .map-block{padding:12px 14px 0;}
 .map-wrap{position:relative;height:46vh;min-height:260px;max-height:520px;
@@ -80,7 +100,6 @@ header.topbar{
   /* Leaflet vergibt intern z-index bis 800; ohne eigenen Stapelkontext läge die
      Karte über Suchliste, Menü und Dialog */
   isolation:isolate;z-index:0;}
-@media (min-width:900px){ .map-wrap{height:400px;} }
 #map{position:absolute;inset:0;background:var(--panel-2);}
 .crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   pointer-events:none;z-index:500;}
@@ -104,13 +123,6 @@ header.topbar{
 .legend .on{color:var(--text-strong);}
 
 /* ---------- Ortszeile und Gebietskopf ---------- */
-.place-row{display:grid;grid-template-columns:1fr;gap:0;}
-@media (min-width:820px){
-  .place-row{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0 12px;
-    align-items:stretch;margin-right:14px;}
-  .place-row > .place-bar,.place-row > .area-head{margin-right:0;}
-  .place-row > .area-head{margin-top:10px;}
-}
 .place-bar{display:flex;align-items:center;gap:10px;margin:10px 14px 0;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 13px;}
 .place-main{flex:1;min-width:0;}
@@ -139,36 +151,60 @@ main.content{padding:12px 14px 0;}
   main.content > .card.wide{grid-column:1 / -1;}
 }
 
-/* ---------- GAFOR-Zeitreihe als Kacheln ---------- */
-.gafor-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));
-  gap:7px;padding:13px 14px 0;}
-.gtile{border:1px solid var(--line);border-radius:9px;padding:8px 6px 7px;text-align:center;
-  background:var(--panel-2);min-width:0;}
-.gtile .gt{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);letter-spacing:.02em;
-  white-space:nowrap;}
-.gtile .gc{font-family:var(--mono);font-weight:700;line-height:1.15;margin-top:1px;}
-.gtile .gc .l{font-size:23px;}
-.gtile .gc .d{font-size:14px;margin-left:1px;opacity:.85;}
-.gtile .gw{font-size:10.5px;color:var(--text-dim);margin-top:1px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.gtile .gv{font-family:var(--mono);font-size:9px;color:var(--text-dim);margin-top:3px;
-  line-height:1.35;}
-.gtile .gr{font-family:var(--mono);font-size:9.5px;color:var(--text);margin-top:4px;
-  padding-top:4px;border-top:1px solid var(--line-soft);line-height:1.3;}
-.gtile.c{border-color:var(--gafor-c);background:color-mix(in srgb,var(--gafor-c) 12%,transparent);}
-.gtile.o{border-color:var(--gafor-o);background:color-mix(in srgb,var(--gafor-o) 12%,transparent);}
-.gtile.d{border-color:var(--gafor-d);background:color-mix(in srgb,var(--gafor-d) 12%,transparent);}
-.gtile.m{border-color:var(--gafor-m);background:color-mix(in srgb,var(--gafor-m) 14%,transparent);}
-.gtile.x{border-color:var(--gafor-x);background:color-mix(in srgb,var(--gafor-x) 16%,transparent);}
-.gtile.c .gc{color:var(--gafor-c);} .gtile.o .gc{color:var(--gafor-o);}
-.gtile.d .gc{color:var(--gafor-d);} .gtile.m .gc{color:var(--gafor-m);}
-.gtile.x .gc{color:var(--gafor-x);} .gtile.none .gc{color:var(--gafor-none);}
-.gtile.now{box-shadow:0 0 0 2px var(--amber);}
-.gtile.now .gt{color:var(--amber);}
-.gafor-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);padding:8px 14px 0;}
+/* ---------- Kasten mit den GAFOR-Stufen ---------- */
+.tile-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.tb-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:9px 13px 0;}
+/* Der Kasten ist so hoch wie die Karte; die freie Fläche sammelt sich
+   zwischen Band und Legende, statt unter der Legende zu klaffen. */
+.tb-body{flex:1 1 auto;min-height:0;overflow:auto;padding-bottom:9px;
+  display:flex;flex-direction:column;}
+.tb-body > .code-legend{margin-top:auto;}
+.tb-body > .note{margin:9px 13px;}
+
+/* ---------- GAFOR-Zeitreihe als Zeitband ----------
+   Ein Abschnitt je Zeitraum, in der Farbe seiner Stufe; der laufende ist
+   kräftiger gefüllt und amber unterstrichen. Die Einzelheiten stehen in der
+   Fusszeile darunter, für den angetippten Abschnitt. */
+.gbar-wrap{padding:9px 13px 0;}
+.gafor-bar{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.gseg{flex:1 1 0;min-width:0;position:relative;cursor:pointer;text-align:center;
+  padding:7px 4px 6px;border:none;border-right:1px solid var(--panel);
+  background:color-mix(in srgb,var(--gafor-none) 14%,transparent);
+  color:var(--text);font-family:inherit;display:block;}
+.gseg:last-child{border-right:none;}
+.gseg .gcd{display:block;font-family:var(--mono);font-weight:700;font-size:19px;
+  line-height:1.1;color:var(--gafor-none);}
+.gseg .gcd .g{font-size:12px;opacity:.85;}
+.gseg .ghr{display:block;font-family:var(--mono);font-size:9.5px;color:var(--text-dim);
+  font-variant-numeric:tabular-nums;margin-top:1px;}
+.gseg .gflag{position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;
+  background:var(--amber);}
+.gseg.c{background:color-mix(in srgb,var(--gafor-c) 16%,transparent);}
+.gseg.o{background:color-mix(in srgb,var(--gafor-o) 16%,transparent);}
+.gseg.d{background:color-mix(in srgb,var(--gafor-d) 16%,transparent);}
+.gseg.m{background:color-mix(in srgb,var(--gafor-m) 18%,transparent);}
+.gseg.x{background:color-mix(in srgb,var(--gafor-x) 20%,transparent);}
+.gseg.c .gcd{color:var(--gafor-c);} .gseg.o .gcd{color:var(--gafor-o);}
+.gseg.d .gcd{color:var(--gafor-d);} .gseg.m .gcd{color:var(--gafor-m);}
+.gseg.x .gcd{color:var(--gafor-x);}
+.gseg.now{box-shadow:inset 0 -3px 0 var(--amber);}
+.gseg.now .ghr{color:var(--amber);}
+.gseg.sel{outline:1px solid var(--amber);outline-offset:-1px;}
+.gseg:hover{filter:brightness(1.08);}
+.gseg:focus-visible{outline:2px solid var(--amber);outline-offset:-2px;}
+.gbar-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin-top:7px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.gbar-foot .k{font-weight:600;}
+.gbar-foot .k.c{color:var(--gafor-c);} .gbar-foot .k.o{color:var(--gafor-o);}
+.gbar-foot .k.d{color:var(--gafor-d);} .gbar-foot .k.m{color:var(--gafor-m);}
+.gbar-foot .k.x{color:var(--gafor-x);} .gbar-foot .k.none{color:var(--gafor-none);}
+
+.gafor-unit{font-family:var(--mono);font-size:10px;color:var(--text-dim);padding:8px 13px 0;}
 
 /* Stufenerklärung, zugeklappt */
-.code-legend{margin:10px 14px 2px;border-top:1px solid var(--line-soft);padding-top:9px;}
+.code-legend{margin:10px 13px 2px;border-top:1px solid var(--line-soft);padding-top:9px;}
 .code-legend > summary{font-size:12px;color:var(--text-dim);cursor:pointer;list-style:none;
   display:flex;align-items:center;gap:7px;}
 .code-legend > summary::-webkit-details-marker{display:none;}
@@ -285,6 +321,8 @@ main.content{padding:12px 14px 0;}
 .sv-frame{fill:none;stroke:var(--line);stroke-width:1;}
 .sv-humid-band{pointer-events:none;}
 .sv-ax{font-family:var(--mono);font-size:8px;fill:var(--text-dim);}
+/* die äussere Zahlenspalte (Höhe) tritt gegenüber dem Druck zurück */
+.sv-alt{opacity:.78;}
 .sv-curve{fill:none;stroke-width:1.8;stroke-linejoin:round;}
 .sv-curve.temp{stroke:var(--sv-temp);}
 .sv-curve.dew{stroke:var(--sv-dew);}
@@ -303,12 +341,18 @@ main.content{padding:12px 14px 0;}
 
 /* ---------- Zeitschieber ---------- */
 .hour-slider{padding:8px 14px 2px;}
-.hs-row{display:flex;align-items:center;gap:9px;}
+.hs-row{display:flex;align-items:flex-start;gap:9px;}
 .hs-cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--text-dim);flex:0 0 auto;white-space:nowrap;}
-.hs-label{font-family:var(--mono);font-size:11px;color:var(--text-strong);
-  padding:3px 0 0 0;letter-spacing:.02em;}
-.hour-slider input[type=range]{flex:1 1 auto;min-width:0;height:18px;margin:0;
+  text-transform:uppercase;color:var(--text-dim);flex:0 0 auto;white-space:nowrap;
+  padding-top:3px;}
+/* Die Beschriftung läuft unter dem Griff mit, deshalb eine eigene Spur mit
+   Platz darunter und eine absolut gesetzte Marke. */
+.hs-track{position:relative;flex:1 1 auto;min-width:0;padding-bottom:19px;}
+.hs-label{position:absolute;top:19px;left:0;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--text-strong);
+  letter-spacing:.02em;white-space:nowrap;pointer-events:none;
+  transition:left .06s linear;}
+.hour-slider input[type=range]{display:block;width:100%;min-width:0;height:18px;margin:0;
   -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
 .hour-slider input[type=range]:focus{outline:none;}
 .hour-slider input[type=range]:focus-visible{outline:1px solid var(--amber);
@@ -326,9 +370,10 @@ main.content{padding:12px 14px 0;}
 /* ---------- Höhenwindprofil ---------- */
 .wp-holder{display:block;}
 .wp-split{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 14px;padding:4px 0 0;}
-.wp-col-table{flex:1 1 380px;min-width:0;}
-.wp-col-table .wp-table{min-width:0;width:100%;max-width:620px;}
-.wp-col-chart{flex:1 1 260px;min-width:220px;padding:6px 12px 0 0;}
+/* Tabelle und Diagramm teilen sich die Breite hälftig. */
+.wp-col-table{flex:1 1 0;min-width:0;}
+.wp-col-table .wp-table{min-width:0;width:100%;}
+.wp-col-chart{flex:1 1 0;min-width:0;padding:6px 12px 0 0;}
 @media (max-width:640px){ .wp-col-chart{flex:1 1 100%;padding:6px 10px 0;} }
 
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:11px 14px 2px;align-items:center;}
@@ -364,7 +409,9 @@ main.content{padding:12px 14px 0;}
   border-bottom:1px solid var(--line-soft);}
 .wp-table td.alt{padding-left:14px;color:var(--text-strong);}
 .wp-table td.lvl{color:var(--text-dim);}
-.wp-table td.dir{text-align:left;}
+/* „Wind": Pfeil und Richtung stehen rechts, bündig unter der Überschrift. */
+.wp-table td.dir{text-align:right;}
+.wp-table td.dir .ar{display:inline-block;margin-right:4px;}
 .wp-table td.spd{color:var(--text-strong);}
 .wp-table tr:last-child td{border-bottom:none;}
 .wp-mrow td{font-size:10px;letter-spacing:.04em;padding:3px 14px;text-align:left;
@@ -470,7 +517,8 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   }
   /* der Schieber fällt weg, sein Zeitstempel bleibt als Beschriftung stehen */
   .hour-slider{padding:1mm 0 0;}
-  .hs-label{font-size:7pt;color:#111;}
+  .hs-track{padding:0;}
+  .hs-label{position:static;transform:none;font-size:7pt;color:#111;}
   .card-head .age{display:none !important;}
 
   .app{max-width:none;padding:0;}
@@ -483,6 +531,10 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .ver{border:none;padding:0;}
   .header-logo{height:11mm;}
 
+  .tile-box{border:1px solid #bbb;border-radius:2mm;margin:0 0 2.5mm;overflow:visible;}
+  .tb-body{overflow:visible;}
+  .top-grid{display:block;padding:0;min-height:0;}
+  .top-left{display:block;}
   .place-bar,.area-head{margin:0 0 2.5mm;padding:2mm 3mm;border:1px solid #bbb;
     border-radius:2mm;background:#fff;break-inside:avoid;}
   .area-num{font-size:18pt;min-width:14mm;}
@@ -504,15 +556,16 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
      bleibt am Ende von Seite 1 die halbe Seite leer und es werden drei. */
   /* Kleine Einheiten bleiben zusammen, grosse Karten dürfen über den
      Seitenrand laufen — sonst bleibt Seite 1 halb leer und es werden drei. */
-  .gtile,.metar-row,.stat,.ens-row,tr,.wp-split{break-inside:avoid;}
+  .gbar-wrap,.metar-row,.stat,.ens-row,tr,.wp-split{break-inside:avoid;}
   .card-head{break-after:avoid;}
   .report-h{break-after:avoid;}
 
   /* kompakter setzen */
-  .gafor-tiles{grid-template-columns:repeat(auto-fill,minmax(21mm,1fr));gap:1.2mm;padding:1.5mm 2.5mm 0;}
-  .gtile{padding:1mm 0.8mm;border-radius:1.5mm;}
-  .gtile .gc .l{font-size:12pt;} .gtile .gc .d{font-size:8pt;}
-  .gtile .gt,.gtile .gw{font-size:7pt;} .gtile .gv,.gtile .gr{font-size:6pt;}
+  .gbar-wrap{padding:1.5mm 2.5mm 0;}
+  .gseg{padding:1mm 0.8mm;}
+  .gseg .gcd{font-size:12pt;} .gseg .gcd .g{font-size:8pt;}
+  .gseg .ghr{font-size:7pt;}
+  .gbar-foot{font-size:6.5pt;margin-top:1.2mm;}
   .gafor-unit{font-size:6.5pt;padding:1.5mm 3mm 0;}
 
   pre.raw,pre.report{font-size:7.2pt;line-height:1.3;background:#fafafa;border:1px solid #eee;
@@ -527,9 +580,9 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .report-h{font-size:8pt;margin:2mm 0 1mm;}
 
   .wp-split{gap:0 4mm;flex-wrap:nowrap;align-items:flex-start;}
-  .wp-col-table{flex:1 1 62%;min-width:0;}
+  .wp-col-table{flex:1 1 50%;min-width:0;}
   .wp-col-table .wp-table{max-width:none;}
-  .wp-col-chart{flex:0 0 34%;min-width:0;padding:0;}
+  .wp-col-chart{flex:0 0 48%;min-width:0;padding:0;}
   .wp-col-chart svg{width:100%;height:auto;max-height:58mm;}
   .wp-table,.bw-table,.fc-table{font-size:7pt;}
   .wp-table td,.wp-table th{padding:0.6mm 2mm;}
