@@ -5,6 +5,24 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.3.0 — 2026-08-26
+
+* **Grenzen deutlich sichtbar.** Drei Ebenen mit abgestufter Stärke, jede mit heller
+  Unterlegung, damit sie auf der Karte lesbar bleiben: Landesgrenze kräftig dunkel,
+  die fünf Bereiche als dicke Linie in ihrer Farbe, die Gebiete fein. Die Bereichsumrisse
+  entstehen aus der Vereinigung ihrer Gebiete (`scripts/digitize/build-boundaries.py` →
+  `data/gafor-regions.geojson`, `data/germany.geojson`). Der Kartenknopf schaltet jetzt in
+  drei Stufen: alles · nur Bereiche und Landesgrenze · aus.
+* **Einstellungen** als eigener Dialog: METAR/TAF-Umkreis (25–300 km, Vorgabe **100 km**),
+  Höchstzahl der Plätze, Windeinheit, hell/dunkel, TAF an/aus.
+* METAR/TAF: Umkreis wird jetzt als Kreis ausgewertet statt als Rechteck, die Kopfzeile
+  nennt Anzahl und Umkreis, und die NOAA-Flugkategorie (VFR/MVFR/IFR/LIFR) steht als eigene
+  Marke neben der abgeleiteten GAFOR-Einstufung. Beim TAF wird die gültige Ausgabe gewählt
+  (`mostRecent`) statt der erstbesten.
+* Textauswertung der DWD-Seiten überarbeitet: `<pre>` gewinnt, sonst der längste Block —
+  die Ballonberichte stehen in einer Tabelle, und der erste `content`-Block einer Seite ist
+  oft nur ein Einleitungssatz. Zwei Prüfungen halten das fest.
+
 ## 1.2.0 — 2026-08-25
 
 * **Ballonwetterbericht** angebunden. Die Zielseiten stehen nicht als Links auf der

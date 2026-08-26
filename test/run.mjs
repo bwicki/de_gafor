@@ -161,6 +161,25 @@ if (ovSample) {
     : bad(`Bereichsabdeckung: ${all.length} Einträge, ${new Set(all).size} eindeutig`);
 }
 
+// bulletinText muss den Bericht wählen, nicht das längste Navigationsstück
+{
+  const bSrc = src.slice(src.indexOf('const ENT ='), src.indexOf('function links('));
+  const T = new Function(`${bSrc}; return { bulletinText };`)();
+  const nav = '<table>' + Array.from({ length: 60 },
+    (_, i) => `<tr><td>Navigationspunkt ${i} mit etwas Text</td></tr>`).join('') + '</table>';
+  const report = 'FBEU40 EDZF 251800\nFlugwetterübersicht Bereich Mitte\n' +
+    'Wetterlage und -entwicklung: '.padEnd(400, 'x');
+  const html = `<html><body>${nav}<pre>${report}</pre>${nav}</body></html>`;
+  const got = T.bulletinText(html);
+  got.startsWith('FBEU40') ? ok('bulletinText nimmt den <pre>-Bericht, nicht die Navigation')
+                           : bad(`bulletinText lieferte: ${got.slice(0, 60)}`);
+  const tableOnly = `<html><body><div class="content"><p>Bitte wählen Sie eine Region aus.</p></div></div>` +
+    `<table><tr><td>Bodenwind</td><td>${'050/08 KT '.repeat(40)}</td></tr></table></body></html>`;
+  /Bodenwind/.test(T.bulletinText(tableOnly))
+    ? ok('bulletinText findet den Bericht auch in einer Tabelle')
+    : bad('Tabellenbericht nicht erkannt');
+}
+
 // die Bildkarte, aus der die Ballonwetter-Seiten kommen
 try {
   const mapHtml = await readFile('test/sample-balloonmap.txt', 'utf8');

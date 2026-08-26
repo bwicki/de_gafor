@@ -3,7 +3,7 @@
  * fallback, so the last state stays readable without a connection.
  * Bump VERSION on every deploy so installed clients pick up the new shell.
  */
-const VERSION = 'gaforcast-v1.2.0';   // muss APP.cache in js/version.js entsprechen
+const VERSION = 'gaforcast-v1.3.0';   // muss APP.cache in js/version.js entsprechen
 const SHELL = [
   './', './index.html',
   './css/base.css', './css/app.css',
@@ -11,6 +11,7 @@ const SHELL = [
   './js/metar.js', './js/openmeteo.js', './js/mapview.js', './js/app.js',
   './js/vendor/leaflet/leaflet.js', './js/vendor/leaflet/leaflet.css',
   './data/gafor-areas.geojson', './data/gafor-meta.json',
+  './data/gafor-regions.geojson', './data/germany.geojson',
   './manifest.webmanifest',
   './icons/favicon.svg', './icons/icon-192.png', './icons/icon-512.png',
   './img/wicki-logo.png',

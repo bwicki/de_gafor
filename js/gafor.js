@@ -30,6 +30,8 @@ const GAFOR = (() => {
     { key: 'none', letter: c || '—', word: '', label: 'keine Angabe', desc: '' };
 
   let fc = null;            // the FeatureCollection, once loaded
+  let regionFc = null;      // die fünf Bereichsumrisse (nur zur Darstellung)
+  let landFc = null;        // Landesgrenze (nur zur Darstellung)
   let meta = null;          // data/gafor-meta.json
   let byIdMeta = new Map();
   let ready = null;         // the load promise
@@ -38,15 +40,17 @@ const GAFOR = (() => {
   async function init(geoUrl, metaUrl) {
     if (ready) return ready;
     ready = (async () => {
-      const [g, m] = await Promise.all([
+      const [g, m, reg, land] = await Promise.all([
         U.getJSON(geoUrl || 'data/gafor-areas.geojson')
           .catch(e => { console.warn('GAFOR-Geometrie fehlt:', e.message);
                         return { type: 'FeatureCollection', features: [] }; }),
         U.getJSON(metaUrl || 'data/gafor-meta.json')
           .catch(e => { console.warn('GAFOR-Metadaten fehlen:', e.message);
                         return { regions: {}, areas: [] }; }),
+        U.getJSON('data/gafor-regions.geojson').catch(() => null),
+        U.getJSON('data/germany.geojson').catch(() => null),
       ]);
-      fc = g; meta = m;
+      fc = g; meta = m; regionFc = reg; landFc = land;
 
       byIdMeta = new Map();
       for (const a of (meta.areas || [])) byIdMeta.set(String(a.id), a);
@@ -122,5 +126,6 @@ const GAFOR = (() => {
   }
 
   return { init, lookup, near, areas, count, byId, centroids: () => centroids,
-           regions, metaFor, allMeta, CODES, codeInfo, collection: () => fc };
+           regions, metaFor, allMeta, CODES, codeInfo,
+           collection: () => fc, regionCollection: () => regionFc, landCollection: () => landFc };
 })();

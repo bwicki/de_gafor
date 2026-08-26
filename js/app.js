@@ -9,6 +9,9 @@
     elev: null,
     area: null,
     unit: U.load('unit', 'kt'),
+    metarRadiusKm: U.load('metarRadiusKm', 100),
+    metarMax: U.load('metarMax', 8),
+    showTaf: U.load('showTaf', 1),
     lastFetchAt: 0,
     lastFetchLat: null, lastFetchLon: null,
     om: null, metars: null, tafs: null,
@@ -21,7 +24,6 @@
   async function boot() {
     applyTheme(U.load('theme', prefersDark() ? 'dark' : 'light'));
     U.$('appVersion').textContent = APP.version;
-    U.$('mUnitsBtn').textContent = `Windeinheit: ${U.unitLabel[state.unit]}`;
 
     const start = startPosition();
     state.lat = start.lat; state.lon = start.lon;
@@ -33,6 +35,8 @@
     footer();
 
     await GAFOR.init();
+    MAPVIEW.setLand(GAFOR.landCollection());
+    MAPVIEW.setRegions(GAFOR.regionCollection());
     MAPVIEW.setAreas(GAFOR.collection());
     renderLegend();
     if (!GAFOR.count()) {
@@ -79,13 +83,10 @@
       applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
       menu.classList.add('hidden');
     };
-    U.$('mUnitsBtn').onclick = () => {
-      const order = ['kt', 'km/h', 'm/s'], keys = ['kt', 'kmh', 'ms'];
-      const i = (keys.indexOf(state.unit) + 1) % keys.length;
-      state.unit = keys[i]; U.save('unit', state.unit);
-      U.$('mUnitsBtn').textContent = `Windeinheit: ${U.unitLabel[state.unit]}`;
-      renderMetar(); renderModel();
-    };
+    U.$('mSettingsBtn').onclick = () => { menu.classList.add('hidden'); showSettings(); };
+    U.$('setClose').onclick = hideSettings;
+    U.$('setOk').onclick = applySettings;
+    U.$('setOverlay').onclick = (e) => { if (e.target === U.$('setOverlay')) hideSettings(); };
     U.$('mReloadBtn').onclick = async () => {
       menu.classList.add('hidden');
       try { await DWD.load(true); } catch { /* shown in the cards */ }
@@ -103,13 +104,17 @@
     U.$('aboutClose').onclick = hideAbout;
     U.$('aboutOk').onclick = hideAbout;
     U.$('aboutOverlay').onclick = (e) => { if (e.target === U.$('aboutOverlay')) hideAbout(); };
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideAbout(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { hideAbout(); hideSettings(); }
+    });
     U.$('aboutUpdate').onclick = updateApp;
 
     // map buttons
     U.$('areasBtn').onclick = () => {
-      const on = MAPVIEW.toggleAreas();
-      U.$('areasBtn').style.color = on ? '' : 'var(--text-dim)';
+      const lv = MAPVIEW.setLevel();
+      U.$('areasBtn').style.color = lv === 0 ? 'var(--text-dim)' : '';
+      U.$('areasBtn').textContent = lv === 2 ? '▦' : lv === 1 ? '◱' : '▢';
+      flash(['Grenzen aus', 'nur Bereiche und Landesgrenze', 'Gebiete, Bereiche und Landesgrenze'][lv]);
     };
     U.$('zoomDeBtn').onclick = () => MAPVIEW.germany();
     U.$('gpsBtn').onclick = useGPS;
@@ -429,10 +434,13 @@
 
     // METAR / TAF
     U.$('metarAge').textContent = 'lädt…';
-    METAR.near(lat, lon, 90, 5).then(async list => {
+    METAR.near(lat, lon, state.metarRadiusKm, state.metarMax).then(async list => {
       if (lat !== state.lat || lon !== state.lon) return;
       state.metars = list;
-      try { state.tafs = await METAR.taf(list.map(m => m.icaoId)); } catch { state.tafs = {}; }
+      state.tafs = {};
+      if (state.showTaf && list.length) {
+        try { state.tafs = await METAR.taf(list.map(m => m.icaoId)); } catch { /* ohne TAF */ }
+      }
       renderMetar();
     }).catch(e => {
       state.metars = null;
@@ -458,12 +466,16 @@
     const list = state.metars;
     if (!list) return;
     if (!list.length) {
-      U.$('metarAge').textContent = '';
-      body.appendChild(wrapNote('Im Umkreis von 90 km meldet kein Platz METAR.'));
+      U.$('metarAge').textContent = `${state.metarRadiusKm} km`;
+      body.appendChild(wrapNote(
+        `Im Umkreis von ${state.metarRadiusKm} km meldet kein Platz METAR. ` +
+        'Der Umkreis lässt sich im Menü unter <strong>Einstellungen</strong> vergrössern.'));
       return;
     }
     const newest = list.reduce((a, m) => Math.max(a, m.obsTime || 0), 0);
-    U.$('metarAge').textContent = newest ? U.ago(new Date(newest * 1000).toISOString()) : '';
+    U.$('metarAge').textContent =
+      `${list.length} Plätze ≤ ${state.metarRadiusKm} km` +
+      (newest ? ` · ${U.ago(new Date(newest * 1000).toISOString())}` : '');
     U.$('metarAge').className = U.ageClass(newest ? new Date(newest * 1000).toISOString() : null, 75, 180);
 
     for (const m of list) {
@@ -486,18 +498,23 @@
       add('QNH', m.altim ? `${Math.round(m.altim)}` : '—');
       row.appendChild(sum);
 
+      const flags = U.el('div');
+      flags.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;';
       if (cls) {
         const ci = GAFOR.codeInfo(cls);
-        const b = U.el('div');
-        b.style.marginBottom = '6px';
         const badge = U.el('span', `badge ${ci.key}`, `${ci.letter} · ${ci.word}`);
         badge.title = 'aus der Beobachtung abgeleitet, kein DWD-GAFOR-Code';
-        b.appendChild(badge);
-        row.appendChild(b);
+        flags.appendChild(badge);
       }
+      if (m.fltCat) {
+        const f = U.el('span', `badge ${METAR.CAT_CLASS[m.fltCat] || 'none'}`, m.fltCat);
+        f.title = 'Flight category laut NOAA';
+        flags.appendChild(f);
+      }
+      if (flags.childNodes.length) row.appendChild(flags);
 
       if (m.rawOb) row.appendChild(Object.assign(U.el('pre', 'raw'), { textContent: m.rawOb }));
-      const t = state.tafs && state.tafs[m.icaoId];
+      const t = state.showTaf && state.tafs && state.tafs[m.icaoId];
       if (t && t.rawTAF) {
         const p = Object.assign(U.el('pre', 'raw'), { textContent: t.rawTAF });
         p.style.marginTop = '6px';
@@ -578,6 +595,34 @@
         `Sonnenuntergang <strong>${j.daily.sunset[0].slice(11, 16)}</strong> (${j.timezone})</div>`;
       body.appendChild(s);
     }
+  }
+
+  // ------------------------------------------------------------------ settings
+  function showSettings() {
+    U.$('setRadius').value = String(state.metarRadiusKm);
+    U.$('setMetarMax').value = String(state.metarMax);
+    U.$('setUnit').value = state.unit;
+    U.$('setTheme').value = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    U.$('setTaf').value = state.showTaf ? '1' : '0';
+    U.$('setOverlay').classList.remove('hidden');
+  }
+  const hideSettings = () => U.$('setOverlay').classList.add('hidden');
+
+  function applySettings() {
+    const rad = +U.$('setRadius').value;
+    const max = +U.$('setMetarMax').value;
+    const taf = U.$('setTaf').value === '1';
+    const refetch = rad !== state.metarRadiusKm || max !== state.metarMax ||
+                    (taf && !state.showTaf);
+
+    state.metarRadiusKm = rad; U.save('metarRadiusKm', rad);
+    state.metarMax = max;      U.save('metarMax', max);
+    state.showTaf = taf ? 1 : 0; U.save('showTaf', state.showTaf);
+    state.unit = U.$('setUnit').value; U.save('unit', state.unit);
+    applyTheme(U.$('setTheme').value);
+
+    hideSettings();
+    if (refetch) loadPointData(true); else { renderMetar(); renderModel(); }
   }
 
   // ------------------------------------------------------------------ favourites

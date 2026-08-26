@@ -17,7 +17,9 @@ const METAR = (() => {
   /** Most recent METAR of every station within `km`, nearest first. */
   async function near(lat, lon, km, limit) {
     const b = box(lat, lon, km || 90);
-    const url = `${BASE}/metar?bbox=${b.map(v => v.toFixed(3)).join(',')}&format=json&taf=false&hours=3`;
+    // bbox ist latMin,lonMin,latMax,lonMax; hours=3 liefert auch ältere Meldungen,
+    // aus denen unten je Platz die neueste gewählt wird
+    const url = `${BASE}/metar?bbox=${b.map(v => v.toFixed(3)).join(',')}&format=json&hours=3`;
     const list = await U.getJSON(url);
     const best = new Map();
     for (const m of (Array.isArray(list) ? list : [])) {
@@ -25,10 +27,12 @@ const METAR = (() => {
       const prev = best.get(m.icaoId);
       if (!prev || (m.obsTime || 0) > (prev.obsTime || 0)) best.set(m.icaoId, m);
     }
-    const out = [...best.values()].map(m => ({
-      ...m, distKm: U.distKm(lat, lon, m.lat, m.lon),
-    })).sort((a, b2) => a.distKm - b2.distKm);
-    return out.slice(0, limit || 5);
+    // die Box ist ein Rechteck, gefragt ist ein Kreis
+    const out = [...best.values()]
+      .map(m => ({ ...m, distKm: U.distKm(lat, lon, m.lat, m.lon) }))
+      .filter(m => m.distKm <= (km || 100))
+      .sort((a, b2) => a.distKm - b2.distKm);
+    return out.slice(0, limit || 8);
   }
 
   /** Raw TAFs for a list of ICAO ids. */
@@ -37,7 +41,13 @@ const METAR = (() => {
     const list = await U.getJSON(`${BASE}/taf?ids=${ids.join(',')}&format=json`);
     const out = {};
     for (const t of (Array.isArray(list) ? list : [])) {
-      if (t.icaoId && !out[t.icaoId]) out[t.icaoId] = t;
+      if (!t.icaoId) continue;
+      const prev = out[t.icaoId];
+      // mostRecent==1 ist die gültige Ausgabe, sonst die mit der neuesten Ausgabezeit
+      if (!prev || t.mostRecent === 1 ||
+          (prev.mostRecent !== 1 && (t.issueTime || '') > (prev.issueTime || ''))) {
+        out[t.icaoId] = t;
+      }
     }
     return out;
   }
@@ -97,5 +107,8 @@ const METAR = (() => {
     return 'X';
   }
 
-  return { near, taf, station, ceiling, cloudText, visKm, classify, COVER };
+  /** NOAA flight category → Farbklasse der Badge. */
+  const CAT_CLASS = { VFR: 'c', MVFR: 'o', IFR: 'm', LIFR: 'x' };
+
+  return { near, taf, station, ceiling, cloudText, visKm, classify, COVER, CAT_CLASS };
 })();

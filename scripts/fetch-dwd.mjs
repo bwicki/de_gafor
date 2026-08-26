@@ -111,19 +111,41 @@ function stripChrome(text) {
   return (stop > 0 ? out.slice(0, stop) : out).join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
+/**
+ * Den eigentlichen Berichtsblock aus der Seite holen.
+ *
+ * Die DWD-Seiten betten ihn unterschiedlich ein: GAFOR und Flugwetterübersicht
+ * in <pre>, die Ballonwetterberichte in einer Tabelle. Ausserdem gibt es je
+ * Seite mehrere Blöcke mit class="content" — der erste ist oft nur ein
+ * Einleitungssatz. Deshalb werden alle Kandidaten eingesammelt und der längste
+ * gewinnt; ein <pre> zählt dabei anderthalbfach, weil es fast immer der Bericht
+ * selbst ist.
+ */
 function bulletinText(html) {
-  const pres = [...html.matchAll(/<pre[^>]*>([\s\S]*?)<\/pre>/gi)].map(m => htmlToText(m[1]));
-  const body = pres.filter(t => t.length > 60).join('\n\n');
-  if (body.length > 60) return body;
-  for (const re of [
-    /<div[^>]+class="[^"]*\bcontent\b[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/i,
-    /<main[^>]*>([\s\S]*?)<\/main>/i,
-    /<article[^>]*>([\s\S]*?)<\/article>/i,
-  ]) {
-    const m = html.match(re);
-    if (m) { const t = htmlToText(m[1]); if (t.length > 120) return t; }
+  // <pre> ist bei GAFOR und Flugwetterübersicht immer der Bericht selbst und
+  // schlägt alles andere — sonst gewinnt schon mal ein langes Navigationsmenü
+  const pres = [...html.matchAll(/<pre[^>]*>([\s\S]*?)<\/pre>/gi)].map(m => m[1]);
+  if (pres.length) {
+    const t = htmlToText(pres.join('\n\n'));
+    if (t.length > 150) return t;
   }
-  return htmlToText(html);
+
+  // sonst der längste Kandidat: die Ballonberichte stehen in einer Tabelle, und
+  // der erste Block mit class="content" ist oft nur ein Einleitungssatz
+  const cands = [];
+  const push = (raw) => {
+    const t = htmlToText(raw);
+    if (t.length > 60) cands.push(t);
+  };
+  for (const m of html.matchAll(/<table[^>]*>[\s\S]*?<\/table>/gi)) push(m[0]);
+  for (const m of html.matchAll(/<div[^>]+class="[^"]*\bcontent\b[^"]*"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi)) push(m[1]);
+  for (const re of [/<main[^>]*>([\s\S]*?)<\/main>/i, /<article[^>]*>([\s\S]*?)<\/article>/i]) {
+    const m = html.match(re);
+    if (m) push(m[1]);
+  }
+  if (!cands.length) return htmlToText(html);
+  cands.sort((a, b) => b.length - a.length);
+  return cands[0];
 }
 
 function links(html, base) {
@@ -427,6 +449,7 @@ async function collectBalloon(previous) {
     return prev;
   }
   console.log(`· ${targets.length} Ballon-Gebiete in der Bildkarte`);
+  let dumped = false;
 
   for (const t of targets) {
     let text = '';
@@ -437,6 +460,14 @@ async function collectBalloon(previous) {
         if (text.length > 200) break;
       } catch { /* nächste Form probieren */ }
       await sleep(120);
+    }
+    if (text.length < 200 && !dumped) {
+      // damit sich am committeten HTML nachvollziehen lässt, wo der Bericht steckt
+      try {
+        const html = await get(t.used || t.url);
+        await writeRaw(`_page-balloon-${t.id}`, html.slice(0, 300000));
+        dumped = true;
+      } catch { /* egal */ }
     }
     if (text.length < 120) {
       note('balloon', t.url, `Gebiet ${t.id}: kein Berichtstext`);

@@ -1,34 +1,38 @@
-/* GaforCast — the map: OSM tiles, the GAFOR area layer and the fixed crosshair. */
+/* GaforCast — the map: OSM tiles, three boundary layers and the fixed crosshair.
+ *
+ * Boundaries have to read on top of a busy basemap, so every line is drawn
+ * twice: a light casing underneath and the coloured line on top. The three
+ * levels are deliberately different in weight — Landesgrenze kräftig, Bereiche
+ * darunter, Gebiete fein.
+ */
 const MAPVIEW = (() => {
   'use strict';
 
-  let map = null, areaLayer = null, labelLayer = null, marker = null;
+  let map = null;
+  let areaLayer = null, regionLayer = null, regionCase = null;
+  let landLayer = null, landCase = null, labelLayer = null;
   let onMove = () => {};
   let highlighted = null;
-  let showAreas = true;
-
-  const STYLE = {
-    base:  { color: '#f0a63d', weight: 1, opacity: .55, fillColor: '#f0a63d', fillOpacity: .05 },
-    hi:    { color: '#f0a63d', weight: 2.5, opacity: 1,  fillColor: '#f0a63d', fillOpacity: .22 },
-  };
+  let level = 2;                    // 2 = alles, 1 = nur Bereiche, 0 = aus
 
   /* One colour per GAFOR-Bereich, so the five regions read at a glance. */
   const REGION_COLOR = {
-    Nord:  '#4fd0e7',
-    Ost:   '#b98fd1',
-    West:  '#3fbf7f',
-    Mitte: '#f0a63d',
-    Sued:  '#ff8b3d',
+    Nord:  '#2196c4',
+    Ost:   '#8e5bb5',
+    West:  '#1e9e63',
+    Mitte: '#d4881a',
+    Sued:  '#e0662a',
   };
-  let colorMode = 'region';          // 'region' | 'plain'
+  const regionColor = (r) => REGION_COLOR[r] || '#d4881a';
 
-  function styleFor(f, on) {
-    const c = colorMode === 'region'
-      ? (REGION_COLOR[f.properties.region] || '#f0a63d')
-      : '#f0a63d';
+  const CASING = { color: '#ffffff', opacity: .75, fill: false, lineJoin: 'round' };
+  const LAND = '#11161f';
+
+  function areaStyle(f, on) {
+    const c = regionColor(f.properties.region);
     return on
-      ? { color: c, weight: 2.6, opacity: 1, fillColor: c, fillOpacity: .3 }
-      : { color: c, weight: 1, opacity: .6, fillColor: c, fillOpacity: .08 };
+      ? { color: c, weight: 3.4, opacity: 1, fillColor: c, fillOpacity: .28, lineJoin: 'round' }
+      : { color: c, weight: 1.3, opacity: .85, fillColor: c, fillOpacity: .05, lineJoin: 'round' };
   }
 
   function init(elId, opts) {
@@ -45,17 +49,36 @@ const MAPVIEW = (() => {
       maxZoom: 18, attribution: '&copy; OpenStreetMap',
     }).addTo(map);
 
+    // eigene Ebenen, damit die Reihenfolge feststeht
+    for (const [name, z] of [['gafor-areas', 410], ['gafor-land', 420],
+                             ['gafor-regions', 430], ['gafor-labels', 450]]) {
+      map.createPane(name).style.zIndex = z;
+    }
+    map.getPane('gafor-labels').style.pointerEvents = 'none';
+
     areaLayer = L.geoJSON(null, {
-      style: (f) => styleFor(f, false),
-      onEachFeature: (f, lyr) => {
-        lyr.on('click', () => { const c = lyr.getBounds().getCenter(); map.panTo(c); });
-      },
+      pane: 'gafor-areas',
+      style: (f) => areaStyle(f, false),
+      onEachFeature: (f, lyr) => lyr.on('click', () => map.panTo(lyr.getBounds().getCenter())),
     }).addTo(map);
-    labelLayer = L.layerGroup().addTo(map);
+
+    landCase = L.geoJSON(null, { pane: 'gafor-land', interactive: false,
+      style: { ...CASING, weight: 5, opacity: .8 } }).addTo(map);
+    landLayer = L.geoJSON(null, { pane: 'gafor-land', interactive: false,
+      style: { color: LAND, weight: 2.2, opacity: .95, fill: false, lineJoin: 'round' } }).addTo(map);
+
+    regionCase = L.geoJSON(null, { pane: 'gafor-regions', interactive: false,
+      style: { ...CASING, weight: 5.5 } }).addTo(map);
+    regionLayer = L.geoJSON(null, { pane: 'gafor-regions', interactive: false,
+      style: (f) => ({ color: regionColor(f.properties.region), weight: 3, opacity: .95,
+                       fill: false, lineJoin: 'round' }) }).addTo(map);
+
+    labelLayer = L.layerGroup([], { pane: 'gafor-labels' }).addTo(map);
 
     let t = 0;
     map.on('move', () => { clearTimeout(t); t = setTimeout(fire, 120); });
     map.on('moveend', fire);
+    map.on('zoomend', applyLevel);
     return map;
   }
 
@@ -65,11 +88,10 @@ const MAPVIEW = (() => {
     onMove(c.lat, c.lng);
   }
 
-  /** Put the GAFOR polygons on the map. */
+  /** Die Gebietspolygone. */
   function setAreas(fc) {
     if (!areaLayer) return;
     areaLayer.clearLayers();
-    U.clear(labelLayer._container || document.createElement('div'));
     labelLayer.clearLayers();
     if (!fc || !fc.features || !fc.features.length) return;
     areaLayer.addData(fc);
@@ -77,46 +99,59 @@ const MAPVIEW = (() => {
       const c = f.properties.center || U.centroid(f.geometry);
       if (!c) continue;
       labelLayer.addLayer(L.marker([c[0], c[1]], {
-        interactive: false,
+        pane: 'gafor-labels', interactive: false,
         icon: L.divIcon({ className: '', html: `<div class="gafor-label">${f.properties.id}</div>`,
-                          iconSize: [26, 12], iconAnchor: [13, 6] }),
+                          iconSize: [26, 14], iconAnchor: [13, 7] }),
       }));
     }
-    if (!showAreas) toggleAreas(false);
+    applyLevel();
   }
+
+  /** Bereichsumrisse und Landesgrenze. */
+  function setRegions(fc) { if (regionLayer) { regionLayer.clearLayers(); regionCase.clearLayers();
+    if (fc) { regionCase.addData(fc); regionLayer.addData(fc); } applyLevel(); } }
+  function setLand(fc) { if (landLayer) { landLayer.clearLayers(); landCase.clearLayers();
+    if (fc) { landCase.addData(fc); landLayer.addData(fc); } applyLevel(); } }
 
   function highlight(id) {
     if (!areaLayer) return;
     highlighted = id == null ? null : String(id);
     areaLayer.eachLayer(l => {
       const on = highlighted != null && String(l.feature.properties.id) === highlighted;
-      l.setStyle(styleFor(l.feature, on));
+      l.setStyle(areaStyle(l.feature, on));
       if (on) l.bringToFront();
     });
   }
 
-  /** Switch between one colour per Bereich and a single accent colour. */
-  function setColorMode(m) {
-    colorMode = m === 'region' ? 'region' : 'plain';
-    highlight(highlighted);
-    return colorMode;
+  /** 2 = Gebiete + Bereiche + Land, 1 = nur Bereiche + Land, 0 = nichts. */
+  function setLevel(v) {
+    level = ((v == null ? level + 2 : v) % 3 + 3) % 3;
+    applyLevel();
+    return level;
   }
-  const regionColor = (r) => REGION_COLOR[r] || '#f0a63d';
+  const getLevel = () => level;
 
-  function toggleAreas(on) {
-    showAreas = on == null ? !showAreas : on;
-    if (showAreas) { map.addLayer(areaLayer); map.addLayer(labelLayer); }
-    else { map.removeLayer(areaLayer); map.removeLayer(labelLayer); }
-    return showAreas;
+  function applyLevel() {
+    if (!map) return;
+    const showAreas = level >= 2;
+    const showRest = level >= 1;
+    const labels = level >= 2 && map.getZoom() >= 5;
+    for (const [lyr, on] of [[areaLayer, showAreas], [labelLayer, labels],
+                             [regionLayer, showRest], [regionCase, showRest],
+                             [landLayer, showRest], [landCase, showRest]]) {
+      if (!lyr) continue;
+      if (on && !map.hasLayer(lyr)) map.addLayer(lyr);
+      if (!on && map.hasLayer(lyr)) map.removeLayer(lyr);
+    }
+    if (showAreas) highlight(highlighted);
   }
 
   function center(lat, lon, zoom) {
-    if (!map) return;
-    map.setView([lat, lon], zoom || map.getZoom(), { animate: true });
+    if (map) map.setView([lat, lon], zoom || map.getZoom(), { animate: true });
   }
-  function germany() { if (map) map.fitBounds([[47.2, 5.8], [55.1, 15.1]]); }
+  function germany() { if (map) map.fitBounds([[47.2, 5.8], [55.1, 15.1]], { padding: [8, 8] }); }
   const get = () => map;
 
-  return { init, setAreas, highlight, toggleAreas, setColorMode, regionColor,
-           center, germany, get, fire };
+  return { init, setAreas, setRegions, setLand, highlight, setLevel, getLevel,
+           regionColor, center, germany, get, fire };
 })();

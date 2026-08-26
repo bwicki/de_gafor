@@ -34,7 +34,7 @@
 
   <div class="menu hidden" id="menu">
     <button id="mThemeBtn">Hell / dunkel umschalten</button>
-    <button id="mUnitsBtn">Windeinheit: kt</button>
+    <button id="mSettingsBtn">Einstellungen…</button>
     <div class="sep"></div>
     <button id="mReloadBtn">Berichte neu laden</button>
     <button id="mShareBtn">Link zu diesem Ort teilen</button>
@@ -147,6 +147,65 @@
   <footer>
     <div id="footerText"></div>
   </footer>
+
+  <div class="modal hidden" id="setOverlay">
+    <div class="modal-box">
+      <button class="modal-close" id="setClose" aria-label="Schliessen">×</button>
+      <h2>Einstellungen</h2>
+
+      <label class="field">
+        <span>METAR/TAF-Umkreis</span>
+        <select id="setRadius">
+          <option value="25">25 km</option>
+          <option value="50">50 km</option>
+          <option value="75">75 km</option>
+          <option value="100">100 km</option>
+          <option value="150">150 km</option>
+          <option value="200">200 km</option>
+          <option value="300">300 km</option>
+        </select>
+      </label>
+      <div class="note">Alle Plätze in diesem Umkreis, die METAR melden — der nächste zuerst.</div>
+
+      <label class="field">
+        <span>Höchstens Plätze</span>
+        <select id="setMetarMax">
+          <option value="3">3</option><option value="5">5</option>
+          <option value="8">8</option><option value="12">12</option>
+          <option value="20">20</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Windeinheit</span>
+        <select id="setUnit">
+          <option value="kt">Knoten</option>
+          <option value="kmh">km/h</option>
+          <option value="ms">m/s</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Darstellung</span>
+        <select id="setTheme">
+          <option value="dark">dunkel</option>
+          <option value="light">hell</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>TAF anzeigen</span>
+        <select id="setTaf">
+          <option value="1">ja</option>
+          <option value="0">nein</option>
+        </select>
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn primary" id="setOk">Übernehmen</button>
+      </div>
+    </div>
+  </div>
 
   <div class="modal hidden" id="aboutOverlay">
     <div class="modal-box">

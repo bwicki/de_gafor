@@ -25,6 +25,29 @@ damit beide Werkzeuge als eine Familie erkennbar sind.
 Alle Pfade sind relativ, ein Unterpfad oder eine eigene Domain (`CNAME`) funktioniert also ohne
 Änderung.
 
+## Einstellungen
+
+Menü → **Einstellungen**: METAR/TAF-Umkreis (25–300 km, Vorgabe 100 km), Höchstzahl der
+angezeigten Plätze, Windeinheit (kt · km/h · m/s), hell/dunkel, TAF an/aus. Alles liegt im
+`localStorage` des Geräts, nichts wird übertragen.
+
+Die METAR-Abfrage geht mit einer Bounding-Box an die NOAA-API und filtert danach auf den
+echten Kreisradius — ein Rechteck würde in den Ecken bis zu 40 % zu weit greifen.
+
+## Karte
+
+Drei Ebenen, bewusst unterschiedlich stark, jede mit heller Unterlegung, damit sie über
+OSM-Kacheln lesbar bleibt: **Landesgrenze** kräftig dunkel, **Bereiche** als dicke Linie in
+ihrer Farbe, **Gebiete** fein in derselben Farbe, das gewählte Gebiet gefüllt. Der Knopf ▦
+schaltet in drei Stufen: alles · nur Bereiche und Landesgrenze · aus.
+
+Die Bereichsumrisse und die Landesgrenze sind reine Darstellung; die Gebietszuordnung rechnet
+immer mit `gafor-areas.geojson`. Erzeugt werden sie mit:
+
+```
+python3 scripts/digitize/build-boundaries.py
+```
+
 ## Versionierung
 
 Die Version steht an einer einzigen Stelle: `js/version.js`. Sie erscheint als Chip neben dem
@@ -56,14 +79,16 @@ js/geo.js                   Ortssuche (Open-Meteo), Koordinateneingabe, ICAO, Re
 js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ballonbericht aus
 js/metar.js                 METAR/TAF von der NOAA-AWC-API, Ceiling/Sicht/Klassifikation
 js/openmeteo.js             Punktprognose (Wind 10/80/180 m, Sicht, Wolken, Grenzschicht, CAPE)
-js/mapview.js               Leaflet-Karte, Gebietslayer, festes Fadenkreuz in der Mitte
+js/mapview.js               Leaflet-Karte, drei Grenzebenen, festes Fadenkreuz in der Mitte
 js/app.js                   Zustand, Bedienung, Rendering aller Karten
 data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe unten
+data/gafor-regions.geojson  Umrisse der fünf Bereiche (aus den Gebieten verschmolzen)
+data/germany.geojson        Landesgrenze, vereinfacht — nur zur Darstellung
 data/dwd/index.json         von der Action erzeugt: Bulletins als JSON
 data/dwd/raw/*.txt          derselbe Text unparsed, damit der Parser nachgebessert werden kann
 data/gafor-meta.json        die 68 Gebiete: Nummer, Bezeichnung, Bezugshöhe, Bereich
 scripts/fetch-dwd.mjs       der Fetcher (Node 20, ohne Abhängigkeiten)
-scripts/digitize/           die Digitalisierung der Gebietskarte (OpenCV)
+scripts/digitize/           die Digitalisierung der Gebietskarte (OpenCV) und die abgeleiteten Umrisse
 tools/digitize.html         Karte von Hand nachziehen und korrigieren, exportiert GeoJSON
 .github/workflows/fetch-dwd.yml   holt die Berichte dreimal pro Stunde und committet sie
 test/run.mjs                Prüfungen ohne Browser
