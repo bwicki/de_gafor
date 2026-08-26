@@ -30,6 +30,32 @@ steht dort im Klartext, und wer die Daten will, holt sie ohnehin direkt aus `dat
 ist ein sichtbarer Hinweis, dass die Seite privat ist. Wer wirklich aussperren muss, braucht einen
 Server mit echter Anmeldung — GitHub Pages kann das nicht.
 
+### Geteilte Links: Gastzugang für 30 Minuten
+
+Der Link aus ⤴ → *Link zu diesem Ort kopieren* trägt einen **Gastzettel** im Fragment:
+
+```
+…/#49.2200,8.8000,10;g=NDkuMjIwMH44LjgwMDB-MTB-MTc4Nzc3NX40YjJm…
+```
+
+Der Zettel enthält Ort, Zoom, Ablaufzeit und eine Prüfsumme (FNV-1a über die Nutzlast plus
+Kennwort). Beim Empfänger:
+
+* **kein Kennwort**, und es wird auch nichts dauerhaft freigeschaltet — sein Browser bleibt
+  ohne den Link gesperrt (`unlocked` wird nicht gesetzt);
+* die **Ortswahl ist stillgelegt**: statt der Suchzeile steht der Hinweis *Fester Ort* mit
+  der Restzeit, Standort, Merken und *Sperren* sind entfernt, die Karte lässt sich nicht mehr
+  verschieben (zoomen schon), und ein Kartenschwenk ändert den Vorhersagepunkt nicht;
+* **Wettermodell, Vergleichsmodell und Zeitschieber bleiben frei bedienbar**;
+* nach 30 Minuten (`GUEST_MS`) läuft der Zettel ab, die Seite lädt neu und meldet an der
+  Sperre, dass der Gastzugang abgelaufen ist.
+
+Auch das ist **keine Kryptographie**. Wer den Quelltext liest, kann sich einen Zettel selbst
+ausstellen — das Kennwort steht ja darin. Der Zettel verhindert, was praktisch passiert: dass
+ein weitergeleiteter Link Wochen später noch aufgeht oder dass jemand damit durch ganz
+Deutschland fährt. Ein abgelaufener, verfälschter oder auf einen anderen Ort umgeschriebener
+Zettel öffnet nichts.
+
 ## Auf GitHub Pages veröffentlichen
 
 1. Repository anlegen (Vorschlag: `gaforcast`) und den Inhalt dieses Ordners in den Root pushen.
@@ -86,6 +112,10 @@ nicht mehr aktualisiert, steht ein deutlicher **Warnhinweis** direkt über den S
 Knopf zum Neuladen. Das ist der gefährliche Fall: die Kacheln sehen unverändert aus und
 sagen trotzdem nichts mehr.
 
+Der Knopf sagt, was er tut: während des Ladens „lädt…", danach entweder frischer Stand — der
+Hinweis verschwindet dann von selbst — oder ausdrücklich „der DWD-Stand ist unverändert".
+Ohne diese Rückmeldung sah der Knopf untätig aus, denn der DWD hat oft schlicht nichts Neues.
+
 **⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Zeitband und
 Flugwetterübersicht auf die erste, Ballonbericht, Höhenwind, METAR/TAF und Modellprognose auf die
 zweite. Bedienelemente und Erklärtexte fallen weg, die Übersicht wird dreispaltig gesetzt, die
@@ -95,6 +125,8 @@ erzeugt das PDF und zählt die Seiten nach.
 
 **⤴ Teilen** bietet zweierlei: ein **PNG der ganzen Seite** (gerendert mit dem mitgelieferten
 html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in die Zwischenablage.
+Dieser Link öffnet sich beim Empfänger **30 Minuten lang ohne Kennwort**, aber nur für diesen
+Ort — siehe *Geteilte Links* oben.
 
 **≡ Menü** enthält Hell/Dunkel, Einstellungen, Neuladen, Über und Sperren.
 

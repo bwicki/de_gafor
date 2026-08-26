@@ -172,7 +172,7 @@ const METAR_REPO = {
   taf: JSON.parse(await readFile('test/sample-taf.json', 'utf8')),
 };
 
-await page.route('**/*', async (route) => {
+const routeAll = async (route) => {
   const url = route.request().url();
   if (url.includes('data/dwd/metar.json')) return route.fulfill({ json: METAR_REPO });
   if (url.includes('data/dwd/index.json')) return route.fulfill({ json: dwdIndex });
@@ -197,7 +197,8 @@ await page.route('**/*', async (route) => {
   if (url.includes('tile.openstreetmap.org'))
     return route.fulfill({ status: 200, contentType: 'image/png', body: TILE });
   return route.fulfill({ status: 404, body: '' });
-});
+};
+await page.route('**/*', routeAll);
 
 let fails = 0;
 const ok = (m) => console.log(`  ok   ${m}`);
@@ -690,6 +691,26 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
     : bad('kein Warnhinweis bei abgelaufenem Bulletin');
   (await page.locator('#tileBody .stale.hard').count()) === 1
     ? ok('abgelaufen wird als harter Fall gekennzeichnet') : bad('Warnstufe fehlt');
+  /* Der Knopf im Hinweis muss sagen, dass er etwas tut — und was dabei
+     herauskam. Der DWD hat oft nichts Neues; ohne Rückmeldung sah es aus,
+     als täte der Knopf nichts. */
+  {
+    const btn = page.locator('#tileBody .stale .btn');
+    const p1 = btn.click();
+    await page.waitForTimeout(120);
+    const during = await btn.innerText().catch(() => '');
+    /lädt/.test(during) ? ok(`der Knopf zeigt seinen Zustand („${during}")`)
+                        : bad(`Knopfbeschriftung beim Laden: ${during}`);
+    await p1.catch(() => {});
+    await page.waitForTimeout(1600);
+    const note = await page.locator('#tileBody .stale .sn').innerText().catch(() => '');
+    /unverändert/.test(note)
+      ? ok(`unveränderter Stand wird ausdrücklich gemeldet: „${note}"`)
+      : bad(`keine Rückmeldung nach dem Laden: ${note}`);
+    (await page.locator('#tileBody .stale .btn').innerText()) === 'neu laden'
+      ? ok('danach ist der Knopf wieder bedienbar') : bad('Knopf bleibt im Ladezustand');
+  }
+
   dwdIndex = DWD_INDEX;
   await page.locator('#reloadBtn').click();
   await page.waitForTimeout(1200);
@@ -1011,6 +1032,107 @@ await page.waitForTimeout(2200);
   (await page.locator('#placeName').innerText()).includes('Gladbeck')
     ? ok('der gefundene Ortsname bleibt stehen')
     : bad(`Ortszeile: ${await page.locator('#placeName').innerText()}`);
+}
+
+// ---- Gastzugang über einen geteilten Link ----------------------------------
+{
+  // Link im laufenden Fenster erzeugen
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write'],
+                                        { origin: base.replace(/\/$/, '') });
+  await page.locator('#shareBtn').click();
+  await page.locator('#shareLinkBtn').click();
+  await page.waitForTimeout(300);
+  const link = await page.evaluate(() => navigator.clipboard.readText().catch(() => ''));
+  /#[\d.]+,[\d.]+,\d+;g=/.test(link)
+    ? ok(`geteilter Link trägt einen Gastzettel: …${link.slice(-24)}`)
+    : bad(`Linkform: ${link}`);
+
+  // frischer Kontext: niemand hat hier je ein Kennwort eingegeben
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 2200 } });
+  const gp = await ctx.newPage();
+  const gerr = [];
+  gp.on('pageerror', e => gerr.push(String(e)));
+  await gp.route('**/*', routeAll);
+
+  /* Achtung: ein blosser Fragmentwechsel lädt das Dokument nicht neu — jede
+     Prüfung braucht deshalb eine eigene Adresse. */
+  // ohne Zettel: die Sperre steht
+  await gp.goto(base + '?a=1#49.1000,9.7500,9', { waitUntil: 'domcontentloaded' });
+  await gp.waitForTimeout(400);
+  (await gp.locator('#gate').count()) === 1
+    ? ok('ohne Zettel fragt die App den Fremden nach dem Kennwort')
+    : bad('die Sperre fehlt im fremden Browser');
+
+  // mit Zettel: offen, aber ortsfest
+  const guestUrl = link.replace(/^[^#]*/, base + '?b=1');
+  await gp.goto(guestUrl, { waitUntil: 'domcontentloaded' });
+  await gp.waitForTimeout(1500);
+  (await gp.locator('#gate').count()) === 0
+    ? ok('mit Zettel öffnet sich die Seite ohne Kennwort')
+    : bad(`Gastzettel öffnet nicht (${guestUrl.slice(guestUrl.indexOf('#'))}) — Fehler: ${gerr.slice(0,2)} — hash: ${await gp.evaluate(() => location.hash)}`);
+  (await gp.locator('#searchBlock .guest-note').count()) === 1
+    ? ok('an der Ortswahl steht, dass der Ort festliegt') : bad('kein Hinweis an der Ortswahl');
+  /noch \d+ min/.test(await gp.locator('#guestRest').innerText())
+    ? ok(`die Restzeit steht dabei (${await gp.locator('#guestRest').innerText()})`)
+    : bad('keine Restzeit');
+  !(await gp.locator('#searchInput').isVisible()) &&
+  (await gp.locator('#gpsBtn').count()) === 0 &&
+  (await gp.locator('#savePlaceBtn').count()) === 0 &&
+  (await gp.locator('#mLockBtn').count()) === 0
+    ? ok('Suche, Standort, Merken und „Sperren" sind weg')
+    : bad('die Ortswahl ist noch bedienbar');
+  await gp.evaluate(() => MAPVIEW.get().dragging.enabled()) === false
+    ? ok('die Karte lässt sich nicht mehr verschieben') : bad('die Karte ist noch beweglich');
+
+  // Wetter darf er bedienen
+  (await gp.locator('#timeSlider').count()) === 1 &&
+  (await gp.locator('#windBody .chips.models:not(.cmp) .chip').count()) === 8
+    ? ok('Zeitschieber und Modellwahl stehen dem Gast offen') : bad('Gast kann kein Wetter wählen');
+  await gp.locator('#windBody .chips.models:not(.cmp) .chip:text-is("ICON-D2")').click();
+  await gp.waitForTimeout(900);
+  (await gp.locator('#windBody .chips.models:not(.cmp) .chip.on').innerText()) === 'ICON-D2'
+    ? ok('der Gast kann das Modell wechseln') : bad('Modellwechsel geht nicht');
+  await gp.evaluate(() => {
+    const s2 = document.getElementById('timeSlider');
+    s2.value = '5'; s2.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await gp.waitForTimeout(400);
+  /\+5 h/.test(await gp.locator('#timeMark').innerText())
+    ? ok('der Gast kann den Zeitpunkt verschieben') : bad('Zeitschieber reagiert nicht');
+  // …aber der Ort bleibt, wo er ist
+  const before2 = await gp.locator('#placeCoords').innerText();
+  await gp.evaluate(() => MAPVIEW.get().panBy([200, 120], { animate: false }));
+  await gp.waitForTimeout(700);
+  (await gp.locator('#placeCoords').innerText()) === before2
+    ? ok('auch ein verschobener Kartenausschnitt ändert den Ort nicht')
+    : bad('der Ort ist verrutscht');
+
+  // abgelaufener Zettel
+  const stale = link.replace(/^[^#]*/, base).replace(/;g=.*$/, '') + ';g=' + await gp.evaluate(() => {
+    // denselben Zettel mit Ablauf in der Vergangenheit bauen
+    const f = (str) => { let h = 0x811c9dc5;
+      for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+      return h.toString(16).padStart(8, '0'); };
+    const body = ['49.1000', '9.7500', 9, Date.now() - 1000].join('~');
+    const raw = `${body}~${f(body + '1234')}`;
+    return btoa(unescape(encodeURIComponent(raw)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  });
+  await gp.goto(stale.replace(base, base + '?c=1'), { waitUntil: 'domcontentloaded' });
+  await gp.waitForTimeout(500);
+  (await gp.locator('#gate').count()) === 1
+    ? ok('ein abgelaufener Zettel öffnet nichts mehr') : bad('abgelaufener Zettel öffnet trotzdem');
+
+  // verfälschter Zettel
+  await gp.goto(link.replace(/^[^#]*/, base + '?d=1').replace(/;g=.{6}/, ';g=XXXXXX'),
+                { waitUntil: 'domcontentloaded' });
+  await gp.waitForTimeout(500);
+  (await gp.locator('#gate').count()) === 1
+    ? ok('ein verfälschter Zettel öffnet nichts') : bad('verfälschter Zettel öffnet');
+
+  gerr.length ? bad(`JS-Fehler im Gastfenster: ${gerr.slice(0, 2).join(' | ')}`)
+              : ok('keine JS-Fehler im Gastfenster');
+  await ctx.close();
 }
 
 errors.length ? bad(`JS-Fehler: ${errors.slice(0, 3).join(' | ')}`) : ok('keine JS-Fehler');

@@ -31,6 +31,7 @@
     <p>Private Flugwettervorbereitung.<br>Bitte Kennwort eingeben.</p>
     <input id="gatePw" type="password" inputmode="numeric" enterkeyhint="go"
            aria-label="Kennwort" autocomplete="off" autocorrect="off" spellcheck="false">
+    <div class="gate-hint" id="gateHint" hidden>Der Gastzugang über den Link ist abgelaufen.</div>
     <div class="gate-err" id="gateErr" hidden>Kennwort stimmt nicht.</div>
     <button class="btn primary" type="submit">Öffnen</button>
   </form>
@@ -56,7 +57,7 @@
          sie sich bei gescrollter Seite ausserhalb des Sichtfensters. -->
     <div class="menu hidden" id="shareMenu">
       <button id="sharePngBtn">Bild der Seite (PNG) speichern</button>
-      <button id="shareLinkBtn">Link zu diesem Ort kopieren</button>
+      <button id="shareLinkBtn">Link zu diesem Ort kopieren (30 min ohne Kennwort)</button>
     </div>
 
     <div class="menu hidden" id="menu">
@@ -78,7 +79,7 @@
 
     <div class="top-left">
 
-      <div class="search-block">
+      <div class="search-block" id="searchBlock">
         <div class="search-row">
           <div class="search-wrap">
             <input id="searchInput" type="search" placeholder="Ort, Flugplatz oder Koordinaten…"

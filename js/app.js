@@ -25,6 +25,7 @@
     autoRefresh: U.load('autoRefresh', 1),
     fly: U.load('fly', null),                 // Startfenster-Schwellen, null = Vorgaben
     lastLoad: { model: 0, metar: 0, dwd: 0 },
+    guest: null,                              // Gastzugang aus einem geteilten Link
     model: U.load('model', ''),               // '' = Auto-Mix, sonst ein Open-Meteo-Modell
   };
 
@@ -41,11 +42,14 @@
 
   async function boot() {
     applyTheme(U.load('theme', prefersDark() ? 'dark' : 'light'));
-    initGate();
-    U.$('appVersion').textContent = APP.version;
 
+    /* Zuerst der Link: er kann einen Gastzettel tragen, und den muss die
+       Sperre kennen, bevor sie sich meldet. */
     const start = startPosition();
     state.lat = start.lat; state.lon = start.lon;
+
+    initGate();
+    U.$('appVersion').textContent = APP.version;
 
     /* Getrennt abgesichert: geht die Karte nicht auf, sollen wenigstens Menü
        und Knöpfe verdrahtet sein — und umgekehrt. */
@@ -53,6 +57,8 @@
       MAPVIEW.init('map', { center: [state.lat, state.lon], zoom: start.zoom, onMove: onMapMove });
     } catch (e) { console.error('Karte konnte nicht starten:', e); }
     try { wireUI(); wireTimeBar(); } catch (e) { console.error('Bedienung nicht vollständig verdrahtet:', e); }
+    // erst jetzt: der Gastmodus greift in Karte und Bedienung ein
+    if (state.guest) applyGuestMode();
     renderPlace();
     footer();
 
@@ -93,7 +99,14 @@
 
   function startPosition() {
     const h = (location.hash || '').replace(/^#/, '');
-    const m = h.match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+))?$/);
+    const [coords, ...rest] = h.split(';');
+    const tok = (rest.find(r => r.startsWith('g=')) || '').slice(2);
+    const guest = tok ? readGuest(tok) : null;
+    if (guest) {
+      state.guest = guest;
+      return { lat: guest.lat, lon: guest.lon, zoom: guest.zoom };
+    }
+    const m = coords.match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+))?$/);
     if (m) return { lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 9 };
     return { ...HOME };
   }
@@ -200,6 +213,105 @@
     });
   }
 
+  /* --------------------------------------------------------- Gastzugang
+   * Ein geteilter Link soll sich beim Empfänger ohne Kennwort öffnen — aber
+   * nur für **diesen einen Ort** und nur für eine halbe Stunde. Im Fragment
+   * steht dafür ein Zettel mit Ort, Zoom und Ablaufzeit plus einer kurzen
+   * Prüfsumme, die die Nutzlast an das Kennwort bindet.
+   *
+   * Das ist **keine Kryptographie**, und es soll auch keine sein: die Seite
+   * ist statisch, ihr Quelltext öffentlich, das Kennwort steht darin. Wer den
+   * Quelltext liest, kann sich einen Zettel selbst ausstellen. Der Zettel
+   * verhindert, was praktisch passiert: dass ein weitergeleiteter Link Wochen
+   * später noch aufgeht oder dass jemand damit durch ganz Deutschland fährt.
+   * Ein echter Schutz bräuchte einen Server mit Sitzungen — GitHub Pages kann
+   * das nicht.
+   */
+  const GUEST_MS = 30 * 60 * 1000;
+  let guestTimer = 0;
+
+  /** Kurzer, nicht kryptographischer Fingerabdruck (FNV-1a, hex). */
+  function fnv(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16).padStart(8, '0');
+  }
+  const b64u = (s) => btoa(unescape(encodeURIComponent(s)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64u = (s) => decodeURIComponent(escape(
+    atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+
+  function guestToken(lat, lon, zoom) {
+    const body = [lat.toFixed(4), lon.toFixed(4), zoom, Date.now() + GUEST_MS].join('~');
+    return b64u(`${body}~${fnv(body + GATE_PW)}`);
+  }
+
+  /** Zettel prüfen. Gibt {lat, lon, zoom, exp} oder null. */
+  function readGuest(tok) {
+    try {
+      const raw = unb64u(String(tok || ''));
+      const i = raw.lastIndexOf('~');
+      if (i < 0) return null;
+      const body = raw.slice(0, i);
+      if (fnv(body + GATE_PW) !== raw.slice(i + 1)) return null;
+      const [lat, lon, zoom, exp] = body.split('~');
+      if (!(+exp > Date.now())) return null;
+      if (!isFinite(+lat) || !isFinite(+lon)) return null;
+      return { lat: +lat, lon: +lon, zoom: +zoom || 10, exp: +exp };
+    } catch { return null; }
+  }
+
+  /** Gastmodus: Ort fest, Wetter frei. */
+  function applyGuestMode() {
+    const g = state.guest;
+    if (!g) return;
+    document.body.classList.add('guest');
+
+    /* Ortswahl stilllegen und sagen, warum. Die Suchzeile wird ausgeblendet,
+       nicht entfernt: an `#searchResults` hängt ein Klickhorcher, der sonst
+       ins Leere greift. */
+    const sb = U.$('searchBlock');
+    const row = sb.querySelector('.search-row');
+    if (row) row.style.display = 'none';
+    const note2 = U.el('div', 'guest-note');
+    note2.innerHTML = '<span class="ic">🔒</span><span><strong>Fester Ort.</strong> ' +
+      'Dieser Link zeigt das Wetter für genau diesen Punkt. Modell, Vergleich und ' +
+      'Zeitpunkt lassen sich frei wählen, der Ort nicht.</span>' +
+      `<span class="rest" id="guestRest"></span>`;
+    sb.appendChild(note2);
+
+    const map = MAPVIEW.get();
+    if (map && map.dragging) map.dragging.disable();
+    U.$('mapHint').textContent = 'Ort ist durch den Link festgelegt';
+    for (const id of ['gpsBtn', 'favBtn', 'savePlaceBtn', 'mLockBtn']) {
+      const n = U.$(id); if (n) n.remove();
+    }
+    const si = U.$('searchInput'); if (si) si.disabled = true;
+
+    const tick = () => {
+      const left = Math.max(0, g.exp - Date.now());
+      const el = U.$('guestRest');
+      if (el) {
+        const m = Math.ceil(left / 60000);
+        el.textContent = left ? `noch ${m} min` : 'abgelaufen';
+      }
+      if (left <= 0) guestExpired();
+    };
+    tick();
+    guestTimer = setInterval(tick, 20000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+  }
+
+  function guestExpired() {
+    clearInterval(guestTimer);
+    try { sessionStorage.setItem('gaforcast.guestGone', '1'); } catch { /* egal */ }
+    location.hash = '';
+    location.reload();
+  }
+
   // ------------------------------------------------------------------ Sperre
   /* Nach zwei Stunden ohne Benutzung wird wieder gefragt. Gemessen wird die
      letzte Berührung, nicht die Anmeldung: wer die App den ganzen Tag offen
@@ -223,6 +335,16 @@
   function initGate() {
     const g = U.$('gate');
     if (!g) return;
+
+    /* Gastzettel im Link: aufmachen, aber **nichts** dauerhaft freischalten —
+       der Empfänger soll nicht für immer entsperrt sein. */
+    if (state.guest) { g.remove(); return; }   // applyGuestMode() läuft nach MAPVIEW.init
+
+    let gone = false;
+    try { gone = sessionStorage.getItem('gaforcast.guestGone') === '1';
+          sessionStorage.removeItem('gaforcast.guestGone'); } catch { /* egal */ }
+    if (gone) U.$('gateHint').hidden = false;
+
     if (U.load('unlocked', 0) === 1 && !gateExpired()) {
       g.remove();
       armIdle();
@@ -368,14 +490,19 @@
   const placeSlug = () => (state.place || U.fmtCoord(state.lat, state.lon))
     .replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '').slice(0, 40) || 'ort';
 
-  const shareUrl = () =>
-    `${location.origin}${location.pathname}#${state.lat.toFixed(4)},${state.lon.toFixed(4)},` +
-    `${MAPVIEW.get() ? MAPVIEW.get().getZoom() : 9}`;
+  /* Der geteilte Link trägt einen Gastzettel: der Empfänger kommt ohne
+     Kennwort hinein, aber nur für diesen Ort und nur eine halbe Stunde. */
+  const shareUrl = () => {
+    const z = MAPVIEW.get() ? MAPVIEW.get().getZoom() : 9;
+    return `${location.origin}${location.pathname}` +
+      `#${state.lat.toFixed(4)},${state.lon.toFixed(4)},${z}` +
+      `;g=${guestToken(state.lat, state.lon, z)}`;
+  };
 
   function copyLink() {
     const url = shareUrl();
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => flash('Link kopiert'),
+      navigator.clipboard.writeText(url).then(() => flash('Link kopiert — 30 min ohne Kennwort'),
         () => fallbackCopy(url));
     } else fallbackCopy(url);
   }
@@ -386,7 +513,7 @@
     ta.style.cssText = 'position:fixed;top:-1000px;left:0;opacity:0;';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); flash('Link kopiert'); }
+    try { document.execCommand('copy'); flash('Link kopiert — 30 min ohne Kennwort'); }
     catch { flash('Kopieren nicht möglich'); }
     document.body.removeChild(ta);
   }
@@ -532,6 +659,7 @@
    * Zwischenpositionen der Animation gelöscht werden.
    */
   function onMapMove(lat, lon, self) {
+    if (state.guest) return;                 // im Gastmodus ist der Ort fest
     state.lat = lat; state.lon = lon;
     if (!self) {
       // der alte Name bleibt sichtbar, bis der neue da ist
@@ -861,13 +989,45 @@
     return null;
   }
 
+  /* Der Knopf im Warnhinweis lädt neu — und muss das auch sagen. Ohne
+     Rückmeldung sah es aus, als täte er nichts: der DWD hat oft schlicht
+     nichts Neues, die Seite bleibt also gleich. Also drei Zustände: „lädt…",
+     danach entweder frische Daten (der Hinweis verschwindet von selbst) oder
+     die ausdrückliche Meldung, dass der Stand unverändert ist. */
+  let staleBusy = false;
+  let staleNote = '';
+
   function staleWarning(st) {
     const d = U.el('div', 'stale' + (st.hard ? ' hard' : ''));
-    d.innerHTML = `<span class="ic">!</span><span>${st.txt}</span>`;
-    const b = U.el('button', 'btn small', 'neu laden');
-    b.onclick = reloadAll;
+    const txt = U.el('span');
+    txt.innerHTML = st.txt + (staleNote ? ` <em class="sn">${staleNote}</em>` : '');
+    d.appendChild(U.el('span', 'ic', '!'));
+    d.appendChild(txt);
+    const b = U.el('button', 'btn small', staleBusy ? 'lädt…' : 'neu laden');
+    b.disabled = staleBusy;
+    b.onclick = reloadStale;
     d.appendChild(b);
     return d;
+  }
+
+  /** Neu laden aus dem Warnhinweis heraus, mit sichtbarem Zustand. */
+  async function reloadStale() {
+    if (staleBusy) return;
+    staleBusy = true; staleNote = '';
+    renderGafor();                       // Knopf zeigt sofort „lädt…"
+    flash('Berichte werden geladen …');
+    const before = DWD.generated();
+    try { await reloadAll(); } catch { /* die Karten zeigen es selbst */ }
+    staleBusy = false;
+    const after = DWD.generated();
+    if (after && after !== before) {
+      staleNote = '';
+      flash('Neue Berichte geladen');
+    } else {
+      staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — der DWD-Stand ist unverändert.`;
+      flash('Stand unverändert');
+    }
+    renderReports();
   }
 
   /** Flugwetterübersicht eines Bereichs in die eigene Karte. */

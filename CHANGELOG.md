@@ -5,6 +5,37 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.16.0 — 2026-08-26
+
+* **Der Knopf „neu laden" im Warnhinweis sagt jetzt, was er tut.** Er sah untätig aus, weil
+  der DWD oft schlicht nichts Neues hat und die Seite danach gleich aussieht. Jetzt zeigt er
+  während des Ladens „lädt…" und ist gesperrt, unten links meldet die Karte „Berichte werden
+  geladen …", und danach steht entweder frischer Stand da (der Hinweis verschwindet von
+  selbst) oder ausdrücklich: „Um 14:32 neu geholt — der DWD-Stand ist unverändert."
+* **Geteilte Links öffnen sich ohne Kennwort — für 30 Minuten und für genau diesen Ort.**
+  Der Link aus ⤴ → *Link zu diesem Ort kopieren* trägt jetzt einen Zettel mit Ort, Zoom,
+  Ablaufzeit und einer Prüfsumme. Beim Empfänger:
+  * kein Kennwort, und es wird auch **nichts dauerhaft freigeschaltet** — sein Browser bleibt
+    ohne den Link gesperrt;
+  * die **Ortswahl ist stillgelegt**: an ihrer Stelle steht der Hinweis „Fester Ort" samt
+    Restzeit, Suche, Standort und Merken sind weg, die Karte lässt sich nicht mehr
+    verschieben (zoomen schon), und ein Kartenschwenk ändert den Vorhersagepunkt nicht;
+  * **Wettermodell, Vergleichsmodell und Zeitschieber bleiben frei bedienbar** — nur eben
+    für diesen einen Punkt;
+  * nach 30 Minuten läuft der Zettel ab, die Seite lädt neu und meldet an der Sperre „Der
+    Gastzugang über den Link ist abgelaufen."
+  Ein abgelaufener, verfälschter oder auf einen anderen Ort umgeschriebener Zettel öffnet
+  nichts.
+
+### Was der Gastzettel ist und was nicht
+
+Er ist **keine Kryptographie**, und er soll auch keine sein. Die Seite ist statisch, ihr
+Quelltext öffentlich, das Kennwort steht darin — wer den Quelltext liest, kann sich einen
+Zettel selbst ausstellen. Der Zettel verhindert, was praktisch passiert: dass ein
+weitergeleiteter Link Wochen später noch aufgeht oder dass jemand damit durch ganz
+Deutschland fährt. Echter Schutz bräuchte einen Server mit Sitzungen; GitHub Pages kann das
+nicht, und daran hat sich seit 1.8.0 nichts geändert.
+
 ## 1.15.0 — 2026-08-26
 
 * **Die Tabellen im Flugwetterbericht sind jetzt echte Tabellen.** Höhenwind und

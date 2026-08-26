@@ -63,6 +63,8 @@ const U = (() => {
   const fmtCoord = (lat, lon) =>
     `${Math.abs(lat).toFixed(4)}° ${lat < 0 ? 'S' : 'N'}  ${Math.abs(lon).toFixed(4)}° ${lon < 0 ? 'W' : 'E'}`;
 
+  /** Ortszeit als HH:MM. */
+  const fmtLocalTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   const fmtUTC = (d) => `${pad(d.getUTCDate())}. ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
 
   /** "vor 12 min" / "vor 3 h 40 min". */
@@ -125,7 +127,7 @@ const U = (() => {
   }
 
   return { $, el, clear, clamp, distKm, inGeometry, centroid,
-           fmtCoord, fmtUTC, ago, ageClass, pad, MS_TO,
+           fmtCoord, fmtUTC, fmtLocalTime, ago, ageClass, pad, MS_TO,
            wind, unitLabel, dirName, dirArrow, bearing, bearingArrow,
            load, save, getJSON };
 })();

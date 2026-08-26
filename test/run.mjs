@@ -764,6 +764,58 @@ head('Open-Meteo: Profil, Nebel, Ensemble');
     : bad(`modelHours(unbekannt) = ${OM.modelHours('gibtsnicht')}`);
 }
 
+// ------------------------------------------------- 3a2. Gastzettel
+head('Gastzugang im Link')
+{
+  /* Derselbe Zettel wie in js/app.js, hier nachgebaut — die Prüfung soll
+     zeigen, dass Ablauf und Prüfsumme wirken, nicht die App starten. */
+  const appSrc = await readFile('js/app.js', 'utf8');
+  const i = appSrc.indexOf('  function fnv(str) {');
+  const j = appSrc.indexOf('  /** Gastmodus:');
+  const G = new Function(
+    `const GATE_PW='1234'; const GUEST_MS=30*60*1000;` +
+    `const btoa=(s)=>Buffer.from(s,'binary').toString('base64');` +
+    `const atob=(s)=>Buffer.from(s,'base64').toString('binary');` +
+    appSrc.slice(i, j) + '; return { guestToken, readGuest, fnv };')();
+
+  const t = G.guestToken(49.1, 9.75, 11);
+  const r = G.readGuest(t);
+  r && Math.abs(r.lat - 49.1) < 1e-6 && Math.abs(r.lon - 9.75) < 1e-6 && r.zoom === 11
+    ? ok(`Zettel trägt Ort und Zoom (${r.lat}, ${r.lon}, Zoom ${r.zoom})`)
+    : bad(`readGuest: ${JSON.stringify(r)}`);
+  r && r.exp - Date.now() > 29 * 60e3 && r.exp - Date.now() <= 30 * 60e3
+    ? ok('Ablauf liegt 30 Minuten in der Zukunft') : bad(`Ablauf: ${r && r.exp - Date.now()} ms`);
+
+  // ein Zeichen verdreht → ungültig
+  const broken = t.slice(0, -2) + (t.slice(-2) === 'AA' ? 'BB' : 'AA');
+  G.readGuest(broken) === null ? ok('verfälschter Zettel wird abgewiesen')
+                               : bad('verfälschter Zettel geht durch');
+  G.readGuest('') === null && G.readGuest('nicht base64 !!') === null
+    ? ok('Unsinn ergibt keinen Zugang') : bad('readGuest akzeptiert Unsinn');
+
+  // abgelaufen
+  {
+    const body = ['49.1000', '9.7500', 9, Date.now() - 1000].join('~');
+    const raw = `${body}~${G.fnv(body + '1234')}`;
+    const old2 = Buffer.from(raw, 'utf8').toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    G.readGuest(old2) === null ? ok('abgelaufener Zettel wird abgewiesen')
+                               : bad('abgelaufener Zettel geht durch');
+  }
+
+  // ein Zettel für einen anderen Ort lässt sich nicht auf diesen ummünzen:
+  // die Prüfsumme deckt die Koordinaten mit ab
+  {
+    const raw = Buffer.from(t.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    const moved = raw.replace('49.1000', '52.5200');
+    const tok = Buffer.from(moved, 'utf8').toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    G.readGuest(tok) === null
+      ? ok('ein umgeschriebener Ort macht den Zettel ungültig')
+      : bad('der Ort lässt sich im Zettel ändern');
+  }
+}
+
 // ------------------------------------------------- 3b0. Sonnenstand
 head('Sonnenstand und Dämmerung');
 {

@@ -37,6 +37,18 @@ header.topbar{
 .gate-box .btn{height:42px;}
 .gate-err{font-size:12px;color:var(--gafor-x);}
 .gate-err[hidden]{display:none;}
+.gate-hint{font-size:12px;color:var(--gafor-d);}
+.gate-hint[hidden]{display:none;}
+
+/* ---------- Gastzugang über einen geteilten Link ---------- */
+.guest-note{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;
+  border:1px solid var(--amber);border-radius:var(--r);
+  background:color-mix(in srgb,var(--amber) 10%,transparent);
+  font-size:12.5px;line-height:1.4;color:var(--text);}
+.guest-note .ic{flex:0 0 auto;font-size:13px;line-height:1.3;}
+.guest-note .rest{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:10px;
+  color:var(--amber);white-space:nowrap;padding-top:1px;}
+body.guest .map-wrap{cursor:default;}
 
 /* ---------- modal ---------- */
 .modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);
@@ -282,7 +294,9 @@ main.content{padding:12px 14px 0;}
   place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;
   background:var(--gafor-d);color:var(--bg);}
 .stale.hard .ic{background:var(--gafor-x);}
-.stale .btn{flex:0 0 auto;margin-left:auto;}
+.stale .btn{flex:0 0 auto;margin-left:auto;white-space:nowrap;}
+.stale .btn[disabled]{opacity:.6;cursor:default;}
+.stale .sn{display:block;font-style:normal;color:var(--text-dim);margin-top:2px;}
 
 /* ---------- GAFOR-Zeitreihe als Zeitband ----------
    Ein Abschnitt je Zeitraum, in der Farbe seiner Stufe; der laufende ist
