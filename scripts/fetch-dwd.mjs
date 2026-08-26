@@ -29,6 +29,7 @@ import { dirname } from 'node:path';
 const OUT_DIR = 'data/dwd';
 const UA = 'GaforCast/1.0 (static site data fetcher)';
 const TIMEOUT_MS = 25000;
+const BALLOON_MAX_AGE_H = Number(process.env.BALLOON_MAX_AGE_H || 4);
 
 const BASE_GAFOR = 'https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/';
 const BASE_BALLOON = 'https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/';
@@ -359,93 +360,115 @@ async function collectGafor() {
 }
 
 /**
- * The balloon forecast exists per GAFOR area, and the site selects it through
- * the clickable map rather than a link. Probe a few plausible URL shapes for
- * one area and write down what answered — one run of this pins the pattern.
+ * The balloon forecast exists per GAFOR area. The picker is an image map, and
+ * every <area> carries the target and the area's name:
+ *
+ *   <area shape="poly" coords="…"
+ *         href="/DE/…/gebietsvorhersagen_ballonsport/node_45"
+ *         alt="Rhein-Main-Gebiet und Wetterau (800 FT AMSL)">
+ *
+ * So the list of pages is read off the map instead of guessed, and it follows
+ * along if the DWD ever renumbers something.
  */
-async function probeBalloon(sampleArea = '45') {
-  const cands = [
-    `${BASE_BALLOON}${sampleArea}_node.html`,
-    `${BASE_BALLOON}gebiet_${sampleArea}_node.html`,
-    `${BASE_BALLOON}ballon_${sampleArea}_node.html`,
-    `${BASE_BALLOON}bvhs_${sampleArea}_node.html`,
-    `${BASE_BALLOON}node_${sampleArea}.html`,
-    `${BASE_BALLOON}node_uebersicht.html?gebiet=${sampleArea}`,
-    `${BASE_BALLOON}node_uebersicht.html?nn=${sampleArea}`,
-    `${BASE_GAFOR}ballon_${sampleArea}_node.html`,
-  ];
-  const lines = [];
-  for (const url of cands) {
-    try {
-      const text = stripChrome(bulletinText(await get(url)));
-      const hit = /Ballon|Thermik|Bodenwind|Gebietsvorhersage/i.test(text) && text.length > 200;
-      lines.push(`${hit ? 'TREFFER' : 'ok     '}  ${text.length.toString().padStart(6)}  ${url}`);
-      if (hit) lines.push(text.split('\n').slice(0, 12).map(l => `        | ${l}`).join('\n'));
-    } catch (e) {
-      lines.push(`${e.message.padEnd(7)}  ${''.padStart(6)}  ${url}`);
-    }
+function balloonTargets(html, base) {
+  const out = [];
+  for (const tag of html.matchAll(/<area\b[^>]*>/gi)) {
+    const t = tag[0];
+    const href = (t.match(/href="([^"]+)"/i) || [])[1];
+    if (!href) continue;
+    const m = href.match(/node_(\d{2})(?:\.html)?$/i);
+    if (!m) continue;
+    const alt = decode((t.match(/alt="([^"]*)"/i) || [])[1] || '');
+    // "Weser-Leine-Bergland (1.400 FT AMSL)" — mit Tausenderpunkt
+    const ft = alt.match(/\(([\d.  ]+)\s*FT/i);
+    out.push({
+      id: m[1],
+      name: alt.replace(/\s*\([^)]*\)?\s*$/, '').trim(),   // eine Klammer ist unvollständig
+      refAltFt: ft ? parseInt(ft[1].replace(/[^\d]/g, ''), 10) : null,
+      url: new URL(href, base).href,
+    });
   }
-  await writeRaw('_probe-balloon', `Sondierung für GAFOR-Gebiet ${sampleArea}\n\n` + lines.join('\n') + '\n');
-  console.log(`Ballon-Sondierung geschrieben (${cands.length} Kandidaten)`);
+  const seen = new Set();
+  return out.filter(a => !seen.has(a.id) && seen.add(a.id));
 }
 
-async function collectBalloon() {
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/**
+ * 67 pages is a lot to pull three times an hour for a product the DWD issues a
+ * few times a day, so they are only refreshed when the stored copy has aged
+ * past BALLOON_MAX_AGE_H. FORCE_BALLOON=1 overrides that.
+ */
+async function collectBalloon(previous) {
   const out = {};
+  const force = process.env.FORCE_BALLOON === '1';
+  const prev = (previous && previous.balloon) || {};
+  const newest = Object.values(prev)
+    .map(b => Date.parse(b.fetched || 0)).filter(Number.isFinite)
+    .reduce((a, b) => Math.max(a, b), 0);
+  const ageH = newest ? (Date.now() - newest) / 3600e3 : Infinity;
+
+  if (!force && Object.keys(prev).length >= 60 && ageH < BALLOON_MAX_AGE_H) {
+    console.log(`· Ballonberichte ${ageH.toFixed(1)} h alt (< ${BALLOON_MAX_AGE_H} h) — übernommen`);
+    return prev;
+  }
+
   let hubHtml = null;
-  const found = [];
-  try {
-    hubHtml = await get(HUB.balloon);
-    found.push(...links(hubHtml, HUB.balloon)
-      .filter(u => /gebietsvorhersagen_ballonsport\//i.test(u) && /\.html$/i.test(u)));
-  } catch (e) {
-    note('balloon', HUB.balloon, `Übersichtsseite nicht erreichbar: ${e.message}`);
+  try { hubHtml = await get(HUB.balloon); }
+  catch (e) { note('balloon', HUB.balloon, `Übersichtsseite nicht erreichbar: ${e.message}`); }
+  if (!hubHtml) return prev;
+
+  await writeRaw('_links-balloon', links(hubHtml, HUB.balloon).join('\n') + '\n');
+  await writeRaw('_map-balloon', [...hubHtml.matchAll(/<area\b[^>]*>/gi)].map(m => m[0]).join('\n') + '\n');
+
+  const targets = balloonTargets(hubHtml, HUB.balloon);
+  if (!targets.length) {
+    note('balloon', HUB.balloon, 'keine Gebiete in der Bildkarte gefunden — siehe raw/_map-balloon.txt');
+    return prev;
+  }
+  console.log(`· ${targets.length} Ballon-Gebiete in der Bildkarte`);
+
+  for (const t of targets) {
+    let text = '';
+    for (const url of [t.url, `${t.url}.html`]) {
+      try {
+        const got = stripChrome(bulletinText(await get(url)));
+        if (got.length > text.length) { text = got; t.used = url; }
+        if (text.length > 200) break;
+      } catch { /* nächste Form probieren */ }
+      await sleep(120);
+    }
+    if (text.length < 120) {
+      note('balloon', t.url, `Gebiet ${t.id}: kein Berichtstext`);
+      continue;
+    }
+    out[t.id] = {
+      id: t.id, name: t.name, refAltFt: t.refAltFt,
+      source: t.used || t.url,
+      issued: issuedFrom(text, headline(text), []),
+      fetched: new Date().toISOString(),
+      text,
+    };
+    await sleep(120);
   }
 
-  const urls = [...new Set(found.filter(u => !/node_uebersicht\.html$/i.test(u)))];
-  if (!urls.length) note('balloon', HUB.balloon,
-    'keine Regionsseiten verlinkt (die Auswahl läuft über die anklickbare Karte) — siehe raw/_links.txt');
-
-  for (const url of urls) {
-    try {
-      const text = stripChrome(bulletinText(await get(url)));
-      if (text.length < 80) { note('balloon', url, 'kein Berichtstext gefunden'); continue; }
-      const key = keyFrom(url);
-      out[key] = {
-        title: text.split('\n')[0].slice(0, 120),
-        source: url,
-        issued: issuedFrom(text, headline(text), []),
-        fetched: new Date().toISOString(),
-        text,
-      };
-      console.log(`✓ ballon ${key}: ${text.length} Zeichen`);
-      await writeRaw(`balloon-${key.toLowerCase()}`, `${url}\n\n${text}\n`);
-    } catch (e) { note('balloon', url, e.message); }
-  }
-
-  // always keep the hub itself, and dump every link so the region pages can be
-  // found by looking at the committed file
-  if (hubHtml) {
-    await writeRaw('_links-balloon', links(hubHtml, HUB.balloon).join('\n') + '\n');
-    // the region picker is an image map — dump it, that is where the URLs are
-    const snippets = [
-      ...[...hubHtml.matchAll(/<area[^>]*>/gi)].map(m => m[0]),
-      ...[...hubHtml.matchAll(/<map[^>]*>/gi)].map(m => m[0]),
-      ...[...hubHtml.matchAll(/[^\n"']*ballonsport[^\n"']*/gi)].map(m => m[0].trim()),
-    ];
-    await writeRaw('_map-balloon', [...new Set(snippets)].join('\n') + '\n');
-  }
-  return out;
+  const first = Object.values(out)[0];
+  if (first) await writeRaw(`balloon-${first.id}`, `${first.source}\n\n${first.text}\n`);
+  console.log(`✓ ballon: ${Object.keys(out).length}/${targets.length} Gebiete`);
+  return Object.keys(out).length ? out : prev;
 }
 
 async function main() {
+  let previous = null;
+  try { previous = JSON.parse(await readFile(`${OUT_DIR}/index.json`, 'utf8')); } catch { /* erster Lauf */ }
+
   const { gafor, overview } = await collectGafor();
-  const balloon = await collectBalloon();
-  if (!Object.keys(balloon).length) await probeBalloon('45');
+  const balloon = await collectBalloon(previous);
   const index = { generated: new Date().toISOString(), gafor, overview, balloon, errors };
 
   if (!Object.keys(gafor).length && !Object.keys(overview).length && !Object.keys(balloon).length) {
     try {
-      const prev = JSON.parse(await readFile(`${OUT_DIR}/index.json`, 'utf8'));
+      const prev = previous;
       if (prev && (Object.keys(prev.gafor || {}).length || Object.keys(prev.balloon || {}).length)) {
         index.gafor = prev.gafor; index.overview = prev.overview || {}; index.balloon = prev.balloon;
         index.stale = prev.generated;

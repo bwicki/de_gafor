@@ -77,7 +77,7 @@ sw.js                       Offline: Shell cache-first, Daten network-first mit 
 | Was | Quelle | Weg |
 |---|---|---|
 | GAFOR-Codes, Flugwetterübersicht | DWD Luftsportberichte | GitHub Action → `data/dwd/index.json` |
-| Ballonwetterbericht | DWD Gebietsvorhersagen Ballonsport | GitHub Action → `data/dwd/index.json` |
+| Ballonwetterbericht (je Gebiet) | DWD Gebietsvorhersagen Ballonsport | GitHub Action → `data/dwd/index.json` |
 | METAR / TAF | NOAA Aviation Weather Center | direkt aus dem Browser (CORS erlaubt) |
 | Modellprognose, Ortssuche, Höhe | Open-Meteo | direkt aus dem Browser |
 | Ortsname zur Kartenmitte | Nominatim / OpenStreetMap | direkt aus dem Browser |
@@ -88,6 +88,24 @@ diese Seiten nicht selbst lesen. Der Workflow holt sie serverseitig, macht Text 
 committet das Ergebnis; die App liest es dann von der eigenen Origin. Nebeneffekt: die Berichte sind
 auch offline verfügbar, und `data/dwd/raw/*.txt` zeigt jederzeit, was der DWD tatsächlich geliefert
 hat — daran lässt sich der Parser ohne Raten verbessern.
+
+Drei Produkte, drei Zuschnitte:
+
+* **GAFOR-Codetabelle** — C/O/D/M/X je Gebiet und Zeitraum. Die Übersichtsseite zeigt immer nur
+  einen Bereich; was da steht, wird geparst.
+* **Flugwetterübersicht** — ein Prosabulletin je Bereich (`FBEU40 EDZH/EDZB/EDZE/EDZF/EDZM`), mit
+  Gültigkeitszeitraum und der Zeile `Vorhersagebereich: GAFOR-Gebiete …`, aus der die Zuordnung
+  Gebiet → Bulletin kommt.
+* **Ballonwetterbericht** — einer je GAFOR-Gebiet, 67 Stück (Gebiet 00 über See hat keinen). Die
+  Seiten stehen nicht als Links auf der Übersicht, sondern in deren anklickbarer Bildkarte; der
+  Fetcher liest Ziel, Name und Bezugshöhe aus den `<area>`-Tags. Nichts geraten, und eine
+  Umnummerierung beim DWD wird automatisch mitgenommen.
+
+67 Seiten dreimal pro Stunde wären unverhältnismässig für ein Produkt mit festen Ausgabezeiten,
+deshalb greift eine Altersschwelle: die Ballonberichte werden nur geholt, wenn der gespeicherte
+Stand älter als `BALLOON_MAX_AGE_H` (Vorgabe 4 h) ist, mit 120 ms Pause zwischen den Abrufen. Das
+sind rund 840 statt 4900 Abrufe pro Tag. `FORCE_BALLOON=1` — oder der Haken beim Handstart des
+Workflows — erzwingt einen Durchlauf.
 
 Der Fetcher bricht nie ab: was nicht klappt, landet in `index.json → errors[]`, und die App zeigt
 den Berichtstext dann eben unparsed an. Kommt ein Lauf ganz leer zurück, bleibt der letzte gute

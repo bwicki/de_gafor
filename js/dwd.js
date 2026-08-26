@@ -58,20 +58,16 @@ const DWD = (() => {
     return null;
   }
 
-  /** Balloon area forecast for an area — by its balloon region, else the first. */
+  /** Balloon area forecast — the DWD issues one per GAFOR area. */
   function balloonFor(area) {
-    if (!data || !data.balloon) return null;
-    const keys = Object.keys(data.balloon);
-    if (!keys.length) return null;
-    if (area && area.balloon && data.balloon[area.balloon]) return data.balloon[area.balloon];
-    if (area && area.office && data.balloon[area.office]) return data.balloon[area.office];
-    return null;
+    if (!data || !data.balloon || !area) return null;
+    return data.balloon[String(area.id)] || null;
   }
 
-  /** All balloon regions, for the manual picker in the report card. */
-  const balloonRegions = () => (data && data.balloon ? Object.keys(data.balloon) : []);
-  const balloon = (key) => (data && data.balloon ? data.balloon[key] : null);
+  /** Which areas have a balloon forecast at all (00 offshore has none). */
+  const balloonAreas = () => (data && data.balloon ? Object.keys(data.balloon).sort() : []);
+  const balloon = (id) => (data && data.balloon ? data.balloon[String(id)] : null);
 
   return { load, generated, errors, gaforFor, overviewFor, balloonFor,
-           balloonRegions, balloon, raw: () => data };
+           balloonAreas, balloon, raw: () => data };
 })();

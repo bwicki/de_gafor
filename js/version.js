@@ -12,8 +12,8 @@
  */
 const APP = {
   name: 'GaforCast',
-  version: '1.1.0',
+  version: '1.2.0',
   date: '2026-08-25',
-  cache: 'gaforcast-v1.1.0',      // muss identisch zu VERSION in sw.js sein
+  cache: 'gaforcast-v1.2.0',      // muss identisch zu VERSION in sw.js sein
   repo: 'https://github.com/bwicki/de_gafor',
 };

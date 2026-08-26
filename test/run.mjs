@@ -161,6 +161,30 @@ if (ovSample) {
     : bad(`Bereichsabdeckung: ${all.length} Einträge, ${new Set(all).size} eindeutig`);
 }
 
+// die Bildkarte, aus der die Ballonwetter-Seiten kommen
+try {
+  const mapHtml = await readFile('test/sample-balloonmap.txt', 'utf8');
+  const bSrc = src.slice(src.indexOf('const ENT ='), src.indexOf('const sleep ='));
+  const B = new Function(`${bSrc}; return { balloonTargets };`)();
+  const t = B.balloonTargets(mapHtml,
+    'https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_uebersicht.html');
+  t.length === 67 ? ok(`${t.length} Ballon-Gebiete aus der Bildkarte`)
+                  : bad(`${t.length} Ballon-Gebiete statt 67`);
+  const areas = JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas;
+  const meta = new Map(areas.map(a => [a.id, a]));
+  const wrongFt = t.filter(x => meta.get(x.id) && meta.get(x.id).refAltFt !== x.refAltFt);
+  wrongFt.length ? bad(`Bezugshöhen weichen ab: ${wrongFt.map(d => d.id).join(', ')}`)
+                 : ok('alle Bezugshöhen decken sich mit gafor-meta.json');
+  const missing = areas.map(a => a.id).filter(i => i !== '00' && !t.some(x => x.id === i));
+  missing.length ? bad(`ohne Ballonbericht: ${missing.join(', ')}`)
+                 : ok('jedes Landgebiet hat eine Ballon-Seite (00 = offene See hat keine)');
+  t.every(x => /\/node_\d{2}$/.test(x.url))
+    ? ok('URL-Muster …/gebietsvorhersagen_ballonsport/node_NN')
+    : bad(`abweichende URLs: ${t.filter(x => !/\/node_\d{2}$/.test(x.url)).slice(0, 3).map(x => x.url)}`);
+} catch (e) {
+  console.log(`  --   test/sample-balloonmap.txt fehlt (${e.message.slice(0, 40)})`);
+}
+
 // ---------------------------------------------------------------- 4. reference places
 head('Referenzorte');
 let refs = [];

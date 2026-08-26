@@ -5,6 +5,18 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.2.0 — 2026-08-25
+
+* **Ballonwetterbericht** angebunden. Die Zielseiten stehen nicht als Links auf der
+  Übersichtsseite, sondern in der anklickbaren Bildkarte; der Fetcher liest sie aus deren
+  `<area>`-Tags (`…/gebietsvorhersagen_ballonsport/node_45`, dazu Name und Bezugshöhe aus
+  dem `alt`). Damit gibt es keine geratenen URLs, und Umnummerierungen beim DWD werden
+  automatisch mitgenommen. 67 Gebiete haben einen Bericht — Gebiet 00 (Deutsche Bucht) nicht.
+* Die 67 Seiten werden nur geholt, wenn der gespeicherte Stand älter als vier Stunden ist
+  (`BALLOON_MAX_AGE_H`), mit 120 ms Pause zwischen den Abrufen. Das hält die Last bei rund
+  840 Abrufen pro Tag statt 4900. `FORCE_BALLOON=1` bzw. der Haken beim Handstart des
+  Workflows erzwingt einen sofortigen Durchlauf.
+
 ## 1.1.0 — 2026-08-25
 
 * **Flugwetterübersicht** als eigenes Produkt: die fünf Bereichsbulletins

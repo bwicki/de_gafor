@@ -384,43 +384,34 @@
   function renderBalloon() {
     const body = U.clear(U.$('balloonBody'));
     const age = U.$('balloonAge');
-    const b = DWD.balloonFor(state.area);
+    const a = state.area;
+    const b = DWD.balloonFor(a);
 
     if (!DWD.raw()) { age.textContent = ''; body.appendChild(note('Noch nicht geladen.')); return; }
+    if (!a) { age.textContent = ''; body.appendChild(note('Zuerst einen Ort in Deutschland wählen.')); return; }
+
     if (!b) {
       age.textContent = '';
-      const regions = DWD.balloonRegions();
-      body.appendChild(note(regions.length
-        ? 'Für dieses Gebiet ist kein Ballonwetterbericht zugeordnet. Verfügbare Regionen:'
+      const n = DWD.balloonAreas().length;
+      body.appendChild(note(n
+        ? `Für Gebiet ${a.id} liegt kein Ballonwetterbericht vor. ` +
+          `<span class="dim">(${n} Gebiete abrufbar — über der offenen See gibt es keinen.)</span>`
         : 'Zurzeit ist kein Ballonwetterbericht abrufbar.'));
-      if (regions.length) {
-        const row = U.el('div');
-        row.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;';
-        for (const r of regions) {
-          const c = U.el('button', 'chip', r);
-          c.onclick = () => showBalloon(DWD.balloon(r));
-          row.appendChild(c);
-        }
-        body.appendChild(row);
-      }
       return;
     }
-    showBalloon(b);
-  }
 
-  function showBalloon(b) {
-    const body = U.clear(U.$('balloonBody'));
-    const age = U.$('balloonAge');
-    if (!b) return;
-    age.textContent = b.issued ? `ausgegeben ${U.ago(b.issued)}` : '';
-    age.className = U.ageClass(b.issued, 300, 720);
-    if (b.title) {
-      const h = U.el('div', 'section-title', b.title);
-      h.style.marginBottom = '8px';
-      body.appendChild(h);
-    }
+    age.textContent = [`Gebiet ${b.id}`, b.issued ? U.ago(b.issued) : '',
+                       b.fetched ? `geholt ${U.ago(b.fetched)}` : ''].filter(Boolean).join(' · ');
+    age.className = U.ageClass(b.fetched, 360, 720);
+
+    const h = U.el('div', 'note');
+    h.style.marginBottom = '9px';
+    h.innerHTML = `<strong>${b.name || a.name || ''}</strong>` +
+      (b.refAltFt != null ? ` <span class="dim">· Bezugshöhe ${b.refAltFt} ft AMSL</span>` : '');
+    body.appendChild(h);
+
     body.appendChild(Object.assign(U.el('pre', 'report'), { textContent: b.text || '' }));
-    if (b.source) body.appendChild(sourceLine('DWD Ballonsport', b.source));
+    if (b.source) body.appendChild(sourceLine('DWD Gebietsvorhersage Ballonsport', b.source));
   }
 
   // ------------------------------------------------------------------ point data
