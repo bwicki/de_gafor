@@ -3,7 +3,7 @@
  * fallback, so the last state stays readable without a connection.
  * Bump VERSION on every deploy so installed clients pick up the new shell.
  */
-const VERSION = 'gaforcast-v1.14.0';   // muss APP.cache in js/version.js entsprechen
+const VERSION = 'gaforcast-v1.15.0';   // muss APP.cache in js/version.js entsprechen
 const SHELL = [
   './', './index.html',
   './css/base.css', './css/app.css',

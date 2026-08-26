@@ -23,6 +23,7 @@
     model2: U.load('model2', ''),             // zweites Modell zum Vergleich im Profil
     om2: null,
     autoRefresh: U.load('autoRefresh', 1),
+    fly: U.load('fly', null),                 // Startfenster-Schwellen, null = Vorgaben
     lastLoad: { model: 0, metar: 0, dwd: 0 },
     model: U.load('model', ''),               // '' = Auto-Mix, sonst ein Open-Meteo-Modell
   };
@@ -112,6 +113,7 @@
     U.$('mSettingsBtn').onclick = () => { menu.classList.add('hidden'); showSettings(); };
     U.$('setClose').onclick = hideSettings;
     U.$('setOk').onclick = applySettings;
+    U.$('flyReset').onclick = () => { state.fly = null; showFlyFields(); };
     U.$('setOverlay').onclick = (e) => { if (e.target === U.$('setOverlay')) hideSettings(); };
     U.$('mReloadBtn').onclick = () => { menu.classList.add('hidden'); reloadAll(); };
     U.$('reloadBtn').onclick = () => reloadAll();
@@ -787,6 +789,26 @@
       bar.appendChild(seg);
     }
     wrap.appendChild(bar);
+
+    /* Unter jedem Abschnitt seine Stufendefinition — Sicht und Untergrenze.
+       Sie war bis 1.14.0 nur in der Fusszeile des angetippten Abschnitts zu
+       sehen; für den Vergleich zweier Zeiträume musste man hin- und
+       herklicken. */
+    const defs = U.el('div', 'gdef-row');
+    for (let i = 0; i < b.periods.length; i++) {
+      const ci = GAFOR.codeInfo(b.codes[i] || '');
+      const d = U.el('div', `gdef ${ci.key}`);
+      if (ci.vis) {
+        d.appendChild(U.el('span', 'v', ci.vis));
+        d.appendChild(U.el('span', 'b', ci.base));
+      } else {
+        d.appendChild(U.el('span', 'v', '—'));
+      }
+      d.title = ci.desc || '';
+      defs.appendChild(d);
+    }
+    wrap.appendChild(defs);
+
     wrap.appendChild(foot);
     show(start);
     return wrap;
@@ -914,15 +936,176 @@
       const lines = text.split('\n').filter(l => l.trim());
       const aligned = lines.filter(l => /\S {2,}\S/.test(l)).length;
       const tabular = /\|/.test(text) || (lines.length > 1 && aligned >= lines.length / 2);
+      if (tabular) {
+        const tbl = parseTable(text);
+        out.push(tbl ? { table: tbl } : { tabular: true, text });
+        continue;
+      }
       /* Der DWD-Text ist auf etwa 68 Zeichen hart umbrochen, und die Umbrüche
          sitzen mitten im Satz — ein Artefakt der HTML-Umwandlung. In einer
          schmalen Spalte gäbe das lauter halbleere Zeilen, deshalb wird
          Fliesstext wieder zusammengefügt. */
-      out.push({ tabular,
-                 text: tabular ? text
-                               : text.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim() });
+      out.push({ tabular: false,
+                 text: text.replace(/\s*\n\s*/g, ' ').replace(/\s{2,}/g, ' ').trim() });
     }
     return out;
+  }
+
+  /* ---------------------------------------------------------- Berichtstabellen
+   * Höhenwind und Dämmerungszeiten kommen als ASCII-Tabellen mit „|" — in
+   * fester Breite gesetzt standen die Striche zwar da, aber die Zahlen darunter
+   * verrutschten, sobald ein Ortsname länger war. Deshalb werden sie in eine
+   * **echte Tabelle** überführt; die Spalten richten sich dann von selbst aus.
+   *
+   * Zwei Regeln machen das allgemein genug für beide Formen:
+   *
+   *  1. **Spalte teilen.** Steht in allen Datenzellen einer Spalte ein Paar,
+   *     getrennt durch zwei oder mehr Leerzeichen („010/05KT  20C",
+   *     „Gießen  18.24"), wird die Spalte in zwei geteilt; die Kopfzelle
+   *     bekommt colspan 2.
+   *  2. **Kurze Zeile spannen.** Hat eine Zeile weniger Zellen als die Tabelle
+   *     breit ist und geht die Breite glatt auf, wird gleichmässig gespannt —
+   *     so steht „heute | morgen" über je zwei Zeitspalten.
+   *
+   * Zeilen ohne „|" nach der letzten Tabellenzeile sind Fussnoten
+   * („BDA/BDE = Anfang/Ende Bürgerliche Dämmerung") und bleiben Text.
+   */
+  function parseTable(text) {
+    const all = text.split('\n').filter(l => l.trim());
+    const lastPipe = all.map(l => l.includes('|')).lastIndexOf(true);
+    if (lastPipe < 0) return null;
+    const foot = all.slice(lastPipe + 1);
+    const body = all.slice(0, lastPipe + 1).filter(l => l.includes('|'));
+    if (body.length < 2) return null;
+
+    let rows = body.map(l => {
+      const cells = l.split('|').map(c => c.trim());
+      while (cells.length && cells[cells.length - 1] === '') cells.pop();
+      return cells;
+    }).filter(r => r.length);
+    if (rows.length < 2) return null;
+
+    const width0 = Math.max(...rows.map(r => r.length));
+
+    // --- 1. Spalten teilen, wo jede Datenzelle ein Paar enthält ---
+    const full = rows.slice(1).filter(r => r.length === width0);
+    const split = [];
+    for (let c = 0; c < width0; c++) {
+      const head = rows[0][c] || '';
+      const ok = full.length >= 1 && full.every(r => /\S {2,}\S/.test(r[c] || '')) &&
+                 !/\S {2,}\S/.test(head);
+      split.push(ok);
+    }
+    if (split.some(Boolean)) {
+      rows = rows.map((r, ri) => {
+        if (r.length !== width0) return r.map(t => ({ t }));   // kurze Zeilen später spannen
+        const out2 = [];
+        for (let c = 0; c < width0; c++) {
+          if (!split[c]) { out2.push({ t: r[c] }); continue; }
+          if (ri === 0) { out2.push({ t: r[c], span: 2 }); continue; }
+          const m = /^(.*\S) {2,}(\S.*)$/.exec(r[c]);
+          if (m) { out2.push({ t: m[1] }); out2.push({ t: m[2] }); }
+          else { out2.push({ t: r[c], span: 2 }); }
+        }
+        return out2;
+      });
+    } else {
+      rows = rows.map(r => r.map(t => ({ t })));
+    }
+
+    // --- 2. kurze Zeilen gleichmässig spannen ---
+    const cols = Math.max(...rows.map(r => r.reduce((a, c) => a + (c.span || 1), 0)));
+    rows = rows.map(r => {
+      const n = r.reduce((a, c) => a + (c.span || 1), 0);
+      if (n >= cols) return r;
+      if ((cols - 1) % r.length === 0) {                    // eine Namensspalte davor frei lassen
+        const span = (cols - 1) / r.length;
+        return [{ t: '' }].concat(r.map(c => ({ t: c.t, span })));
+      }
+      if (cols % r.length === 0) {
+        const span = cols / r.length;
+        return r.map(c => ({ t: c.t, span }));
+      }
+      return r.concat(Array.from({ length: cols - n }, () => ({ t: '' })));
+    });
+
+    return { head: rows[0], body: rows.slice(1), foot };
+  }
+
+  /** Grobes Gewicht einer Tabelle für die erste Spaltenschätzung. */
+  const tableWeight = (t) => (t.body.length + 1) * 70 + t.foot.length * 40;
+
+  /** Eine geparste Berichtstabelle als <table>. */
+  function reportTable(tbl) {
+    const wrap = U.el('div', 'report-tbl fc-scroll');
+    const t = U.el('table', 'rt');
+    const mkRow = (cells, tag) => {
+      const tr = U.el('tr');
+      for (const c of cells) {
+        const td = U.el(tag, /^[\d.,+-]/.test(c.t) ? 'num' : '', c.t);
+        if (c.span > 1) td.colSpan = c.span;
+        tr.appendChild(td);
+      }
+      return tr;
+    };
+    const thead = U.el('thead'); thead.appendChild(mkRow(tbl.head, 'th')); t.appendChild(thead);
+    const tb = U.el('tbody');
+    for (const r of tbl.body) tb.appendChild(mkRow(r, 'td'));
+    t.appendChild(tb);
+    wrap.appendChild(t);
+    for (const f of tbl.foot) wrap.appendChild(U.el('div', 'rt-foot', f.trim()));
+    return wrap;
+  }
+
+  /** "54 - 58, 63, 64" → ['54','55',…]. Leere Liste, wenn nichts zu holen ist. */
+  function expandAreaList(spec) {
+    const ids = [];
+    for (const part of String(spec || '').split(',')) {
+      const r = part.trim().match(/^(\d{2})\s*(?:bis|-|–)\s*(\d{2})$/i);
+      if (r) { for (let i = +r[1]; i <= +r[2]; i++) ids.push(String(i).padStart(2, '0')); continue; }
+      const one = part.trim().match(/^(\d{2})$/);
+      if (one) ids.push(one[1]);
+    }
+    return [...new Set(ids)];
+  }
+
+  /**
+   * Gilt dieser Abschnitt für das gewählte Gebiet?
+   *
+   * Der Höhenwind steht je Bereich in zwei oder drei Tabellen, jede mit einer
+   * Überschrift wie „GAFOR-Gebiete 54 - 58, 63, 64". Zwei davon gehen den
+   * Nutzer nichts an. Lässt sich die Liste nicht lesen oder ist kein Gebiet
+   * bestimmt, bleibt der Abschnitt stehen — lieber zu viel als das Falsche weg.
+   */
+  function blockForArea(b) {
+    const a = state.area;
+    if (!a) return true;
+    const m = /GAFOR[- ]Gebiete?\s+(.+)$/i.exec(String(b.title || ''));
+    if (!m) return true;
+    const ids = expandAreaList(m[1]);
+    return !ids.length || ids.includes(String(a.id));
+  }
+
+  /**
+   * Abschnitte auf das gewählte Gebiet eindampfen. Fallen dabei alle
+   * Untertabellen einer Überschrift weg („Höhenwind und -temperatur" ohne die
+   * Gebietstabellen darunter), bliebe eine leere Überschrift stehen — dort
+   * kommt stattdessen ein Satz hin, der sagt, warum nichts da ist.
+   */
+  function forThisArea(blocks) {
+    const keep = blocks.filter(blockForArea);
+    const a = state.area;
+    return keep.map((b, i) => {
+      if (b.parts.length || !b.title) return b;
+      const next = keep[i + 1];
+      const dropped = blocks.some(x => x !== b && /GAFOR[- ]Gebiete?/i.test(x.title || '') &&
+                                       !keep.includes(x));
+      if (!dropped) return b;
+      if (next && /GAFOR[- ]Gebiete?/i.test(next.title || '')) return b;
+      return { title: b.title, parts: [{ tabular: false,
+        text: `Für Gebiet ${a ? a.id : '—'} steht in diesem Bulletin keine eigene Tabelle; ` +
+              'die übrigen des Bereichs gelten für andere Gebiete.' }] };
+    });
   }
 
   /**
@@ -938,7 +1121,7 @@
    * der ausgewogenste.
    */
   function renderReport(parent, text) {
-    const blocks = reportBlocks(text);
+    const blocks = forThisArea(reportBlocks(text));
     if (blocks.length < 2) {
       parent.appendChild(Object.assign(U.el('pre', 'report'), { textContent: text }));
       return;
@@ -949,9 +1132,9 @@
       const g = [];
       if (b.title) g.push(U.el('h4', 'report-h', b.title));
       for (const part of b.parts) {
-        g.push(part.tabular
-          ? Object.assign(U.el('pre', 'report'), { textContent: part.text })
-          : U.el('p', 'report-p', part.text));
+        if (part.table) g.push(reportTable(part.table));
+        else if (part.tabular) g.push(Object.assign(U.el('pre', 'report'), { textContent: part.text }));
+        else g.push(U.el('p', 'report-p', part.text));
       }
       return g;
     });
@@ -969,7 +1152,7 @@
     /* Startaufteilung nach Zeichenzahl — nur, damit nichts flackert, bevor
        gemessen werden kann. Die Feineinstellung macht balanceReport(). */
     const len = blocks.map(b => b.title.length + 2 +
-      b.parts.reduce((a, p) => a + p.text.length, 0));
+      b.parts.reduce((a, p) => a + (p.table ? tableWeight(p.table) : p.text.length), 0));
     const total = len.reduce((a, v) => a + v, 0);
     let run = 0, k0 = blocks.length - 1;
     for (let i = 0; i < blocks.length - 1; i++) {
@@ -1414,7 +1597,7 @@
     const rec = OM.at(j, i);
     const off = (j.utc_offset_seconds || 0) * 1000;
     const ms = Date.parse(j.hourly.time[i] + ':00Z') - off;
-    return OM.flyRating(rec, SUN.isDaylight(state.lat, state.lon, ms));
+    return OM.flyRating(rec, SUN.isDaylight(state.lat, state.lon, ms), state.fly);
   }
 
   function renderFly() {
@@ -1472,24 +1655,38 @@
     }
     body.appendChild(strip);
 
-    // --- die nächsten fahrbaren Fenster ---
-    const win = flyWindows(j, i0, last).slice(0, 3);
-    const list = U.el('div', 'fly-list');
-    if (!win.length) {
-      list.appendChild(U.el('div', 'fly-none',
-        `Bis +${reach} h keine durchgehend fahrbare Stunde.`));
-    } else {
-      for (const w of win) {
-        const row = U.el('div', 'fly-win');
-        row.innerHTML =
-          `<span class="d">${stampOf(j.hourly.time[w.from], '').replace(' · ', ' ')}</span>` +
-          `<span class="t">bis ${j.hourly.time[w.to].slice(11, 16)} ${j.timezone_abbreviation || ''}</span>` +
-          `<span class="n">${w.to - w.from + 1} h</span>`;
-        row.onclick = () => { state.hour = w.from - i0; U.$('timeSlider').value = String(state.hour); repaintForHour(); };
-        list.appendChild(row);
+    /* --- die fahrbaren Fenster, zeitlich unter dem Streifen ---
+       Sie standen bis 1.14.0 als drei Kästchen untereinander; damit musste man
+       aus einer Uhrzeit erst zurückrechnen, wo im Streifen das Fenster liegt.
+       Als Balken direkt darunter liegen sie da, wo sie hingehören. */
+    const wins = flyWindows(j, i0, last);
+    const lane = U.el('div', 'fly-lane');
+    const span = Math.max(1, last - i0);
+    for (const w of wins) {
+      const bar = U.el('button', 'fly-bar');
+      bar.style.left = `${((w.from - i0) / span) * 100}%`;
+      bar.style.width = `${Math.max(0.8, ((w.to - w.from + 1) / span) * 100)}%`;
+      const h = w.to - w.from + 1;
+      /* Der Balken ist so breit wie das Fenster lang — bei einer Stunde also
+         ein Strich. Was nicht hineinpasst, wird weggelassen statt abgeschnitten;
+         vollständig steht alles im Tooltip. */
+      const pct = ((w.to - w.from + 1) / span) * 100;
+      if (pct >= 9) {
+        bar.innerHTML = `<span class="h">${j.hourly.time[w.from].slice(11, 16)}–` +
+          `${j.hourly.time[w.to].slice(11, 16)}</span><span class="n">${h} h</span>`;
+      } else if (pct >= 3.5) {
+        bar.appendChild(U.el('span', 'n', `${h} h`));
       }
+      bar.title = `${stampOf(j.hourly.time[w.from], j.timezone_abbreviation)} bis ` +
+        `${j.hourly.time[w.to].slice(11, 16)} — ${h} Stunde${h === 1 ? '' : 'n'} fahrbar`;
+      bar.onclick = () => { state.hour = w.from - i0; U.$('timeSlider').value = String(state.hour); repaintForHour(); };
+      lane.appendChild(bar);
     }
-    body.appendChild(list);
+    if (!wins.length) {
+      lane.appendChild(U.el('div', 'fly-none',
+        `Bis +${reach} h keine durchgehend fahrbare Stunde.`));
+    }
+    body.appendChild(lane);
 
     body.appendChild(explainNote(
       'Eigene Einschätzung aus dem Punktmodell, <strong>keine DWD-Aussage</strong>. ' +
@@ -2071,9 +2268,59 @@
     U.$('setEns').value = state.showEns ? '1' : '0';
     U.$('setRh').value = String(state.rhStart);
     U.$('setAuto').value = state.autoRefresh ? '1' : '0';
+    showFlyFields();
     U.$('setOverlay').classList.remove('hidden');
   }
   const hideSettings = () => U.$('setOverlay').classList.add('hidden');
+
+  /* Die Startfenster-Schwellen liegen intern in m/s (so liefert das Modell
+     sie); im Dialog stehen sie in der gewählten Windeinheit. */
+  const FLY_FIELDS = [
+    ['flyWind1', 'wind', 0, true], ['flyWind2', 'wind', 1, true],
+    ['flyGust1', 'gust', 0, true], ['flyGust2', 'gust', 1, true],
+    ['flySpread1', 'gustSpread', 0, true], ['flySpread2', 'gustSpread', 1, true],
+    ['flyCape1', 'cape', 0, false], ['flyCape2', 'cape', 1, false],
+  ];
+  const FLY_SINGLE = [['flyPrecip', 'precip'], ['flyVis', 'visKm'], ['flyBase', 'baseFt']];
+
+  function showFlyFields() {
+    const L = OM.flyLimits(state.fly);
+    const f = U.MS_TO[state.unit];
+    for (const [id, key, idx, isWind] of FLY_FIELDS) {
+      U.$(id).value = isWind ? String(Math.round(L[key][idx] * f * 10) / 10) : String(L[key][idx]);
+    }
+    for (const [id, key] of FLY_SINGLE) U.$(id).value = String(L[key]);
+    U.$('flyLight').value = L.needLight ? '1' : '0';
+    // Einheit an die Beschriftungen
+    const u = U.unitLabel[state.unit];
+    for (const [id, label] of [['flyWind1', 'Bodenwind'], ['flyGust1', 'Böen'],
+                               ['flySpread1', 'Böigkeit']]) {
+      const lab = document.querySelector(`label[for="${id}"]`);
+      if (lab) lab.textContent = `${label} ${u}`;
+    }
+  }
+
+  function readFlyFields() {
+    const L = OM.flyLimits(state.fly);
+    const f = U.MS_TO[state.unit];
+    const out = { wind: [...L.wind], gust: [...L.gust], gustSpread: [...L.gustSpread],
+                  cape: [...L.cape] };
+    for (const [id, key, idx, isWind] of FLY_FIELDS) {
+      const v = parseFloat(U.$(id).value);
+      if (!isFinite(v) || v < 0) continue;
+      out[key][idx] = isWind ? v / f : v;
+    }
+    // „nein ab" darf nicht unter „grenzwertig ab" rutschen
+    for (const k of ['wind', 'gust', 'gustSpread', 'cape']) {
+      if (out[k][1] < out[k][0]) out[k][1] = out[k][0];
+    }
+    for (const [id, key] of FLY_SINGLE) {
+      const v = parseFloat(U.$(id).value);
+      if (isFinite(v) && v >= 0) out[key] = v;
+    }
+    out.needLight = U.$('flyLight').value === '1' ? 1 : 0;
+    return out;
+  }
 
   function applySettings() {
     const rad = +U.$('setRadius').value;
@@ -2093,6 +2340,7 @@
     state.altUnit = U.$('setAlt').value; U.save('altUnit', state.altUnit);
     state.showEns = ens ? 1 : 0; U.save('showEns', state.showEns);
     state.rhStart = STUEVE.rhStartOf(+U.$('setRh').value); U.save('rhStart', state.rhStart);
+    state.fly = readFlyFields(); U.save('fly', state.fly);
     state.autoRefresh = U.$('setAuto').value === '1' ? 1 : 0;
     U.save('autoRefresh', state.autoRefresh);
     startAutoRefresh();
@@ -2107,7 +2355,7 @@
     if (ensAgain) only.push('ens');
     if (only.length) loadPointData(true, only);
     if (!metarAgain) renderMetar();
-    if (!modelAgain) { renderModel(); renderWind(); }
+    if (!modelAgain) { renderModel(); renderWind(); renderFly(); }
   }
 
   // ------------------------------------------------------------------ favourites

@@ -5,6 +5,37 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.15.0 — 2026-08-26
+
+* **Die Tabellen im Flugwetterbericht sind jetzt echte Tabellen.** Höhenwind und
+  Dämmerungszeiten kamen als ASCII-Kunstwerk mit „|": die Striche standen zwar da, aber die
+  Zahlen darunter verrutschten, sobald ein Ortsname länger war. Sie werden nun geparst und
+  als `<table>` gesetzt, die Spalten richten sich damit von selbst aus. Zwei Regeln machen
+  das allgemein genug für beide Formen: eine **Spalte wird geteilt**, wenn alle Datenzellen
+  ein durch zwei Leerzeichen getrenntes Paar enthalten („010/05KT  20C", „Gießen  18.24") —
+  die Kopfzelle bekommt dann colspan 2; und eine **kurze Zeile wird gespannt**, wenn die
+  Breite glatt aufgeht — so steht „heute | morgen" über je zwei Zeitspalten. Zeilen ohne „|"
+  darunter sind Fussnoten und bleiben Text.
+* **Nur noch die Höhenwindtabelle des eigenen Gebiets.** Ein Bereichsbulletin enthält zwei
+  oder drei, jede mit einer Überschrift wie „GAFOR-Gebiete 54 - 58, 63, 64". Die anderen
+  gehen einen nichts an und fallen weg. Ist für das Gebiet keine dabei, steht das als Satz
+  da statt einer leeren Überschrift. Lässt sich die Liste nicht lesen, bleibt alles stehen —
+  lieber zu viel als das Falsche weg.
+* Zwischen dem Text eines Abschnitts und einer darauf folgenden Tabelle steht jetzt Luft.
+* **Startfenster: die fahrbaren Fenster liegen als Balken unter dem Streifen**, an genau
+  der Stelle, an der sie zeitlich liegen — statt als drei Kästchen untereinander, aus denen
+  man erst zurückrechnen musste. Was nicht in den Balken passt, wird weggelassen statt
+  abgeschnitten; vollständig steht alles im Tooltip.
+* **Die Startfenster-Schwellen stehen in den Einstellungen.** Bodenwind, Böen, Böigkeit und
+  CAPE je zweimal (grenzwertig ab / nein ab), dazu Niederschlag, Mindestsicht,
+  Mindest-Wolkenbasis und ob die bürgerliche Dämmerung Pflicht ist. Windangaben in der
+  gewählten Einheit; „nein ab" rutscht nie unter „grenzwertig ab". Ein Knopf stellt die
+  Vorgaben wieder her.
+* **Unter jedem GAFOR-Abschnitt steht seine Stufendefinition** — Sicht und Untergrenze in
+  einem eigenen kleinen Kästchen, bündig unter dem Farbfeld. Bisher stand sie nur in der
+  Fusszeile des angetippten Abschnitts; für den Vergleich zweier Zeiträume musste man hin-
+  und herklicken.
+
 ## 1.14.0 — 2026-08-26
 
 Sechs neue Funktionen aus der Vorschlagsliste.

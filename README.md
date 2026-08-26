@@ -111,7 +111,10 @@ Die **GAFOR-Stufen** stehen als durchgehendes **Zeitband**: ein Abschnitt je Zei
 Farbe seiner Stufe, mit Code und Uhrzeit; der laufende Zeitraum ist kräftiger gefüllt und
 amber unterstrichen. Sicht, Untergrenze und ein etwaiger Zusatz stehen in der Fusszeile
 darunter — für den Abschnitt, den man antippt, sonst für den laufenden. Ein kleiner Punkt
-oben rechts markiert die Abschnitte, zu denen ein Zusatz vorliegt. So braucht die Reihe rund
+oben rechts markiert die Abschnitte, zu denen ein Zusatz vorliegt. **Unter jedem Abschnitt**
+steht ausserdem seine Stufendefinition (Sicht und Untergrenze) in einem eigenen kleinen
+Kästchen, bündig unter dem Farbfeld — so lassen sich zwei Zeiträume vergleichen, ohne
+hin- und herzuklicken. So braucht die Reihe rund
 ein Viertel der Höhe der früheren Kacheln und wächst auch bei sechs Zeiträumen nicht in eine
 zweite Zeile.
 
@@ -119,11 +122,15 @@ zweite Zeile.
 
 Die oberste Karte beantwortet die Frage, mit der man die App öffnet: **kann ich starten?**
 Je Stunde eine Ampel — *fahrbar*, *grenzwertig*, *nein* — mit dem Grund dahinter, ein
-Streifen über den ganzen Vorhersagezeitraum und darunter die nächsten drei durchgehend
-fahrbaren Fenster mit Dauer. Ein Klick auf eine Stunde oder ein Fenster setzt den
-Zeitschieber dorthin.
+Streifen über den ganzen Vorhersagezeitraum und darunter die durchgehend fahrbaren Fenster.
+Ein Klick auf eine Stunde oder ein Fenster setzt den Zeitschieber dorthin.
 
-Bewertet wird (Schwellen in `OM.flyRating`):
+Unter dem Streifen liegen die **fahrbaren Fenster als Balken** — an genau der Stelle, an
+der sie zeitlich liegen, statt als Liste, aus der man erst zurückrechnen müsste. Was nicht
+in den Balken passt, wird weggelassen; vollständig steht alles im Tooltip.
+
+Bewertet wird (Vorgaben in `OM.FLY_DEFAULTS`, änderbar unter Menü → Einstellungen →
+*Startfenster*):
 
 | Grösse | grenzwertig ab | nein ab |
 |---|---|---|
@@ -135,6 +142,10 @@ Bewertet wird (Schwellen in `OM.flyRating`):
 | Sicht | Nebelrisiko mässig | 1,5 km |
 | Wolkenbasis | 1000 ft AGL | — |
 | Dämmerung | — | ausserhalb |
+
+Alle Schwellen lassen sich in den Einstellungen ändern; Windangaben stehen dort in der
+gewählten Einheit, gespeichert wird intern in m/s. „nein ab" rutscht nie unter
+„grenzwertig ab", und ein Knopf stellt die Vorgaben wieder her.
 
 Das ist eine **eigene Einschätzung aus dem Punktmodell, keine DWD-Aussage**; der Hinweis
 steht auch unter der Karte. Massgebend bleibt die amtliche Beratung und die Einschätzung
@@ -427,10 +438,22 @@ Drei Produkte, drei Zuschnitte:
   Eine Schätzung über die Zeichenzahl lag verlässlich daneben — Überschriften haben Abstände und
   eine Höhenwindtabelle wiegt pro Zeichen ein Vielfaches. Ändert sich die Fensterbreite, wird neu
   ausgemessen; im Ausdruck fliesst der Text stattdessen dreispaltig über den Seitenrand.
-  Die **feste Breite** bekommen nur Absätze, die selbst ein `|` enthalten oder deren Zeilen
-  mit mehrfachen Leerzeichen ausgerichtet sind — also die Höhenwindtabellen und die
-  Dämmerungszeiten. Alles andere, auch der Prosaabsatz unter „Inversionen", steht in der
-  Grundschrift.
+
+  Absätze mit `|` oder mit mehrfach ausgerichteten Zeilen — die **Höhenwindtabellen** und die
+  **Dämmerungszeiten** — werden als **echte Tabellen** gesetzt, nicht als Text in fester
+  Breite: nur so richten sich die Spalten von selbst aus, statt unter unterschiedlich langen
+  Ortsnamen zu verrutschen. Zwei Regeln machen den Parser allgemein genug für beide Formen:
+  eine **Spalte wird geteilt**, wenn alle Datenzellen ein durch zwei Leerzeichen getrenntes
+  Paar enthalten (`010/05KT  20C`, `Gießen  18.24`) — die Kopfzelle bekommt dann `colspan 2`;
+  und eine **kurze Zeile wird gespannt**, wenn die Breite glatt aufgeht, so dass
+  `heute | morgen` über je zwei Zeitspalten steht. Zeilen ohne `|` unterhalb der Tabelle sind
+  Fussnoten und bleiben Text.
+
+  Vom **Höhenwind** enthält ein Bereichsbulletin zwei oder drei Tabellen, jede mit einer
+  Überschrift wie `GAFOR-Gebiete 54 - 58, 63, 64`. Angezeigt wird nur die des eigenen
+  Gebiets; ist keine dabei, steht das als Satz da statt einer leeren Überschrift. Lässt sich
+  die Liste nicht lesen oder ist kein Gebiet bestimmt, bleibt alles stehen — lieber zu viel
+  als das Falsche weg.
 * **Ballonwetterbericht** — einer je GAFOR-Gebiet, 67 Stück (Gebiet 00 über See hat keinen). Die
   Seiten stehen nicht als Links auf der Übersicht, sondern in deren anklickbarer Bildkarte; der
   Fetcher liest Ziel, Name und Bezugshöhe aus den `<area>`-Tags. Nichts geraten, und eine

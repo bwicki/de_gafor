@@ -324,6 +324,55 @@
         Stüve-Diagramm und in der Spalte <em>rF</em> schattiert; bis 100 % wird die
         Schattierung kräftiger.</div>
 
+      <h3 class="set-h">Startfenster</h3>
+      <div class="note">Ab welchen Werten eine Stunde <em>grenzwertig</em> und ab welchen
+        <em>nein</em> ist. Windangaben in der oben gewählten Einheit.</div>
+
+      <div class="set-grid">
+        <span></span><span class="set-c">grenzwertig ab</span><span class="set-c">nein ab</span>
+
+        <label for="flyWind1">Bodenwind</label>
+        <input id="flyWind1" type="number" min="0" step="0.5" inputmode="decimal">
+        <input id="flyWind2" type="number" min="0" step="0.5" inputmode="decimal">
+
+        <label for="flyGust1">Böen</label>
+        <input id="flyGust1" type="number" min="0" step="0.5" inputmode="decimal">
+        <input id="flyGust2" type="number" min="0" step="0.5" inputmode="decimal">
+
+        <label for="flySpread1">Böigkeit</label>
+        <input id="flySpread1" type="number" min="0" step="0.5" inputmode="decimal">
+        <input id="flySpread2" type="number" min="0" step="0.5" inputmode="decimal">
+
+        <label for="flyCape1">CAPE J/kg</label>
+        <input id="flyCape1" type="number" min="0" step="50" inputmode="numeric">
+        <input id="flyCape2" type="number" min="0" step="50" inputmode="numeric">
+      </div>
+
+      <div class="set-grid two">
+        <label for="flyPrecip">Niederschlag mm/h — nein ab</label>
+        <input id="flyPrecip" type="number" min="0" step="0.1" inputmode="decimal">
+
+        <label for="flyVis">Sicht km — nein unter</label>
+        <input id="flyVis" type="number" min="0" step="0.5" inputmode="decimal">
+
+        <label for="flyBase">Wolkenbasis ft AGL — grenzwertig unter</label>
+        <input id="flyBase" type="number" min="0" step="100" inputmode="numeric">
+      </div>
+
+      <label class="field">
+        <span>Nur innerhalb der Dämmerung</span>
+        <select id="flyLight">
+          <option value="1">ja</option>
+          <option value="0">nein</option>
+        </select>
+      </label>
+
+      <div class="modal-actions" style="margin-top:10px">
+        <button class="btn small" id="flyReset" type="button">Vorgaben zurücksetzen</button>
+      </div>
+
+      <h3 class="set-h">Daten</h3>
+
       <label class="field">
         <span>Automatisch nachladen</span>
         <select id="setAuto">

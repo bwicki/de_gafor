@@ -372,13 +372,38 @@ await page.waitForTimeout(300);
     (await page.locator('#gaforBody .report-h').count()) >= 2
       ? ok('Abschnittstitel sind eigene, fette Überschriften')
       : bad('keine Abschnittstitel');
-    /* Nur echte Tabellen dürfen in der festen Breite stehen. Bis 1.13.0 kippte
-       ein ganzer Abschnitt in die Schreibmaschinenschrift, sobald irgendwo
-       darin ein „|" vorkam — „Inversionen" traf es jedes Mal. */
-    const pres = await page.locator('#gaforBody pre.report').allInnerTexts();
-    pres.length >= 1 && pres.every(t => /\|/.test(t))
-      ? ok(`${pres.length} Blöcke in fester Breite, alle mit Tabellenzeichen`)
-      : bad(`Blöcke fester Breite: ${pres.map(t => t.slice(0, 30)).join(' / ')}`);
+    /* Tabellen werden als echte Tabellen gesetzt, nicht als Textblock in
+       fester Breite — sonst verrutschen die Zahlen unter unterschiedlich
+       langen Ortsnamen. Ein <pre> darf gar nicht mehr vorkommen. */
+    (await page.locator('#gaforBody pre.report').count()) === 0
+      ? ok('keine ASCII-Tabellen mehr im Bericht') : bad('es steht noch ein <pre> im Bericht');
+    const tbl = page.locator('#gaforBody table.rt');
+    (await tbl.count()) >= 1
+      ? ok(`${await tbl.count()} Berichtstabelle(n) als echte Tabelle gesetzt`)
+      : bad('keine Berichtstabelle');
+    // Kopfzelle mit colspan: „21 UTC" steht über Wind und Temperatur
+    (await page.locator('#gaforBody table.rt th[colspan="2"]').count()) >= 1
+      ? ok('Kopfzellen spannen über die geteilten Spalten') : bad('kein colspan im Tabellenkopf');
+    // nur die Höhenwindtabelle des eigenen Gebiets bleibt stehen
+    const heads = await page.locator('#gaforBody .report-h').allInnerTexts();
+    const areas = heads.filter(h => /GAFOR-Gebiete/.test(h));
+    const areaId = (await page.locator('#areaNum').innerText()).trim();
+    areas.length <= 1
+      ? ok(`${areas.length} Höhenwindtabelle für Gebiet ${areaId} statt aller drei` +
+           (areas.length ? `: „${areas[0]}"` : ''))
+      : bad(`Gebietstabellen: ${areas.join(' | ')}`);
+    if (areas.length === 1) {
+      const list = /GAFOR-Gebiete\s+(.+)$/.exec(areas[0])[1];
+      const ids = list.split(',').flatMap(p2 => {
+        const r = p2.trim().match(/^(\d{2})\s*[-–]\s*(\d{2})$/);
+        if (!r) return [p2.trim()];
+        const o = []; for (let i = +r[1]; i <= +r[2]; i++) o.push(String(i).padStart(2, '0'));
+        return o;
+      });
+      ids.includes(areaId)
+        ? ok(`Gebiet ${areaId} kommt in der stehengebliebenen Liste vor`)
+        : bad(`Gebiet ${areaId} nicht in „${list}"`);
+    }
     const inv = await page.locator('#gaforBody .report-p')
       .filter({ hasText: 'Inversion' }).count();
     inv >= 1
@@ -557,6 +582,69 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
     ? ok('Klick in den Streifen setzt den Zeitschieber') : bad(`Schieber: ${before} → ${after}`);
   await page.locator('#timeNow').click();
   await page.waitForTimeout(300);
+}
+
+// Startfenster-Schwellen in den Einstellungen
+{
+  const lane = page.locator('#flyBody .fly-lane .fly-bar');
+  const n0 = await lane.count();
+  n0 >= 1 ? ok(`${n0} fahrbare Fenster als Balken unter dem Streifen`)
+          : bad('keine Fensterbalken');
+  {
+    const b0 = await lane.first().boundingBox();
+    const strip = await page.locator('#flyBody .fly-strip').boundingBox();
+    const cells = await page.locator('#flyBody .fly-cell').count();
+    const firstOk = await page.locator('#flyBody .fly-cell.ok').first().boundingBox();
+    b0 && strip && firstOk && Math.abs(b0.x - firstOk.x) < strip.width / cells + 3
+      ? ok('der erste Balken steht über der ersten fahrbaren Stunde')
+      : bad(`Balken x=${b0 && Math.round(b0.x)}, erste grüne Zelle x=${firstOk && Math.round(firstOk.x)}`);
+  }
+  (await page.locator('#flyBody .fly-win').count()) === 0
+    ? ok('keine Kästchenliste mehr') : bad('die alte Fensterliste steht noch da');
+
+  const green = () => page.locator('#flyBody .fly-cell.ok').count();
+  const g0 = await green();
+  await page.locator('#menuBtn').click();
+  await page.locator('#mSettingsBtn').click();
+  await page.waitForTimeout(150);
+  (await page.locator('#flyWind1').inputValue()) !== ''
+    ? ok(`Schwellen stehen im Dialog (Bodenwind grenzwertig ab ${await page.locator('#flyWind1').inputValue()})`)
+    : bad('keine Startfensterschwellen im Dialog');
+  await page.locator('#flyWind1').fill('0.5');
+  await page.locator('#flyWind2').fill('1');
+  await page.locator('#setOk').click();
+  await page.waitForTimeout(600);
+  const g1 = await green();
+  g1 < g0
+    ? ok(`strengere Windschwelle lässt ${g1} statt ${g0} fahrbare Stunden übrig`)
+    : bad(`Schwelle wirkt nicht: ${g0} → ${g1}`);
+
+  await page.locator('#menuBtn').click();
+  await page.locator('#mSettingsBtn').click();
+  await page.waitForTimeout(150);
+  await page.locator('#flyReset').click();
+  await page.locator('#setOk').click();
+  await page.waitForTimeout(600);
+  (await green()) === g0
+    ? ok('„Vorgaben zurücksetzen" stellt den alten Stand her') : bad('Zurücksetzen wirkt nicht');
+}
+
+// Definitionen unter dem GAFOR-Band
+{
+  const defs = page.locator('#tileBody .gdef');
+  const segs = await page.locator('#tileBody .gseg').count();
+  (await defs.count()) === segs
+    ? ok(`je Abschnitt ein Kästchen mit der Stufendefinition (${segs})`)
+    : bad(`Definitionen: ${await defs.count()} zu ${segs} Abschnitten`);
+  const txt = await defs.first().innerText();
+  /km/.test(txt) && /ft/.test(txt)
+    ? ok(`Definition nennt Sicht und Untergrenze: „${txt.replace(/\n/g, ' · ')}"`)
+    : bad(`Definitionstext: ${txt}`);
+  const s0 = await page.locator('#tileBody .gseg').first().boundingBox();
+  const d0 = await defs.first().boundingBox();
+  s0 && d0 && Math.abs(s0.x - d0.x) < 3 && d0.y > s0.y
+    ? ok('die Definition steht bündig unter ihrem Abschnitt')
+    : bad('Definition ist nicht ausgerichtet');
 }
 
 // Vergleichsmodell im Stüve

@@ -227,7 +227,8 @@ const OM = (() => {
    * bewusst einfach: sie ersetzt keine Beratung, sondern sagt, welche Stunden
    * man überhaupt anschauen muss.
    *
-   * Die Schwellen sind die üblichen Werte für den Heissluftballon:
+   * Die Schwellen sind die üblichen Werte für den Heissluftballon und in den
+   * Einstellungen änderbar (FLY_DEFAULTS):
    *   Bodenwind   bis 4 m/s gut, bis 6 m/s grenzwertig, darüber nein
    *   Böen        bis 6 m/s gut, bis 8 m/s grenzwertig, darüber nein
    *   Böigkeit    Böe minus Wind über 4 m/s ist grenzwertig, über 6 m/s nein
@@ -243,37 +244,53 @@ const OM = (() => {
   const FLY = { GOOD: 2, LIMIT: 1, NO: 0 };
   const FLY_TXT = { 2: 'fahrbar', 1: 'grenzwertig', 0: 'nein' };
 
-  function flyRating(rec, light) {
+  /** Vorgaben. Alle Windgrössen in m/s, so wie das Modell sie liefert. */
+  const FLY_DEFAULTS = {
+    wind: [4, 6],          // grenzwertig ab, nein ab
+    gust: [6, 8],
+    gustSpread: [4, 6],    // Böe minus Mittelwind
+    cape: [300, 800],      // J/kg
+    precip: 0.1,           // mm/h — darüber nein
+    visKm: 1.5,            // darunter nein
+    baseFt: 1000,          // darunter grenzwertig
+    needLight: 1,          // ausserhalb der bürgerlichen Dämmerung nein
+  };
+  const flyLimits = (o) => Object.assign({}, FLY_DEFAULTS, o || {});
+
+  function flyRating(rec, light, limits) {
     if (!rec) return { level: null, txt: '—', why: [] };
+    const L = flyLimits(limits);
     const why = [];
     let lvl = FLY.GOOD;
     const down = (to, reason) => { if (to < lvl) lvl = to; why.push(reason); };
 
-    if (light === false) down(FLY.NO, 'ausserhalb der bürgerlichen Dämmerung');
+    if (L.needLight && light === false) down(FLY.NO, 'ausserhalb der bürgerlichen Dämmerung');
 
     const w = rec.w10, g = rec.gust;
     if (w != null) {
-      if (w > 6) down(FLY.NO, `Bodenwind ${w.toFixed(1)} m/s`);
-      else if (w > 4) down(FLY.LIMIT, `Bodenwind ${w.toFixed(1)} m/s`);
+      if (w > L.wind[1]) down(FLY.NO, `Bodenwind ${w.toFixed(1)} m/s`);
+      else if (w > L.wind[0]) down(FLY.LIMIT, `Bodenwind ${w.toFixed(1)} m/s`);
     }
     if (g != null) {
-      if (g > 8) down(FLY.NO, `Böen ${g.toFixed(1)} m/s`);
-      else if (g > 6) down(FLY.LIMIT, `Böen ${g.toFixed(1)} m/s`);
+      if (g > L.gust[1]) down(FLY.NO, `Böen ${g.toFixed(1)} m/s`);
+      else if (g > L.gust[0]) down(FLY.LIMIT, `Böen ${g.toFixed(1)} m/s`);
     }
     if (w != null && g != null) {
       const d = g - w;
-      if (d > 6) down(FLY.NO, `sehr böig (+${d.toFixed(1)} m/s)`);
-      else if (d > 4) down(FLY.LIMIT, `böig (+${d.toFixed(1)} m/s)`);
+      if (d > L.gustSpread[1]) down(FLY.NO, `sehr böig (+${d.toFixed(1)} m/s)`);
+      else if (d > L.gustSpread[0]) down(FLY.LIMIT, `böig (+${d.toFixed(1)} m/s)`);
     }
-    if (rec.precip != null && rec.precip >= 0.1) down(FLY.NO, `Niederschlag ${rec.precip.toFixed(1)} mm/h`);
+    if (rec.precip != null && rec.precip >= L.precip) {
+      down(FLY.NO, `Niederschlag ${rec.precip.toFixed(1)} mm/h`);
+    }
     if (rec.cape != null) {
-      if (rec.cape >= 800) down(FLY.NO, `CAPE ${Math.round(rec.cape)} J/kg`);
-      else if (rec.cape >= 300) down(FLY.LIMIT, `CAPE ${Math.round(rec.cape)} J/kg`);
+      if (rec.cape >= L.cape[1]) down(FLY.NO, `CAPE ${Math.round(rec.cape)} J/kg`);
+      else if (rec.cape >= L.cape[0]) down(FLY.LIMIT, `CAPE ${Math.round(rec.cape)} J/kg`);
     }
-    if (rec.vis != null && rec.vis < 1500) down(FLY.NO, `Sicht ${(rec.vis / 1000).toFixed(1)} km`);
+    if (rec.vis != null && rec.vis < L.visKm * 1000) down(FLY.NO, `Sicht ${(rec.vis / 1000).toFixed(1)} km`);
     else if (fogRisk(rec).level >= 2) down(FLY.LIMIT, 'Nebelrisiko');
     const base = cloudBaseFt(rec);
-    if (base != null && base < 1000) down(FLY.LIMIT, `Wolkenbasis ${base} ft AGL`);
+    if (base != null && base < L.baseFt) down(FLY.LIMIT, `Wolkenbasis ${base} ft AGL`);
 
     return { level: lvl, txt: FLY_TXT[lvl], why };
   }
@@ -328,7 +345,7 @@ const OM = (() => {
     return { hit: vals.filter(v => v < limit).length, n: vals.length };
   }
 
-  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint, flyRating, FLY,
+  return { forecast, nowIndex, at, profile, fogRisk, cloudBaseFt, dewPoint, flyRating, FLY, FLY_DEFAULTS, flyLimits,
            SPAN_H, FETCH_DAYS,
            MODELS, modelName, modelHours,
            ensemble, spread, shareBelow, levelsUpTo, stdHeight, M_TO_FT };

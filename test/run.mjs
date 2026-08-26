@@ -734,6 +734,15 @@ head('Open-Meteo: Profil, Nebel, Ensemble');
       ? ok(`beide Gründe werden genannt: ${r.why.join(', ')}`)
       : bad(`Gründe: ${JSON.stringify(r.why)}`);
   }
+  // Schwellen sind einstellbar
+  OM.flyRating(rec({ w10: 3 }), true, { wind: [2, 4] }).level === 1 &&
+  OM.flyRating(rec({ w10: 3 }), true, { wind: [5, 7] }).level === 2
+    ? ok('eigene Windschwellen werden angewandt') : bad('Schwellen lassen sich nicht ändern');
+  OM.flyRating(rec({}), false, { needLight: 0 }).level === 2
+    ? ok('ohne Dämmerungspflicht zählt die Nacht nicht mehr') : bad('needLight wirkt nicht');
+  OM.flyLimits({ wind: [2, 4] }).cape[0] === OM.FLY_DEFAULTS.cape[0]
+    ? ok('nicht gesetzte Schwellen bleiben auf der Vorgabe') : bad('flyLimits verliert Vorgaben');
+
   OM.flyRating(null, true).level === null
     ? ok('ohne Daten keine Bewertung') : bad('flyRating erfindet eine Bewertung');
 
