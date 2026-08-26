@@ -85,6 +85,7 @@ data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe unten
 data/gafor-regions.geojson  Umrisse der fünf Bereiche (aus den Gebieten verschmolzen)
 data/germany.geojson        Landesgrenze, vereinfacht — nur zur Darstellung
 data/dwd/index.json         von der Action erzeugt: Bulletins als JSON
+data/dwd/balloon/NN.json    der Ballonbericht je Gebiet, als Tabellenstruktur mit Farben
 data/dwd/raw/*.txt          derselbe Text unparsed, damit der Parser nachgebessert werden kann
 data/gafor-meta.json        die 68 Gebiete: Nummer, Bezeichnung, Bezugshöhe, Bereich
 scripts/fetch-dwd.mjs       der Fetcher (Node 20, ohne Abhängigkeiten)
@@ -125,6 +126,12 @@ Drei Produkte, drei Zuschnitte:
   Seiten stehen nicht als Links auf der Übersicht, sondern in deren anklickbarer Bildkarte; der
   Fetcher liest Ziel, Name und Bezugshöhe aus den `<area>`-Tags. Nichts geraten, und eine
   Umnummerierung beim DWD wird automatisch mitgenommen.
+
+  Der Bericht selbst ist kein Text, sondern drei Tabellen — astronomische Angaben, stündliche
+  Bodenwerte und die Thermik, letztere rein über Zellenfarben ohne Zahlen. Geparst werden
+  Überschriften, Zeilen, Zellen und Farben; die App zeichnet daraus wieder eine Tabelle. Weil
+  das je Gebiet einige Kilobyte sind, liegt jeder Bericht in einer eigenen Datei unter
+  `data/dwd/balloon/` und wird erst beim Anzeigen geladen.
 
 67 Seiten dreimal pro Stunde wären unverhältnismässig für ein Produkt mit festen Ausgabezeiten,
 deshalb greift eine Altersschwelle: die Ballonberichte werden nur geholt, wenn der gespeicherte

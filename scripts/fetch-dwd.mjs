@@ -414,6 +414,108 @@ function balloonTargets(html, base) {
   return out.filter(a => !seen.has(a.id) && seen.add(a.id));
 }
 
+/* ---------------------------------------------------------------- Ballonbericht
+ * Der Bericht ist keine Prosa, sondern drei Tabellen mit Farbcodierung:
+ * astronomische Angaben, Bodenwerte/Wetter/Wind stündlich und Thermik. Er wird
+ * deshalb als Struktur abgelegt, nicht als Text — die App zeichnet daraus wieder
+ * eine Tabelle, mit denselben Farben.
+ *
+ * Geparst wird generisch (Überschriften und Tabellen in Reihenfolge), damit eine
+ * zusätzliche Zeile beim DWD nicht gleich alles bricht.
+ */
+const HEX = { g: [[80, 160], [0.25, 1]], y: [[40, 75], [0.25, 1]], o: [[20, 40], [0.25, 1]],
+              r: [[-20, 20], [0.25, 1]], b: [[190, 265], [0.15, 1]] };
+
+/** Zellenfarbe auf eine Handvoll Klassen abbilden: g y o r b n. */
+function colourClass(attrs) {
+  const m = attrs.match(/(?:bgcolor=["']?|background(?:-color)?\s*:\s*)([^;"'\s]+)/i);
+  if (!m) return null;
+  let r, g, b;
+  const v = m[1].trim();
+  const hex = v.match(/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (hex) {
+    const h = hex[1].length === 3 ? hex[1].replace(/./g, c => c + c) : hex[1];
+    [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
+  } else {
+    const rgb = v.match(/rgba?\(([^)]+)\)/i) || attrs.match(/rgba?\(([^)]+)\)/i);
+    if (!rgb) return null;
+    [r, g, b] = rgb[1].split(',').slice(0, 3).map(x => parseFloat(x));
+  }
+  if (![r, g, b].every(Number.isFinite)) return null;
+
+  const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255;
+  const l = (mx + mn) / 2;
+  const sat = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
+  if (sat < 0.15 || l > 0.94) return null;                 // weiss/grau: keine Aussage
+  let hue = 0;
+  const [rr, gg, bb] = [r / 255, g / 255, b / 255];
+  if (mx === mn) hue = 0;
+  else if (mx === rr) hue = 60 * (((gg - bb) / (mx - mn)) % 6);
+  else if (mx === gg) hue = 60 * ((bb - rr) / (mx - mn) + 2);
+  else hue = 60 * ((rr - gg) / (mx - mn) + 4);
+  if (hue < 0) hue += 360;
+  for (const [k, [[h0, h1], [s0]]] of Object.entries(HEX)) {
+    const inHue = h0 < 0 ? (hue >= 360 + h0 || hue <= h1) : (hue >= h0 && hue <= h1);
+    if (inHue && sat >= s0) return k;
+  }
+  return null;
+}
+
+function cellText(html) {
+  return htmlToText(html).replace(/\s+/g, ' ').trim();
+}
+
+/** Eine HTML-Tabelle zu Zeilen aus {t, c, h}. */
+function parseTable(tableHtml) {
+  const rows = [];
+  for (const tr of tableHtml.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const cells = [];
+    for (const td of tr[1].matchAll(/<(t[dh])\b([^>]*)>([\s\S]*?)<\/\1>/gi)) {
+      const cell = { t: cellText(td[3]) };
+      const c = colourClass(td[2]);
+      if (c) cell.c = c;
+      if (td[1].toLowerCase() === 'th') cell.h = true;
+      const span = td[2].match(/colspan=["']?(\d+)/i);
+      if (span) cell.s = +span[1];
+      cells.push(cell);
+    }
+    if (cells.length) rows.push(cells);
+  }
+  return rows;
+}
+
+/**
+ * Überschriften und Tabellen in der Reihenfolge, in der sie auf der Seite
+ * stehen — jede Tabelle bekommt die letzte Überschrift davor.
+ */
+function parseBalloonPage(html) {
+  const out = { title: null, station: null, blocks: [] };
+
+  const t = html.match(/<h[12][^>]*>([\s\S]*?)<\/h[12]>/i);
+  if (t) out.title = cellText(t[1]);
+
+  const re = /<h([1-4])\b[^>]*>([\s\S]*?)<\/h\1>|<table\b[^>]*>[\s\S]*?<\/table>/gi;
+  let heading = null;
+  for (const m of html.matchAll(re)) {
+    if (m[2] != null) { heading = cellText(m[2]); continue; }
+    const rows = parseTable(m[0]);
+    // Navigations- und Layouttabellen aussortieren
+    const cells = rows.reduce((n, r) => n + r.length, 0);
+    if (rows.length < 2 || cells < 4) continue;
+    out.blocks.push({ heading, rows });
+  }
+
+  for (const b of out.blocks) {
+    const h = b.heading || '';
+    const m = h.match(/f[üu]r\s+(.+?)\s*\(\s*([\d.]+)\s*°\s*N\s+([\d.]+)\s*°\s*[OE]\s*[-–]\s*(\d+)\s*ft/i);
+    if (m) {
+      out.station = { name: m[1].trim(), lat: +m[2], lon: +m[3], elevFt: +m[4] };
+      break;
+    }
+  }
+  return out;
+}
+
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 /**
@@ -452,40 +554,57 @@ async function collectBalloon(previous) {
   let dumped = false;
 
   for (const t of targets) {
-    let text = '';
+    let html = null;
     for (const url of [t.url, `${t.url}.html`]) {
       try {
-        const got = stripChrome(bulletinText(await get(url)));
-        if (got.length > text.length) { text = got; t.used = url; }
-        if (text.length > 200) break;
+        const got = await get(url);
+        if (!html || got.length > html.length) { html = got; t.used = url; }
+        if (html && html.length > 4000) break;
       } catch { /* nächste Form probieren */ }
       await sleep(120);
     }
-    if (text.length < 200 && !dumped) {
-      // damit sich am committeten HTML nachvollziehen lässt, wo der Bericht steckt
-      try {
-        const html = await get(t.used || t.url);
-        await writeRaw(`_page-balloon-${t.id}`, html.slice(0, 300000));
-        dumped = true;
-      } catch { /* egal */ }
+    if (!html) { note('balloon', t.url, `Gebiet ${t.id}: Seite nicht erreichbar`); continue; }
+
+    if (!dumped) {                       // eine Seite roh mitschreiben, zum Nachsehen
+      await writeRaw(`_page-balloon-${t.id}`, html.slice(0, 300000));
+      dumped = true;
     }
-    if (text.length < 120) {
-      note('balloon', t.url, `Gebiet ${t.id}: kein Berichtstext`);
+
+    const page = parseBalloonPage(html);
+    const text = stripChrome(bulletinText(html));
+    const cells = page.blocks.reduce((n, b) => n + b.rows.reduce((k, r) => k + r.length, 0), 0);
+    if (!page.blocks.length && text.length < 200) {
+      note('balloon', t.used || t.url, `Gebiet ${t.id}: weder Tabellen noch Text gefunden`);
       continue;
     }
-    out[t.id] = {
+
+    // Der Bericht ist gross; je Gebiet eine eigene Datei, damit die App beim
+    // Start nicht 67 davon laden muss.
+    const file = `balloon/${t.id}.json`;
+    const record = {
       id: t.id, name: t.name, refAltFt: t.refAltFt,
       source: t.used || t.url,
-      issued: issuedFrom(text, headline(text), []),
+      title: page.title, station: page.station,
       fetched: new Date().toISOString(),
-      text,
+      blocks: page.blocks, text,
+    };
+    await mkdir(`${OUT_DIR}/balloon`, { recursive: true });
+    await writeFile(`${OUT_DIR}/${file}`, JSON.stringify(record), 'utf8');
+
+    out[t.id] = {
+      id: t.id, name: t.name, refAltFt: t.refAltFt,
+      source: record.source, title: page.title,
+      station: page.station, fetched: record.fetched,
+      blocks: page.blocks.length, cells, file: `${OUT_DIR}/${file}`,
     };
     await sleep(120);
   }
 
-  const first = Object.values(out)[0];
-  if (first) await writeRaw(`balloon-${first.id}`, `${first.source}\n\n${first.text}\n`);
-  console.log(`✓ ballon: ${Object.keys(out).length}/${targets.length} Gebiete`);
+  const withTables = Object.values(out).filter(b => b.blocks > 0).length;
+  console.log(`✓ ballon: ${Object.keys(out).length}/${targets.length} Gebiete, ` +
+              `${withTables} mit Tabellen`);
+  if (!withTables) note('balloon', HUB.balloon,
+    'keine Tabellen erkannt — siehe raw/_page-balloon-*.txt');
   return Object.keys(out).length ? out : prev;
 }
 

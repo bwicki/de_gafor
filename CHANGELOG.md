@@ -5,6 +5,20 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.4.0 — 2026-08-26
+
+* **Ballonwetterbericht wird jetzt richtig dargestellt.** Der DWD liefert keine Prosa, sondern
+  drei Tabellen: astronomische Angaben, stündliche Bodenwerte (Temperatur, Taupunkt, QNH,
+  Bedeckung, Wetter, Windrichtung, Wind und Böen) und die Thermik — letztere rein farbcodiert
+  ohne Zahlen. Der Fetcher parst Überschriften, Tabellen, Zellen **und Zellenfarben**; die App
+  zeichnet daraus wieder eine Tabelle mit denselben Stufen. Blau ist beim DWD die Farbe der
+  Beschriftungszellen und wird deshalb nicht als Wert gelesen.
+* Bezugsort samt Koordinaten und Höhe wird aus der Überschrift gezogen und über der Tabelle
+  angezeigt — beim Gebiet 55 etwa Schwäbisch Hall, 49.10°N 9.75°O, 1270 ft.
+* Die Berichte liegen ab jetzt je Gebiet in einer eigenen Datei (`data/dwd/balloon/45.json`)
+  und werden erst beim Anzeigen geladen. `index.json` behält nur das Verzeichnis, sonst müsste
+  die App beim Start rund 800 KB für 67 Gebiete ziehen.
+
 ## 1.3.0 — 2026-08-26
 
 * **Grenzen deutlich sichtbar.** Drei Ebenen mit abgestufter Stärke, jede mit heller
