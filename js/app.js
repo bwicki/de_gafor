@@ -549,6 +549,7 @@
           (m.wgst ? ` G${windTxt(m.wgst)}` : ''));
       add('Sicht', v ? `${v.plus ? '≥' : ''}${v.km.toFixed(v.km < 10 ? 1 : 0)} km` : '—');
       add('Basis', cig == null ? 'keine' : `${cig} ft`);
+      add('Wolken', METAR.cloudText(m));
       add('T/Td', `${fmt(m.temp)}/${fmt(m.dewp)} °C`);
       add('QNH', m.altim ? `${Math.round(m.altim)}` : '—');
       row.appendChild(sum);

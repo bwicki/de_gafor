@@ -234,6 +234,63 @@ try {
   console.log(`  --   test/sample-balloonmap.txt fehlt (${e.message.slice(0, 40)})`);
 }
 
+// ---------------------------------------------------------------- 3b. METAR/TAF
+head('METAR / TAF');
+{
+  const metarSrc = await readFile('js/metar.js', 'utf8');
+  const fixture = JSON.parse(await readFile('test/sample-metar.json', 'utf8'));
+  const tafFix = JSON.parse(await readFile('test/sample-taf.json', 'utf8'));
+  const calls = [];
+  const U = {
+    distKm(a1, o1, a2, o2) {
+      const R = 6371.0088, r = (d) => d * Math.PI / 180;
+      const dLa = r(a2 - a1), dLo = r(o2 - o1);
+      const x = Math.sin(dLa / 2) ** 2 +
+                Math.cos(r(a1)) * Math.cos(r(a2)) * Math.sin(dLo / 2) ** 2;
+      return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
+    },
+    async getJSON(url) { calls.push(url); return url.includes('/taf') ? tafFix : fixture; },
+  };
+  const METAR = new Function('U', `${metarSrc}; return METAR;`)(U);
+
+  // Schwäbisch Hall, 100 km
+  const near = await METAR.near(49.10, 9.75, 100, 8);
+  const ids = near.map(m => m.icaoId);
+  (ids.join(',') === 'EDTY,EDDS,ETHL')
+    ? ok(`Umkreis 100 km liefert ${ids.join(', ')} — nach Entfernung sortiert`)
+    : bad(`Umkreis 100 km: ${ids.join(', ')}`);
+  !ids.includes('EDDN')
+    ? ok('EDDN (103 km) fällt raus, obwohl es im Anfrage-Rechteck liegt')
+    : bad('Kreisfilter greift nicht — EDDN ist dabei');
+  /bbox=48\.201,8\.377,49\.999,11\.123/.test(calls[0] || '')
+    ? ok('Anfrage-Rechteck passt zum Radius')
+    : bad(`Anfrage: ${calls[0]}`);
+
+  const edds = near.find(m => m.icaoId === 'EDDS');
+  edds && /260620Z/.test(edds.rawOb)
+    ? ok('je Platz die neueste Meldung')
+    : bad(`EDDS: ${edds && edds.rawOb}`);
+
+  const wide = await METAR.near(49.10, 9.75, 200, 8);
+  wide.length === 5 ? ok('200 km liefert 5 Plätze') : bad(`200 km: ${wide.length} Plätze`);
+  const capped = await METAR.near(49.10, 9.75, 200, 2);
+  capped.length === 2 ? ok('Höchstzahl wird eingehalten') : bad(`Limit 2: ${capped.length}`);
+
+  const v = METAR.visKm(near[0]);
+  (v && v.km === 10 && v.plus)
+    ? ok('9999 im METAR wird als ≥10 km gelesen, nicht als 16 km')
+    : bad(`Sicht: ${JSON.stringify(v)}`);
+  const ifr = near.find(m => m.icaoId === 'ETHL');
+  (METAR.ceiling(ifr) === 700 && METAR.classify(ifr) === 'M')
+    ? ok('Hauptwolkenuntergrenze und GAFOR-Einstufung (OVC007 → Mike)')
+    : bad(`ETHL: Basis ${METAR.ceiling(ifr)}, Klasse ${METAR.classify(ifr)}`);
+
+  const tafs = await METAR.taf(ids);
+  /2606\/2712/.test(tafs.EDDS && tafs.EDDS.rawTAF || '')
+    ? ok('TAF: die gültige Ausgabe gewinnt (mostRecent)')
+    : bad(`TAF EDDS: ${tafs.EDDS && tafs.EDDS.rawTAF}`);
+}
+
 // ---------------------------------------------------------------- 4. reference places
 head('Referenzorte');
 let refs = [];

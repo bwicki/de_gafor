@@ -82,14 +82,21 @@ const METAR = (() => {
                                       : `${l.cover} ${l.base} ft`).join(', ');
   }
 
-  /** Visibility in km as a number (AWC reports statute miles or "10+"). */
+  /**
+   * Sicht in km. Die NOAA rechnet in Landmeilen und meldet "10+" für alles
+   * darüber — daraus würden 16 km. In Europa steht im METAR aber 9999, und das
+   * heisst nach ICAO schlicht "10 km oder mehr". Steht 9999 im Rohtext, wird
+   * deshalb bei 10 km gedeckelt.
+   */
   function visKm(m) {
     if (m.visib == null) return null;
+    const raw = m.rawOb || '';
+    const icao9999 = /\s9999(\s|$)/.test(raw);
     if (typeof m.visib === 'string') {
       const plus = m.visib.includes('+');
       const v = parseFloat(m.visib);
       if (!isFinite(v)) return null;
-      return { km: v * 1.609, plus };
+      return icao9999 && plus ? { km: 10, plus: true, icao: true } : { km: v * 1.609, plus };
     }
     return { km: m.visib * 1.609, plus: false };
   }

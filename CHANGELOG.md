@@ -5,6 +5,18 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.4.1 — 2026-08-26
+
+* METAR/TAF **end-to-end geprüft**: die NOAA-Antwort liegt als Testdatensatz im Repo
+  (`test/sample-metar.json`, `test/sample-taf.json`), neun Prüfungen decken Kreisfilter,
+  Sortierung, Höchstzahl, neueste Meldung je Platz, Sichtumrechnung, Hauptwolkenuntergrenze
+  und TAF-Auswahl ab.
+* **Behoben:** Die NOAA rechnet in Landmeilen und meldet `10+`, woraus 16 km wurden. Steht im
+  METAR `9999`, heisst das nach ICAO „10 km oder mehr" — die Anzeige deckelt jetzt bei
+  **≥10 km**.
+* Neue Zeile **Wolken** je Platz (alle Schichten), weil die Hauptwolkenuntergrenze allein eine
+  SCT-Schicht verschweigt.
+
 ## 1.4.0 — 2026-08-26
 
 * **Ballonwetterbericht wird jetzt richtig dargestellt.** Der DWD liefert keine Prosa, sondern
