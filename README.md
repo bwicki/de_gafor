@@ -381,8 +381,21 @@ mit Knopf zum Neuladen. Das ist der gefährliche Fall: die Kacheln sehen unverä
 sagen trotzdem nichts mehr.
 
 Der Knopf sagt, was er tut — während des Ladens „lädt…", danach entweder frischer Stand (der
-Hinweis verschwindet von selbst) oder ausdrücklich „der DWD-Stand ist unverändert". Ohne diese
-Rückmeldung sah er untätig aus, denn der DWD hat oft schlicht nichts Neues.
+Hinweis verschwindet von selbst) oder ausdrücklich, dass sich nichts geändert hat. Ohne diese
+Rückmeldung sah er untätig aus.
+
+Dabei werden **zwei Fälle auseinandergehalten**, die ganz verschiedene Ursachen haben:
+
+* **Die Kopie ist frisch, das Bulletin ist trotzdem abgelaufen** → der DWD hat nichts Neueres
+  veröffentlicht. Nichts zu tun, ausser abzuwarten.
+* **Die Kopie in `data/dwd/` ist selbst älter als 45 Minuten** → dann läuft der Workflow
+  *DWD-Berichte holen* nicht, und **daran kann der Knopf nichts ändern**: die App darf
+  `dwd.de` nicht selbst abrufen (kein CORS), sie liest ausschliesslich die Kopie im Repo. Der
+  Hinweis nennt darum die Uhrzeit der Kopie, benennt den Workflow als Ursache und verlinkt
+  direkt den Actions-Tab.
+
+Der zweite Fall ist der, den man sonst falsch deutet: die Meldung „unverändert" liest sich wie
+eine Aussage über den DWD, ist aber eine über die eigene Kopie.
 
 ## Kennwort und Sperre
 

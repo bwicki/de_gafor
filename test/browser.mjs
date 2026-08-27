@@ -736,6 +736,32 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
     dwdDelayMs = 0;
   }
 
+  /* Zweiter Fall, und der wichtigere: nicht das Bulletin ist alt, sondern die
+     Kopie im Repo steht still. „Neu laden" kann dann nichts ausrichten — die
+     App darf dwd.de nicht selbst abrufen. Der Hinweis muss das sagen, statt
+     dem DWD die Untätigkeit anzuhängen. */
+  {
+    const stuck = JSON.parse(JSON.stringify(DWD_INDEX));
+    stuck.generated = new Date(Date.now() - 4 * 3600e3).toISOString();
+    stuck.gafor.EDZM.issued = new Date(Date.now() - 26 * 3600e3).toISOString();
+    dwdIndex = stuck;
+    await page.locator('#reloadBtn').click();
+    await page.waitForTimeout(1400);
+    const html = await page.locator('#tileBody .stale').innerHTML().catch(() => '');
+    /Kopie im Repo/.test(html) && /DWD-Berichte holen/.test(html)
+      ? ok('stehengebliebene Kopie wird als Ursache benannt, nicht der DWD')
+      : bad(`Hinweis nennt die Ursache nicht: ${html.replace(/<[^>]+>/g, ' ').slice(0, 90)}`);
+    /\/actions/.test(html)
+      ? ok('und verlinkt den Actions-Tab') : bad('kein Weg zum Actions-Tab');
+
+    await page.locator('#tileBody .stale .btn').click();
+    await page.waitForTimeout(1400);
+    const note = await page.locator('#tileBody .stale .sn').innerText().catch(() => '');
+    /Kopie im Repo ist dieselbe/.test(note) && !/DWD-Stand ist unverändert/.test(note)
+      ? ok('nach dem Laden heisst es „Kopie unverändert", nicht „DWD unverändert"')
+      : bad(`Rückmeldung bei stehender Kopie: ${note}`);
+  }
+
   dwdIndex = DWD_INDEX;
   await page.locator('#reloadBtn').click();
   await page.waitForTimeout(1200);

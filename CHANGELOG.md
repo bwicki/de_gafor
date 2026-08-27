@@ -5,6 +5,20 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.18.3 — 2026-08-27
+
+* **Der Warnhinweis unterscheidet jetzt zwei völlig verschiedene Fälle.** Bisher hiess es in
+  beiden „der DWD-Stand ist unverändert" — das schickt auf die falsche Fährte, wenn in
+  Wahrheit die eigene Kopie stillsteht.
+  * *Das Bulletin ist abgelaufen, die Kopie ist frisch* → der DWD hat schlicht nichts
+    Neueres veröffentlicht. Unverändert wie bisher.
+  * *Die Kopie im Repo ist älter als 45 Minuten* → dann läuft der Workflow **DWD-Berichte
+    holen** nicht, und daran kann „neu laden" nichts ändern: die App darf `dwd.de` nicht
+    selbst abrufen (kein CORS), sie liest nur die Kopie im Repo. Der Hinweis nennt die
+    Uhrzeit der Kopie, benennt den Workflow als Ursache und **verlinkt den Actions-Tab**.
+* Entsprechend die Rückmeldung nach dem Knopfdruck: „die Kopie im Repo ist dieselbe
+  geblieben … neu laden holt nur diese Kopie, nicht den DWD."
+
 ## 1.18.2 — 2026-08-27
 
 * **Behoben: die Analyse kam nie zustande.** Der Abruf schickte `temperature: 0.2` mit; die

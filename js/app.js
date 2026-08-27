@@ -971,23 +971,53 @@
     return +last[2] <= +first[1] ? end + 86400000 : end;
   }
 
+  /* Der Workflow holt dreimal pro Stunde. Ist die Kopie im Repo älter als
+     das, hat nicht der DWD nichts Neues — dann läuft der Workflow nicht. Das
+     ist der einzige Fall, in dem „neu laden" nichts ausrichten kann: die App
+     darf dwd.de nicht selbst abrufen (kein CORS), sie liest nur die Kopie. */
+  const COPY_STALE_MIN = 45;
+
+  /** Alter der Repo-Kopie in Minuten, oder null wenn unbekannt. */
+  function copyAgeMin() {
+    const g = DWD.generated();
+    const t = g ? Date.parse(g) : NaN;
+    return isFinite(t) ? (Date.now() - t) / 60000 : null;
+  }
+
+  /** Steht die Kopie still? Dann ist das die eigentliche Ursache. */
+  function copyStuck() {
+    const a = copyAgeMin();
+    return a != null && a > COPY_STALE_MIN;
+  }
+
+  /** Satz zur stehengebliebenen Kopie — nennt Ursache und Abhilfe. */
+  function copyStuckHtml() {
+    const g = DWD.generated();
+    return ` Die Kopie im Repo stammt von <strong>${U.fmtLocalTime(new Date(g))}</strong> ` +
+      `und wird seit ${U.ago(g)} nicht mehr erneuert — nicht der DWD steht still, sondern ` +
+      `der Workflow <em>DWD-Berichte holen</em>. ` +
+      `<a href="${APP.repo}/actions" target="_blank" rel="noopener">Im Actions-Tab nachsehen</a>.`;
+  }
+
   /** Warum die Daten fragwürdig sind, oder null wenn alles frisch ist. */
   function staleness(b) {
     if (!b) return null;
     const now = Date.now();
+    const stuck = copyStuck() ? copyStuckHtml() : '';
     const end = validUntil(b);
     if (end != null && now > end) {
-      return { hard: true,
+      return { hard: true, stuck: !!stuck,
                txt: `Gültig war dieses Bulletin nur bis ${U.fmtUTC(new Date(end))} — ` +
                     `das ist ${U.ago(new Date(end).toISOString())} her. Die Stufen unten ` +
-                    'sagen für jetzt nichts mehr aus.' };
+                    'sagen für jetzt nichts mehr aus.' + stuck };
     }
     if (b.issued) {
       const age = (now - Date.parse(b.issued)) / 60000;
       if (isFinite(age) && age > STALE_MIN) {
-        return { hard: age > 2 * STALE_MIN,
+        return { hard: age > 2 * STALE_MIN, stuck: !!stuck,
                  txt: `Ausgegeben ${U.ago(b.issued)} — der Workflow holt normalerweise ` +
-                      'dreimal pro Stunde. Läuft er noch?' };
+                      'dreimal pro Stunde.' +
+                      (stuck || ' Der DWD hat offenbar nichts Neueres veröffentlicht.') };
       }
     }
     return null;
@@ -1027,6 +1057,14 @@
     if (after && after !== before) {
       staleNote = '';
       flash('Neue Berichte geladen');
+    } else if (copyStuck()) {
+      /* Wichtige Unterscheidung: unverändert heisst hier NICHT, dass der DWD
+         nichts Neues hat — die Kopie selbst wird nicht mehr erneuert. Alles
+         andere zu behaupten schickt den Nutzer auf die falsche Fährte. */
+      staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — die Kopie im Repo ist ` +
+        `dieselbe geblieben. Sie stammt von ${U.fmtLocalTime(new Date(DWD.generated()))}; ` +
+        'neu laden holt nur diese Kopie, nicht den DWD.';
+      flash('Kopie unverändert — der Workflow läuft nicht');
     } else {
       staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — der DWD-Stand ist unverändert.`;
       flash('Stand unverändert');

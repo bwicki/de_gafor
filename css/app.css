@@ -326,6 +326,8 @@ main.content{padding:12px 14px 0;}
 .stale .btn{flex:0 0 auto;margin-left:auto;white-space:nowrap;}
 .stale .btn[disabled]{opacity:.6;cursor:default;}
 .stale .sn{display:block;font-style:normal;color:var(--text-dim);margin-top:2px;}
+.stale a{color:inherit;text-decoration:underline;text-underline-offset:2px;}
+.stale a:hover{color:var(--amber);}
 
 /* ---------- GAFOR-Zeitreihe als Zeitband ----------
    Ein Abschnitt je Zeitraum, in der Farbe seiner Stufe; der laufende ist
