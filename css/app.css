@@ -1,0 +1,816 @@
+/* ---------------------------------------------------------------------------
+   GaforFinder — layout. Phone first, iPad second, desktop as a widened iPad.
+   --------------------------------------------------------------------------- */
+
+.app{max-width:900px;margin:0 auto;padding:0 0 calc(28px + var(--safe-b));}
+@media (min-width:1100px){ .app{max-width:1180px;} }
+
+/* ---------- header ---------- */
+header.topbar{
+  position:sticky;top:0;z-index:60;background:var(--bg);
+  padding:calc(9px + var(--safe-t)) 12px 9px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+}
+.title-block{flex:1;min-width:0;}
+.title-block h1{font-size:19px;margin:2px 0 0;font-weight:600;letter-spacing:-.01em;
+  color:var(--text-strong);}
+.title-block p{margin:2px 0 0;font-size:11.5px;color:var(--text-dim);}
+.ver{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.02em;
+  color:var(--text-dim);background:transparent;border:1px solid var(--line);
+  border-radius:5px;padding:1px 6px;vertical-align:3px;cursor:pointer;}
+.ver:hover{color:var(--amber);border-color:var(--amber);}
+
+/* ---------- Zugangssperre ---------- */
+.gate{position:fixed;inset:0;z-index:2000;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;padding:24px;}
+.gate[hidden]{display:none;}
+.gate-box{width:100%;max-width:320px;text-align:center;display:flex;flex-direction:column;gap:12px;}
+.gate-logo{height:44px;width:auto;object-fit:contain;margin:0 auto 4px;opacity:.94;}
+.gate-box h1{margin:0;font-size:21px;font-weight:600;color:var(--text-strong);
+  letter-spacing:-.01em;}
+.gate-box p{margin:0;font-size:12.5px;line-height:1.6;color:var(--text-dim);}
+.gate-box input{width:100%;height:44px;text-align:center;font-family:var(--mono);
+  font-size:19px;letter-spacing:.4em;text-indent:.4em;
+  background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--text-strong);}
+.gate-box input:focus{border-color:var(--amber);outline:none;}
+.gate-box .btn{height:42px;}
+.gate-err{font-size:12px;color:var(--gafor-x);}
+.gate-err[hidden]{display:none;}
+.gate-hint{font-size:12px;color:var(--gafor-d);}
+.gate-hint[hidden]{display:none;}
+
+/* ---------- Gastzugang über einen geteilten Link ---------- */
+.guest-note{display:flex;align-items:flex-start;gap:9px;padding:9px 12px;
+  border:1px solid var(--amber);border-radius:var(--r);
+  background:color-mix(in srgb,var(--amber) 10%,transparent);
+  font-size:12.5px;line-height:1.4;color:var(--text);}
+.guest-note .ic{flex:0 0 auto;font-size:13px;line-height:1.3;}
+.guest-note .rest{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:10px;
+  color:var(--amber);white-space:nowrap;padding-top:1px;}
+body.guest .map-wrap{cursor:default;}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.55);
+  display:flex;align-items:center;justify-content:center;padding:18px;}
+.modal-box{position:relative;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;max-width:520px;width:100%;max-height:86vh;overflow-y:auto;
+  padding:22px 20px 18px;box-shadow:0 18px 50px rgba(0,0,0,.5);}
+.modal-box h2{margin:0 30px 4px 0;font-size:17px;color:var(--text-strong);}
+.modal-close{position:absolute;top:10px;right:12px;background:transparent;border:none;
+  color:var(--text-dim);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;}
+.modal-close:hover{color:var(--amber);}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+.set-h{margin:20px 0 6px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--amber);font-weight:600;
+  border-top:1px solid var(--line-soft);padding-top:14px;}
+.set-grid{display:grid;grid-template-columns:1fr 78px 78px;gap:5px 8px;align-items:center;
+  margin:9px 0 4px;}
+.set-grid.two{grid-template-columns:1fr 78px;}
+.set-grid label{font-size:12.5px;color:var(--text);}
+.set-grid .set-c{font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--text-dim);text-align:center;}
+.set-grid input{width:100%;height:30px;text-align:right;padding:0 7px;
+  font-family:var(--mono);font-size:12px;color:var(--text-strong);
+  background:var(--panel-2);border:1px solid var(--line);border-radius:6px;}
+.set-grid input:focus{border-color:var(--amber);outline:none;}
+.field input[type=password],.field input[type=text]{height:34px;padding:0 9px;min-width:0;
+  font-family:var(--mono);font-size:12px;color:var(--text-strong);
+  background:var(--panel-2);border:1px solid var(--line);border-radius:7px;}
+.field input:focus{border-color:var(--amber);outline:none;}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-family:var(--mono);
+  font-size:11.5px;margin:12px 0;}
+.kv dt{color:var(--text-dim);white-space:nowrap;}
+.kv dd{margin:0;color:var(--text);}
+.kv dd.warn{color:var(--gafor-d);}
+.header-logo{height:34px;width:auto;opacity:.94;object-fit:contain;flex:0 0 auto;}
+.header-tools{display:flex;gap:6px;flex:0 0 auto;}
+
+/* ---------- search ---------- */
+.search-block{padding:12px 14px 0;}
+.search-row{display:flex;gap:8px;}
+.search-wrap{position:relative;flex:1;min-width:0;}
+.search-results{
+  position:absolute;top:44px;left:0;right:0;z-index:60;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  max-height:52vh;overflow-y:auto;box-shadow:0 12px 34px rgba(0,0,0,.42);
+}
+.search-results .row{padding:11px 13px;cursor:pointer;border-bottom:1px solid var(--line-soft);}
+.search-results .row:last-child{border-bottom:none;}
+.search-results .row:hover{background:var(--panel-2);}
+.search-results .r1{font-size:14.5px;color:var(--text-strong);}
+.search-results .r2{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+/* ---------- Kopfbereich: Kästchen links, Karte rechts ----------
+   Auf dem Handy stapelt alles in der Reihenfolge des Markups. Ab 900 px teilt
+   sich der Bereich 40 / 60: links Suche, Ort, Gebiet und die GAFOR-Stufen,
+   rechts aussen die Karte. Beide Spalten sind gleich hoch — die Kachelbox
+   nimmt als einzige Zeile mit 1fr den Rest auf, und die Karte streckt sich auf
+   dieselbe Höhe. */
+.top-grid{padding:12px 14px 0;display:grid;grid-template-columns:1fr;gap:10px;}
+.top-left{display:grid;gap:10px;min-width:0;}
+.top-grid > .map-block{padding:0;}
+.top-grid .search-block{padding:0;}
+.top-grid .place-bar,.top-grid .area-head{margin:0;}
+@media (min-width:900px){
+  .top-grid{grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:0 12px;
+    align-items:stretch;min-height:400px;}
+  .top-left{grid-template-rows:auto auto auto minmax(0,1fr);}
+  .top-grid > .map-block{display:flex;min-width:0;}
+  .top-grid > .map-block > .map-wrap{flex:1 1 auto;height:auto;
+    min-height:360px;max-height:none;}
+}
+
+/* ---------- map ---------- */
+.map-block{padding:12px 14px 0;}
+.map-wrap{position:relative;height:46vh;min-height:260px;max-height:520px;
+  border:1px solid var(--line);border-radius:var(--r);overflow:hidden;
+  /* Leaflet vergibt intern z-index bis 800; ohne eigenen Stapelkontext läge die
+     Karte über Suchliste, Menü und Dialog */
+  isolation:isolate;z-index:0;}
+#map{position:absolute;inset:0;background:var(--panel-2);}
+.crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:500;}
+.map-hint{position:absolute;left:8px;top:8px;z-index:500;pointer-events:none;max-width:62%;
+  font-family:var(--mono);font-size:10px;color:var(--text);
+  background:color-mix(in srgb, var(--bg) 82%, transparent);
+  border:1px solid var(--line);border-radius:6px;padding:3px 7px;}
+.map-btns{position:absolute;right:8px;top:8px;z-index:500;display:flex;flex-direction:column;gap:6px;}
+.map-btns .btn{background:color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter:blur(4px);height:34px;width:34px;font-size:14px;}
+
+/* GAFOR polygons */
+.gafor-label{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-strong);
+  text-shadow:0 0 3px var(--bg),0 0 3px var(--bg);pointer-events:none;white-space:nowrap;}
+
+/* ---------- Bereichslegende, unten links in der Karte ---------- */
+.legend{position:absolute;left:8px;bottom:8px;z-index:500;
+  max-width:calc(100% - 60px);display:flex;flex-wrap:wrap;gap:2px 10px;
+  align-items:center;padding:4px 8px;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  border:1px solid var(--line);border-radius:6px;
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.legend:empty{display:none;}
+/* Auf schmalen Schirmen käme die Legende der Leaflet-Herkunftszeile unten
+   rechts ins Gehege — dort rückt sie eine Zeile höher. */
+@media (max-width:700px){ .legend{bottom:24px;max-width:calc(100% - 16px);} }
+.legend .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;
+  vertical-align:-1px;}
+.legend .on{color:var(--text-strong);}
+
+/* ---------- Ortszeile und Gebietskopf ---------- */
+.place-bar{display:flex;align-items:center;gap:10px;margin:10px 14px 0;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 13px;}
+.place-main{flex:1;min-width:0;}
+.place-name{font-size:15px;color:var(--text-strong);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;}
+.place-name.pending{opacity:.6;}
+.place-coords{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+/* ---------- the GAFOR area headline ---------- */
+.area-head{margin:12px 14px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:14px;}
+.area-num{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1;
+  color:var(--amber);flex:0 0 auto;min-width:58px;text-align:center;}
+.area-txt{flex:1;min-width:0;}
+.area-name{font-size:17px;color:var(--text-strong);line-height:1.25;}
+.area-sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:3px;}
+.area-state{flex:0 0 auto;text-align:right;}
+.area-state .badge{font-size:14px;padding:5px 10px;}
+.area-state .t{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);margin-top:4px;
+  letter-spacing:.06em;text-transform:uppercase;}
+
+/* ---------- gemeinsamer Zeitschieber ----------
+   Die Skala ist fest (OM.SPAN_H), damit Tageseinteilung und Nachtschattierung
+   beim Modellwechsel an derselben Stelle bleiben. Was das gewählte Modell
+   nicht mehr abdeckt, liegt unter .ts-beyond und ist nicht erreichbar. */
+:root{ --ts-day:transparent; --ts-night:rgba(120,140,170,.20); }
+:root[data-theme="light"]{ --ts-night:rgba(60,80,110,.13); }
+
+.time-bar{margin:12px 14px 0;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r);padding:8px 13px 9px;}
+.time-bar[hidden]{display:none;}
+
+.ts-days{position:relative;height:14px;}
+.ts-day{position:absolute;transform:translateX(-50%);white-space:nowrap;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--text-dim);}
+.ts-daysep{position:absolute;top:12px;width:1px;height:26px;background:var(--line);}
+
+.ts-scale{position:relative;height:38px;}
+.ts-night,.ts-ticks,.ts-beyond{position:absolute;left:0;right:0;top:0;height:22px;
+  border-radius:4px;pointer-events:none;}
+.ts-night{border:1px solid var(--line-soft);}
+.ts-tick{position:absolute;top:14px;width:1px;height:6px;background:var(--line);opacity:.7;}
+.ts-tick.major{top:10px;height:10px;opacity:1;}
+/* der Bereich, den das gewählte Modell nicht mehr rechnet */
+.ts-beyond{left:100%;right:0;background:repeating-linear-gradient(135deg,
+  color-mix(in srgb,var(--text-dim) 26%,transparent) 0 4px,transparent 4px 8px);
+  border-left:1px solid var(--text-dim);border-radius:0 4px 4px 0;}
+.ts-mark{position:absolute;top:24px;left:0;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--text-strong);white-space:nowrap;
+  pointer-events:none;transition:left .06s linear;}
+
+.time-bar input[type=range]{position:absolute;left:0;top:0;width:100%;height:22px;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.time-bar input[type=range]:focus{outline:none;}
+.time-bar input[type=range]:focus-visible{outline:1px solid var(--amber);outline-offset:2px;
+  border-radius:4px;}
+.time-bar input[type=range]::-webkit-slider-runnable-track{height:22px;background:transparent;}
+.time-bar input[type=range]::-moz-range-track{height:22px;background:transparent;}
+.time-bar input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:13px;height:22px;border-radius:3px;background:var(--amber);border:none;
+  box-shadow:0 0 0 1px var(--bg);}
+.time-bar input[type=range]::-moz-range-thumb{width:13px;height:22px;border-radius:3px;
+  background:var(--amber);border:none;box-shadow:0 0 0 1px var(--bg);}
+
+.ts-foot{display:flex;align-items:center;gap:10px;margin-top:18px;}
+.ts-note{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);}
+.btn.small{height:26px;padding:0 10px;font-size:11px;}
+
+/* ---------- Kurzanalyse ---------- */
+/* Der Knopf sitzt in der Kopfzeile, hier steht nur noch, was er tun wird.
+   `align-self` muss sein: die Kopfzeile richtet an der Schriftlinie aus, und
+   ein Knopf hat keine, die dazu passt. */
+.card-head .btn{align-self:center;flex:0 0 auto;}
+.ai-bar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:11px 14px 0;}
+.ai-hint{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);}
+/* Einspaltig: die Karte ist nur noch halb so breit wie früher, zwei Spalten
+   ergäben Zeilen von zwei Wörtern. Im Ausdruck läuft sie über die volle
+   Seitenbreite, dort bleiben drei Spalten. */
+.ai-text{margin:12px 14px 0;column-gap:26px;}
+.ai-h{margin:0 0 4px;font-size:12.5px;font-weight:700;color:var(--text-strong);
+  letter-spacing:.01em;break-after:avoid;}
+.ai-lines{margin:0 0 13px;padding-left:17px;break-inside:avoid-column;}
+.ai-lines li{font-size:13px;line-height:1.5;color:var(--text);margin-bottom:3px;}
+.ai-lines li::marker{color:var(--amber);}
+.ai-text > .ai-h:first-child{margin-top:0;}
+
+/* ---------- Startfenster ---------- */
+.fly-head{display:flex;align-items:center;gap:13px;margin:11px 14px 0;padding:9px 12px;
+  border:1px solid var(--line);border-left:4px solid var(--gafor-none);border-radius:8px;
+  background:var(--panel-2);}
+.fly-head.ok{border-left-color:var(--gafor-c);}
+.fly-head.limit{border-left-color:var(--gafor-d);}
+.fly-head.no{border-left-color:var(--gafor-x);}
+.fly-badge{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.02em;
+  flex:0 0 auto;color:var(--gafor-none);}
+.fly-head.ok .fly-badge{color:var(--gafor-c);}
+.fly-head.limit .fly-badge{color:var(--gafor-d);}
+.fly-head.no .fly-badge{color:var(--gafor-x);}
+.fly-txt{min-width:0;}
+.fly-when{font-family:var(--mono);font-size:11px;color:var(--text-strong);}
+.fly-why{font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+.fly-days{position:relative;height:13px;margin:10px 14px 0;}
+.fly-day{position:absolute;font-family:var(--mono);font-size:9.5px;color:var(--text-dim);
+  white-space:nowrap;}
+.fly-day:first-child{transform:none;}
+.fly-strip{display:flex;gap:1px;margin:2px 14px 0;height:22px;}
+.fly-cell{border:none;padding:0;min-width:0;cursor:pointer;border-radius:2px;
+  background:var(--gafor-none);opacity:.55;}
+.fly-cell.ok{background:var(--gafor-c);}
+.fly-cell.limit{background:var(--gafor-d);}
+.fly-cell.no{background:var(--gafor-x);}
+.fly-cell.day{box-shadow:inset 1px 0 0 var(--text-dim);}
+.fly-cell:hover{opacity:.85;}
+.fly-cell.sel{opacity:1;box-shadow:0 0 0 2px var(--amber);}
+
+/* Die fahrbaren Fenster liegen als Balken genau unter ihrer Stelle im
+   Streifen — so muss man aus einer Uhrzeit nicht zurückrechnen. */
+.fly-lane{position:relative;height:21px;margin:3px 14px 0;}
+.fly-bar{position:absolute;top:0;height:19px;min-width:3px;padding:0 5px;
+  display:flex;align-items:center;gap:6px;overflow:hidden;cursor:pointer;
+  border:1px solid var(--gafor-c);border-radius:4px;
+  background:color-mix(in srgb,var(--gafor-c) 18%,transparent);
+  font-family:var(--mono);font-size:9.5px;white-space:nowrap;color:var(--text);}
+.fly-bar:hover{background:color-mix(in srgb,var(--gafor-c) 30%,transparent);}
+.fly-bar .h{overflow:hidden;text-overflow:ellipsis;}
+.fly-bar .n{color:var(--gafor-c);font-weight:700;margin-left:auto;}
+.fly-none{font-size:12px;color:var(--text-dim);font-family:var(--sans);}
+
+/* ---------- content ---------- */
+main.content{padding:12px 14px 0;}
+@media (min-width:900px){
+  main.content{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start;}
+  main.content > .card.wide{grid-column:1 / -1;}
+  /* METAR links, rechts Modellprognose und direkt darunter die Kurzanalyse.
+     Als eigenes Raster statt über die Spalten von main.content: sonst käme die
+     Kurzanalyse in die nächste Rasterzeile und stünde unter der METAR-Karte —
+     oder, in die rechte Spalte gezwungen, mit einer Lücke darüber, sobald die
+     METAR-Karte die höhere ist. */
+  main.content > .duo{grid-column:1 / -1;display:grid;
+    grid-template-columns:1fr 1fr;gap:0 12px;align-items:start;}
+}
+
+/* ---------- Kasten mit den GAFOR-Stufen ---------- */
+.tile-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;}
+.tb-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  padding:9px 13px 0;}
+/* Der Kasten ist so hoch wie die Karte; die freie Fläche sammelt sich
+   zwischen Band und Legende, statt unter der Legende zu klaffen. */
+.tb-body{flex:1 1 auto;min-height:0;overflow:auto;padding-bottom:9px;
+  display:flex;flex-direction:column;}
+.tb-body > .code-legend{margin-top:auto;}
+.tb-body > .note{margin:9px 13px;}
+
+.stale{display:flex;align-items:center;gap:9px;margin:9px 13px 0;padding:6px 9px;
+  border:1px solid var(--gafor-d);border-radius:7px;font-size:12px;line-height:1.35;
+  background:color-mix(in srgb,var(--gafor-d) 12%,transparent);color:var(--text);}
+.stale.hard{border-color:var(--gafor-x);
+  background:color-mix(in srgb,var(--gafor-x) 14%,transparent);}
+.stale .ic{flex:0 0 auto;width:17px;height:17px;border-radius:50%;display:grid;
+  place-items:center;font-family:var(--mono);font-weight:700;font-size:11px;
+  background:var(--gafor-d);color:var(--bg);}
+.stale.hard .ic{background:var(--gafor-x);}
+.stale .btn{flex:0 0 auto;margin-left:auto;white-space:nowrap;}
+.stale .btn[disabled]{opacity:.6;cursor:default;}
+.stale .sn{display:block;font-style:normal;color:var(--text-dim);margin-top:2px;}
+.stale a{color:inherit;text-decoration:underline;text-underline-offset:2px;}
+.stale a:hover{color:var(--amber);}
+
+/* ---------- GAFOR-Zeitreihe als Zeitband ----------
+   Ein Abschnitt je Zeitraum, in der Farbe seiner Stufe; der laufende ist
+   kräftiger gefüllt und amber unterstrichen. Die Einzelheiten stehen in der
+   Fusszeile darunter, für den angetippten Abschnitt. */
+.gbar-wrap{padding:9px 13px 0;}
+.gafor-bar{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.gseg{flex:1 1 0;min-width:0;position:relative;cursor:pointer;text-align:center;
+  padding:7px 4px 6px;border:none;border-right:1px solid var(--panel);
+  background:color-mix(in srgb,var(--gafor-none) 14%,transparent);
+  color:var(--text);font-family:inherit;display:block;}
+.gseg:last-child{border-right:none;}
+.gseg .gcd{display:block;font-family:var(--mono);font-weight:700;font-size:19px;
+  line-height:1.1;color:var(--gafor-none);}
+.gseg .gcd .g{font-size:12px;opacity:.85;}
+.gseg .ghr{display:block;font-family:var(--mono);font-size:9.5px;color:var(--text-dim);
+  font-variant-numeric:tabular-nums;margin-top:1px;}
+.gseg .gflag{position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;
+  background:var(--amber);}
+.gseg.c{background:color-mix(in srgb,var(--gafor-c) 16%,transparent);}
+.gseg.o{background:color-mix(in srgb,var(--gafor-o) 16%,transparent);}
+.gseg.d{background:color-mix(in srgb,var(--gafor-d) 16%,transparent);}
+.gseg.m{background:color-mix(in srgb,var(--gafor-m) 18%,transparent);}
+.gseg.x{background:color-mix(in srgb,var(--gafor-x) 20%,transparent);}
+.gseg.c .gcd{color:var(--gafor-c);} .gseg.o .gcd{color:var(--gafor-o);}
+.gseg.d .gcd{color:var(--gafor-d);} .gseg.m .gcd{color:var(--gafor-m);}
+.gseg.x .gcd{color:var(--gafor-x);}
+.gseg.now{box-shadow:inset 0 -3px 0 var(--amber);}
+.gseg.now .ghr{color:var(--amber);}
+.gseg.sel{outline:1px solid var(--amber);outline-offset:-1px;}
+.gseg:hover{filter:brightness(1.08);}
+.gseg:focus-visible{outline:2px solid var(--amber);outline-offset:-2px;}
+/* Stufendefinition je Abschnitt, in derselben Aufteilung wie das Band darüber */
+.gdef-row{display:flex;gap:1px;margin-top:3px;}
+.gdef{flex:1 1 0;min-width:0;text-align:center;padding:3px 2px;border-radius:4px;
+  font-family:var(--mono);font-size:8.5px;line-height:1.3;color:var(--text-dim);
+  background:var(--panel-2);border:1px solid var(--line-soft);}
+.gdef .v,.gdef .b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gdef .v{color:var(--text);}
+.gdef.c{border-color:color-mix(in srgb,var(--gafor-c) 45%,var(--line-soft));}
+.gdef.o{border-color:color-mix(in srgb,var(--gafor-o) 45%,var(--line-soft));}
+.gdef.d{border-color:color-mix(in srgb,var(--gafor-d) 45%,var(--line-soft));}
+.gdef.m{border-color:color-mix(in srgb,var(--gafor-m) 45%,var(--line-soft));}
+.gdef.x{border-color:color-mix(in srgb,var(--gafor-x) 45%,var(--line-soft));}
+
+.gbar-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin-top:7px;font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.gbar-foot .k{font-weight:600;}
+.gbar-foot .k.c{color:var(--gafor-c);} .gbar-foot .k.o{color:var(--gafor-o);}
+.gbar-foot .k.d{color:var(--gafor-d);} .gbar-foot .k.m{color:var(--gafor-m);}
+.gbar-foot .k.x{color:var(--gafor-x);} .gbar-foot .k.none{color:var(--gafor-none);}
+
+
+/* Stufenerklärung, zugeklappt */
+.code-legend{margin:10px 13px 2px;border-top:1px solid var(--line-soft);padding-top:9px;}
+.code-legend > summary{font-size:12px;color:var(--text-dim);cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:7px;}
+.code-legend > summary::-webkit-details-marker{display:none;}
+.code-legend > summary::before{content:'▸';font-size:10px;color:var(--amber);}
+.code-legend[open] > summary::before{content:'▾';}
+.code-legend > summary:hover{color:var(--amber);}
+.code-legend .fc-scroll{margin:10px 0 4px;}
+.code-table{border-collapse:collapse;font-size:11.5px;min-width:100%;}
+.code-table th{text-align:left;font-weight:500;color:var(--text-dim);padding:4px 10px 6px 0;
+  font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+  border-bottom:1px solid var(--line-soft);}
+.code-table td{padding:4px 10px 4px 0;border-bottom:1px solid var(--line-soft);
+  white-space:nowrap;color:var(--text-dim);}
+.code-table tr:last-child td{border-bottom:none;}
+.code-table td.c0{padding-right:12px;}
+.code-table td.c1{color:var(--text-strong);}
+.code-table td.c2,.code-table td.c3{font-family:var(--mono);color:var(--text);}
+.code-legend .note{margin-top:8px;}
+
+/* Ort ausserhalb der Abdeckung */
+.place-name.outside,.area-name.outside{color:var(--amber);font-size:15px;}
+
+/* GAFOR code timeline (Rest der alten Tabelle, noch für andere Ansichten) */
+.cell{display:inline-block;min-width:26px;padding:3px 5px;border-radius:5px;font-weight:600;
+  color:#0b1017;}
+:root[data-theme="light"] .cell{color:#fff;}
+.cell.c{background:var(--gafor-c);} .cell.o{background:var(--gafor-o);}
+.cell.d{background:var(--gafor-d);} .cell.m{background:var(--gafor-m);}
+.cell.x{background:var(--gafor-x);} .cell.none{background:var(--gafor-none);}
+
+/* METAR list — Rohtext, dazu der Platzname im Klartext */
+.metar-row{padding:11px 14px;border-bottom:1px solid var(--line-soft);}
+.metar-row:last-child{border-bottom:none;}
+.metar-top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+.metar-id{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--amber);
+  flex:0 0 auto;}
+.metar-name{font-size:13px;color:var(--text-strong);line-height:1.4;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.metar-dist{font-family:var(--mono);font-size:11px;color:var(--text-dim);flex:0 0 auto;
+  white-space:nowrap;}
+.metar-plain{margin:0 0 6px;}
+.metar-plain .pl{font-size:12px;line-height:1.45;color:var(--text);}
+.metar-plain .pl + .pl{color:var(--text-dim);}
+.metar-plain.taf{margin:8px 0 6px;padding-top:6px;border-top:1px solid var(--line-soft);}
+.metar-plain.taf .pl:first-child{color:var(--text-strong);}
+.metar-row pre.raw{margin:0;}
+.metar-row pre.raw.taf{margin-top:6px;color:var(--text-dim);}
+
+/* Open-Meteo forecast strip */
+.fc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.fc-table{border-collapse:collapse;font-family:var(--mono);font-size:11.5px;min-width:100%;}
+.fc-table th{position:sticky;left:0;background:var(--panel);z-index:2;text-align:left;
+  color:var(--text-dim);font-weight:500;padding:6px 12px 6px 14px;white-space:nowrap;
+  font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+  border-bottom:1px solid var(--line-soft);}
+.fc-table td{padding:6px 9px;text-align:center;white-space:nowrap;color:var(--text);
+  border-bottom:1px solid var(--line-soft);}
+.fc-table tr:last-child td,.fc-table tr:last-child th{border-bottom:none;}
+
+/* ---------- Wolken, Nebel ---------- */
+:root{ --cloud-fill:#8ea6bd; }
+:root[data-theme="light"]{ --cloud-fill:#4d6a86; }
+.fc-table td.fog-1{background:color-mix(in srgb,#e8d23a 26%,transparent);}
+.fc-table td.fog-2{background:color-mix(in srgb,var(--gafor-m) 34%,transparent);}
+.fc-table td.fog-3{background:color-mix(in srgb,var(--gafor-x) 40%,transparent);}
+.fog-t0{color:var(--text-strong);} .fog-t1{color:#d9c534;}
+.fog-t2{color:var(--gafor-m);} .fog-t3{color:var(--gafor-x);}
+
+/* ---------- Ensemble-Streuband ---------- */
+.ens{padding:11px 14px;border-top:1px solid var(--line);}
+.ens-head{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-dim);margin-bottom:8px;}
+.ens-row{display:flex;align-items:center;gap:9px;margin-bottom:6px;}
+.ens-k{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);
+  flex:0 0 68px;white-space:nowrap;}
+.ens-bar{position:relative;flex:1;min-width:60px;height:9px;border-radius:5px;
+  background:var(--panel-2);border:1px solid var(--line-soft);overflow:hidden;}
+.ens-span{position:absolute;top:0;bottom:0;border-radius:5px;
+  background:color-mix(in srgb,var(--amber) 46%,transparent);}
+.ens-med{position:absolute;top:-1px;bottom:-1px;width:2px;margin-left:-1px;background:var(--amber);}
+.ens-v{font-family:var(--mono);font-size:10.5px;color:var(--text);flex:0 0 auto;
+  min-width:96px;text-align:right;}
+.ens-v b{color:var(--text-strong);}
+.ens-v small{color:var(--text-dim);}
+.ens-note{font-family:var(--mono);font-size:10.5px;color:var(--text-dim);margin-top:7px;}
+
+/* ---------- Berichtstext in zwei Spalten ---------- */
+/* align-items:start ist nicht Kosmetik: sonst strecken sich beide Spalten auf
+   die Zeilenhöhe und wären immer gleich hoch — das Ausmessen in app.js
+   (balanceReport) bekäme nie einen Unterschied zu sehen. */
+.report-cols{display:grid;grid-template-columns:1fr;gap:0 26px;align-items:start;}
+@media (min-width:820px){ .report-cols{grid-template-columns:1fr 1fr;} }
+.report-col{min-width:0;}
+.report-h{margin:14px 0 4px;font-size:12.5px;font-weight:700;color:var(--text-strong);
+  letter-spacing:.01em;}
+.report-col > .report-h:first-child{margin-top:2px;}
+.report-cols pre.report{margin:0;font-size:11px;}
+
+/* ---------- Tabellen im Bericht (Höhenwind, Dämmerungszeiten) ----------
+   Als echte Tabelle gesetzt: die Spalten richten sich von selbst aus, statt
+   dass die Zahlen unter unterschiedlich langen Ortsnamen verrutschen. */
+.report-tbl{margin:.9em 0 0;overflow-x:auto;}
+table.rt{border-collapse:collapse;font-family:var(--mono);font-size:10.5px;
+  font-variant-numeric:tabular-nums;}
+table.rt th,table.rt td{padding:2px 8px;text-align:left;white-space:nowrap;
+  border-right:1px solid var(--line);}
+table.rt th:last-child,table.rt td:last-child{border-right:none;}
+table.rt th{color:var(--text-dim);font-weight:500;text-align:center;
+  border-bottom:1px solid var(--line);padding-bottom:3px;}
+table.rt th:first-child,table.rt td:first-child{padding-left:0;}
+table.rt td.num{text-align:right;color:var(--text-strong);}
+table.rt th.num{text-align:center;}
+.rt-foot{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);
+  margin-top:4px;white-space:pre-wrap;}
+/* Ein Abschnitt kann aus mehreren Absätzen und Tabellen bestehen — ohne
+   Zwischenraum liefen sie zusammen und der Absatzwechsel wäre unsichtbar. */
+.report-p + .report-p,.report-p + pre.report,pre.report + .report-p,
+.report-tbl + .report-p{margin-top:.6em;}
+.report-p{margin:0;font-size:13px;line-height:1.55;color:var(--text);hyphens:auto;}
+
+
+/* ---------- Stüve-Diagramm ---------- */
+:root{ --sv-humid:#4f86c6; --sv-temp:#e0662a; --sv-dew:#2f9bd4; }
+:root[data-theme="light"]{ --sv-humid:#3d74b4; --sv-temp:#c2481a; --sv-dew:#1673a8; }
+.sv-svg{width:100%;height:auto;display:block;}
+.sv-grid line{stroke:var(--line-soft);stroke-width:1;}
+.sv-grid.minor line{stroke:var(--line-soft);stroke-width:.6;opacity:.55;}
+.sv-grid line.sv-zero{stroke:var(--dew);stroke-width:1.2;opacity:.85;}
+.sv-adiabat line{stroke:var(--text-dim);stroke-width:.6;opacity:.5;stroke-dasharray:3 3;}
+.sv-frame{fill:none;stroke:var(--line);stroke-width:1;}
+.sv-humid-band{pointer-events:none;}
+.sv-ax{font-family:var(--mono);font-size:8px;fill:var(--text-dim);}
+/* die äussere Zahlenspalte (Höhe) tritt gegenüber dem Druck zurück */
+.sv-alt{opacity:.78;}
+.sv-curve{fill:none;stroke-width:1.8;stroke-linejoin:round;}
+.sv-curve.temp{stroke:var(--sv-temp);}
+.sv-curve.dew{stroke:var(--sv-dew);}
+.sv-dot.temp{fill:var(--sv-temp);} .sv-dot.dew{fill:var(--sv-dew);}
+.sv-lab{font-family:var(--mono);font-size:8.5px;font-weight:600;}
+.sv-lab.temp{fill:var(--sv-temp);} .sv-lab.dew{fill:var(--sv-dew);}
+.sv-mark{stroke-width:1;stroke-dasharray:4 3;}
+.sv-mark.fzl{stroke:var(--dew);} .sv-mark.pbl{stroke:var(--gafor-c);}
+.sv-mlab{font-family:var(--mono);font-size:8px;}
+.sv-mlab.fzl{fill:var(--dew);} .sv-mlab.pbl{fill:var(--gafor-c);}
+.sv-wind{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-opacity:.8;}
+/* zweites Modell: dieselben Kurven, gestrichelt und blasser */
+.sv-cmp{stroke-dasharray:4 3;stroke-opacity:.5;stroke-width:1.2;}
+.sv-cmp.sv-curve{fill:none;}
+.sv-cmplab{opacity:.75;}
+.sv-barb path{stroke:var(--text-strong);stroke-width:1.3;fill:none;stroke-linecap:round;}
+.sv-barb path.sv-fill{fill:var(--text-strong);}
+.sv-calm{fill:none;stroke:var(--text-strong);stroke-width:1.2;}
+.wp-table td.rh{font-family:var(--mono);}
+
+/* ---------- Zeitschieber ---------- */
+.hour-slider{padding:8px 14px 2px;}
+.hs-row{display:flex;align-items:flex-start;gap:9px;}
+.hs-cap{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-dim);flex:0 0 auto;white-space:nowrap;
+  padding-top:3px;}
+/* Die Beschriftung läuft unter dem Griff mit, deshalb eine eigene Spur mit
+   Platz darunter und eine absolut gesetzte Marke. */
+.hs-track{position:relative;flex:1 1 auto;min-width:0;padding-bottom:19px;}
+.hs-label{position:absolute;top:19px;left:0;transform:translateX(-50%);
+  font-family:var(--mono);font-size:11px;color:var(--text-strong);
+  letter-spacing:.02em;white-space:nowrap;pointer-events:none;
+  transition:left .06s linear;}
+.hour-slider input[type=range]{display:block;width:100%;min-width:0;height:18px;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.hour-slider input[type=range]:focus{outline:none;}
+.hour-slider input[type=range]:focus-visible{outline:1px solid var(--amber);
+  outline-offset:3px;border-radius:3px;}
+.hour-slider input[type=range]::-webkit-slider-runnable-track{
+  height:3px;border-radius:2px;background:var(--line);}
+.hour-slider input[type=range]::-moz-range-track{
+  height:3px;border-radius:2px;background:var(--line);}
+.hour-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;
+  appearance:none;width:13px;height:13px;margin-top:-5px;border-radius:50%;
+  background:var(--amber);border:none;}
+.hour-slider input[type=range]::-moz-range-thumb{width:13px;height:13px;
+  border-radius:50%;background:var(--amber);border:none;}
+
+/* ---------- Höhenwindprofil ---------- */
+.wp-holder{display:block;}
+.wp-split{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 14px;padding:4px 0 0;}
+/* Tabelle 45 %, Diagramm 55 % — beide mit Basis 0, die Wachstumsfaktoren
+   teilen den Platz also genau in diesem Verhältnis. */
+.wp-col-table{flex:45 1 0;min-width:0;}
+.wp-col-table .wp-table{min-width:0;width:100%;}
+.wp-col-chart{flex:55 1 0;min-width:0;padding:6px 12px 0 0;}
+@media (max-width:640px){ .wp-col-chart{flex:1 1 100%;padding:6px 10px 0;} }
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:11px 14px 2px;align-items:center;}
+.chips.models{padding-bottom:0;}
+.chips-label{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--text-dim);margin-right:2px;}
+.chips .chip:hover{color:var(--amber);border-color:var(--amber);}
+.chips .chip.on{background:color-mix(in srgb,var(--amber) 18%,transparent);
+  color:var(--text-strong);}
+.wp-svg{width:100%;height:auto;display:block;}
+.wp-grid line{stroke:var(--line-soft);stroke-width:1;}
+.wp-grid.minor line{stroke:var(--line-soft);stroke-width:.6;opacity:.55;}
+.wp-ax{font-family:var(--mono);font-size:8.5px;fill:var(--text-dim);}
+.wp-line{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-opacity:.75;}
+.wp-dot{fill:var(--amber);}
+.wp-barb path{stroke:var(--text-strong);stroke-width:1.5;fill:none;stroke-linecap:round;}
+.wp-barb path.wp-fill{fill:var(--text-strong);}
+.wp-calm{fill:none;stroke:var(--text-strong);stroke-width:1.4;}
+.wp-mark{stroke-width:1;stroke-dasharray:4 3;}
+.wp-mark.fzl{stroke:var(--dew);} .wp-mark.pbl{stroke:var(--gafor-c);}
+.wp-mlab{font-family:var(--mono);font-size:8.5px;}
+.wp-mlab.fzl{fill:var(--dew);} .wp-mlab.pbl{fill:var(--gafor-c);}
+
+.wp-table{border-collapse:collapse;font-family:var(--mono);font-size:11.5px;min-width:100%;}
+.wp-table th{color:var(--text-dim);font-weight:500;text-align:right;padding:6px 10px;
+  font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+  border-bottom:1px solid var(--line-soft);}
+.wp-table th:first-child{padding-left:14px;}
+.wp-table td{padding:5px 10px;text-align:right;white-space:nowrap;color:var(--text);
+  border-bottom:1px solid var(--line-soft);}
+.wp-table td.alt{padding-left:14px;color:var(--text-strong);}
+.wp-table td.lvl{color:var(--text-dim);}
+/* „Wind": Pfeil und Richtung stehen rechts, bündig unter der Überschrift. */
+.wp-table td.dir{text-align:right;}
+.wp-table td.dir .ar{display:inline-block;margin-right:4px;}
+.wp-table td.spd{color:var(--text-strong);}
+.wp-table tr:last-child td{border-bottom:none;}
+.wp-mrow td{font-size:10px;letter-spacing:.04em;padding:3px 14px;text-align:left;
+  background:var(--panel-2);}
+.wp-mrow.fzl td{color:var(--dew);} .wp-mrow.pbl td{color:var(--gafor-c);}
+
+/* Ballonwetterbericht: Tabellen wie beim DWD, mit Farbcodierung */
+.bw-table{border-collapse:collapse;font-family:var(--mono);font-size:11.5px;min-width:100%;}
+.bw-table th{background:var(--panel-2);color:var(--text-strong);font-weight:600;
+  padding:6px 8px;white-space:nowrap;text-align:center;border:1px solid var(--line);
+  font-size:10.5px;letter-spacing:.03em;}
+.bw-table td{padding:5px 8px;text-align:center;white-space:nowrap;color:var(--text);
+  border:1px solid var(--line-soft);min-width:34px;}
+.bw-table td.lbl{text-align:left;color:var(--text-dim);white-space:normal;max-width:190px;}
+.bw-table tr > td.lbl:first-child{min-width:120px;position:sticky;left:0;
+  background:var(--panel);z-index:1;}
+.bw-table th:first-child{position:sticky;left:0;z-index:2;}
+.bw-table td.bar{min-width:26px;height:22px;}
+.bw-table .sw-g{background:color-mix(in srgb,var(--gafor-c) 34%,transparent);}
+.bw-table .sw-y{background:color-mix(in srgb,#e8d23a 40%,transparent);}
+.bw-table .sw-o{background:color-mix(in srgb,var(--gafor-m) 38%,transparent);}
+.bw-table .sw-r{background:color-mix(in srgb,var(--gafor-x) 40%,transparent);}
+
+/* freshness */
+.age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;}
+@media (max-width:520px){ .card-head{flex-wrap:wrap;gap:2px 10px;}
+  .card-head .section-title{flex:1 0 100%;} .age{flex:1 0 100%;text-align:left;} }
+.age.stale{color:var(--gafor-d);}
+.age.old{color:var(--temp);}
+.age[role="button"]{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
+.age[role="button"]:hover{color:var(--amber);}
+
+/* Aktualisieren-Knopf in der Kopfzeile */
+#reloadBtn{font-size:16px;line-height:1;}
+#reloadBtn.spinning{color:var(--amber);animation:spin .9s linear infinite;}
+#reloadBtn.ok{color:var(--gafor-c);}
+@media (prefers-reduced-motion:reduce){ #reloadBtn.spinning{animation:none;opacity:.55;} }
+
+/* footer */
+footer{margin:18px 14px 0;padding-top:14px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:10.5px;line-height:1.7;color:var(--text-dim);}
+footer a{color:var(--text-dim);text-decoration:underline;}
+
+/* Kopfzeile: Knöpfe links vom Logo */
+.header-tools{display:flex;gap:5px;flex:0 0 auto;order:2;}
+.header-logo{order:3;}
+.title-block{order:1;}
+.header-tools .btn.icon{width:34px;height:34px;font-size:14px;}
+@media (max-width:430px){
+  .header-tools .btn.icon{width:30px;height:30px;font-size:13px;}
+  .header-logo{height:28px;}
+  .title-block p{display:none;}
+}
+
+/* Beim Seitenbild (html2canvas) stören Überlagerungen */
+body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{display:none !important;}
+
+/* menu */
+/* Die Menüs sitzen in der Kopfzeile und hängen an ihr. Vorher waren sie am
+   Seitenanfang verankert (position:absolute ohne positionierten Vorfahren) und
+   öffneten sich bei gescrollter Seite ausserhalb des Sichtfensters. */
+.menu{position:absolute;right:12px;top:calc(100% + 6px);z-index:70;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  min-width:210px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.45);}
+.menu button{display:block;width:100%;text-align:left;background:transparent;border:none;
+  color:var(--text);font-family:var(--mono);font-size:12px;padding:11px 14px;cursor:pointer;}
+.menu button:hover{background:var(--panel-2);color:var(--amber);}
+.menu .sep{height:1px;background:var(--line-soft);}
+
+/* ---------------------------------------------------------------------------
+   Druck. Ziel sind zwei A4-Seiten: Kopf, Ort, Gebiet, Karte und GAFOR auf der
+   ersten, die Berichte auf der zweiten. Ob es wirklich zwei bleiben, hängt an
+   der Länge des Ballonberichts — bei sehr langen Berichten wird es eine dritte.
+   --------------------------------------------------------------------------- */
+@page { size: A4 portrait; margin: 9mm 8mm; }
+
+@media print {
+  /* Papier ist weiss. Wer im dunklen Modus druckt, bekäme sonst helle Schrift
+     auf weissem Grund — deshalb wird für den Druck die helle Palette erzwungen,
+     unabhängig davon, was am Bildschirm eingestellt ist. */
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{
+    color-scheme:light;
+    --bg:#ffffff; --panel:#ffffff; --panel-2:#f2f3f5;
+    --line:#c2c8d0; --line-soft:#e2e5ea;
+    --text:#1f242c; --text-dim:#5a6472; --text-strong:#0b0e13;
+    --amber:#a35f0c; --amber-dim:#e2c493;
+    --temp:#b8231c; --dew:#0d6d8a; --green:#1a7a4c; --violet:#7a45a0;
+    --gafor-c:#1d8a56; --gafor-o:#5f8415; --gafor-d:#a86513;
+    --gafor-m:#c25a17; --gafor-x:#b8231c; --gafor-none:#8b94a3;
+    --cloud-fill:#4d6a86;
+  }
+  html,body{ background:#fff !important; }
+  /* Farben der GAFOR-Stufen müssen mit — sonst ist die Kachelreihe sinnlos */
+  *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important;
+     box-shadow:none !important; }
+
+  /* alles Bedienbare weg */
+  .gate,.menu,.search-block,.map-btns,.map-hint,.header-tools,.modal,
+  .code-legend,.chips,.explain,.ens-note,.hs-row,.time-bar,.stale .btn,.ai-bar,
+  .card-head .btn,
+  #savePlaceBtn,#favBtn,#gpsBtn,.leaflet-control-zoom,.leaflet-control-attribution{
+    display:none !important;
+  }
+  /* der Schieber fällt weg, sein Zeitstempel bleibt als Beschriftung stehen */
+  .hour-slider{padding:1mm 0 0;}
+  .hs-track{padding:0;}
+  .hs-label{position:static;transform:none;font-size:7pt;color:#111;}
+  .card-head .age{display:none !important;}
+
+  .app{max-width:none;padding:0;}
+  body{font-size:7.2pt;line-height:1.25;color:#111;}
+
+  header.topbar{position:static;border-bottom:1px solid #999;padding:0 0 3mm;
+    margin-bottom:3mm;background:#fff;}
+  .title-block h1{font-size:13pt;color:#000;}
+  .eyebrow{font-size:7pt;}
+  .ver{border:none;padding:0;}
+  .header-logo{height:11mm;}
+
+  .tile-box{border:1px solid #bbb;border-radius:2mm;margin:0 0 2.5mm;overflow:visible;}
+  .tb-body{overflow:visible;}
+  .top-grid{display:block;padding:0;min-height:0;}
+  .top-left{display:block;}
+  .place-bar,.area-head{margin:0 0 2.5mm;padding:2mm 3mm;border:1px solid #bbb;
+    border-radius:2mm;background:#fff;break-inside:avoid;}
+  .area-num{font-size:18pt;min-width:14mm;}
+  .area-name{font-size:11pt;}
+  .legend{font-size:6pt;padding:0.6mm 1.2mm;background:#fff;border:1px solid #ccc;
+    color:#333;gap:0 2mm;}
+
+  .map-block{padding:0 0 2.5mm;}
+  .map-wrap{height:36mm;min-height:0;max-height:none;border:1px solid #bbb;
+    border-radius:2mm;break-inside:avoid;}
+
+  main.content{padding:0;display:block;}
+  .card{border:1px solid #bbb;border-radius:2mm;margin-bottom:1.8mm;background:#fff;}
+  .card-head{padding:1.5mm 3mm;background:#f2f2f2;border-bottom:1px solid #ddd;}
+  .section-title{font-size:8.5pt;}
+  .card-body{padding:1.5mm 2.5mm;}
+
+  /* Kleine Einheiten bleiben zusammen, grosse Karten dürfen über den
+     Seitenrand laufen — sonst bleibt Seite 1 halb leer und es werden drei. */
+  .gbar-wrap,.metar-row,.stat,.ens-row,tr,.wp-split{break-inside:avoid;}
+  .card-head{break-after:avoid;}
+  .report-h{break-after:avoid;}
+
+  /* kompakter setzen */
+  .gbar-wrap{padding:1.5mm 2.5mm 0;}
+  .gseg{padding:1mm 0.8mm;}
+  .gseg .gcd{font-size:12pt;} .gseg .gcd .g{font-size:8pt;}
+  .gseg .ghr{font-size:7pt;}
+  .gbar-foot{font-size:6.5pt;margin-top:1.2mm;}
+  .gdef{font-size:5.5pt;padding:0.4mm 0.3mm;}
+
+  /* Startfenster: Ampel und Streifen reichen, die Fensterliste ist Bedienung */
+  #cardAi.empty{display:none !important;}
+  .ai-text{margin:1.5mm 2.5mm 0;column-count:3;column-gap:4mm;}
+  .ai-h{font-size:7pt;margin-bottom:0.4mm;}
+  .ai-lines{margin:0 0 1.5mm;padding-left:3.5mm;}
+  .ai-lines li{font-size:6.2pt;line-height:1.25;margin-bottom:0.3mm;}
+  .fly-lane{margin:0.6mm 2.5mm 0;height:3mm;}
+  .fly-bar{height:2.8mm;font-size:5pt;padding:0 0.6mm;gap:1mm;border-radius:0.6mm;}
+  .fly-head{margin:1.5mm 2.5mm 0;padding:1mm 2mm;border-radius:1.5mm;gap:2.5mm;}
+  .fly-badge{font-size:9pt;}
+  .fly-when{font-size:6.5pt;} .fly-why{font-size:6.5pt;margin-top:0;}
+  .fly-strip{margin:0.6mm 2.5mm 0;height:3.5mm;}
+  .fly-days{margin:1.2mm 2.5mm 0;height:2.6mm;}
+  .fly-day{font-size:5.5pt;}
+
+  pre.raw,pre.report{font-size:7.2pt;line-height:1.3;background:#fafafa;border:1px solid #eee;
+    padding:1.5mm 2mm;white-space:pre-wrap;}
+  /* Im Druck echte Mehrspaltigkeit statt Grid: nur so darf der Text über den
+     Seitenrand weiterfliessen, statt als Block auf die nächste Seite zu springen. */
+  .report-cols{display:block;column-count:3;column-gap:4mm;}
+  .report-col{display:block;}
+  .report-p{font-size:6.2pt;line-height:1.22;text-align:justify;hyphens:auto;}
+  .report-p + .report-p,.report-p + pre.report,pre.report + .report-p,
+  .report-tbl + .report-p{margin-top:0.8mm;}
+  .report-cols pre.report{font-size:6pt;line-height:1.2;padding:1mm;}
+  .report-tbl{margin:1.5mm 0 0;overflow:visible;}
+  table.rt{font-size:6pt;} table.rt th,table.rt td{padding:0.2mm 1.2mm;}
+  .rt-foot{font-size:5.5pt;margin-top:0.6mm;}
+  .report-h{font-size:7pt;margin:1.5mm 0 0.6mm;}
+  .report-h{font-size:8pt;margin:2mm 0 1mm;}
+
+  .wp-split{gap:0 4mm;flex-wrap:nowrap;align-items:flex-start;}
+  .wp-col-table{flex:1 1 45%;min-width:0;}
+  .wp-col-table .wp-table{max-width:none;}
+  .wp-col-chart{flex:0 0 53%;min-width:0;padding:0;}
+  .wp-col-chart svg{width:100%;height:auto;max-height:58mm;}
+  .wp-table,.bw-table,.fc-table{font-size:7pt;}
+  .wp-table td,.wp-table th{padding:0.6mm 2mm;}
+  .fc-scroll{overflow:hidden;}
+  .fc-table{font-size:5.9pt;} .fc-table td{padding:0.35mm 0.9mm;} .fc-table th{padding:0.35mm 1.5mm;}
+  /* der Kachelstreifen wiederholt nur, was in der Stundentabelle steht */
+  .stat-strip,.ens{display:none !important;}
+  .metar-row{padding:1mm 2.5mm;} .metar-name{font-size:7.4pt;}
+  .metar-top{margin-bottom:0.8mm;}
+  .metar-plain .pl{font-size:6.3pt;line-height:1.22;}
+  .metar-plain{margin:0 0 0.8mm;} .metar-plain.taf{margin:1mm 0 0.8mm;padding-top:0.8mm;}
+  .metar-row pre.raw{padding:0.6mm 1.2mm;font-size:6.4pt;}
+
+  .note{font-size:7pt;}
+  footer{margin:3mm 0 0;font-size:6.5pt;padding-top:2mm;}
+  a{color:#111;text-decoration:none;}
+}
