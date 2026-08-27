@@ -163,10 +163,13 @@ const AI = (() => {
         // gibt CORS für den Aufruf aus dem Browser frei
         'anthropic-dangerous-direct-browser-access': 'true',
       },
+      /* Kein `temperature`: die neueren Modelle lehnen den Parameter ab
+         („`temperature` is deprecated for this model") und brechen den Abruf
+         mit 400 ab. Die Strenge kommt ohnehin aus dem Auftrag, nicht aus einer
+         Zahl. */
       body: JSON.stringify({
         model,
         max_tokens: 1400,
-        temperature: 0.2,
         system: SYSTEM,
         messages: [{ role: 'user', content: text }],
       }),

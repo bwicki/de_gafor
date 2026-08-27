@@ -211,38 +211,45 @@
       </div>
     </section>
 
-    <!-- METAR / TAF (Rohformat) -->
-    <section class="card" id="cardMetar">
-      <div class="card-head">
-        <span class="section-title">METAR / TAF in der Nähe</span>
-        <span class="age" id="metarAge"></span>
-      </div>
-      <div class="card-body tight" id="metarBody">
-        <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
-      </div>
-    </section>
+    <!-- Linke Spalte: METAR. Rechte Spalte: Modellprognose und darunter die
+         Kurzanalyse, die sich auf genau diese Modellwerte bezieht. -->
+    <div class="duo">
+      <!-- METAR / TAF (Rohformat) -->
+      <section class="card" id="cardMetar">
+        <div class="card-head">
+          <span class="section-title">METAR / TAF in der Nähe</span>
+          <span class="age" id="metarAge"></span>
+        </div>
+        <div class="card-body tight" id="metarBody">
+          <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
+        </div>
+      </section>
 
-    <!-- Open-Meteo -->
-    <section class="card" id="cardModel">
-      <div class="card-head">
-        <span class="section-title">Modellprognose am Ort</span>
-        <span class="age" id="modelAge"></span>
-      </div>
-      <div class="card-body tight" id="modelBody">
-        <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
-      </div>
-    </section>
+      <div class="duo-col">
+        <!-- Open-Meteo -->
+        <section class="card" id="cardModel">
+          <div class="card-head">
+            <span class="section-title">Modellprognose am Ort</span>
+            <span class="age" id="modelAge"></span>
+          </div>
+          <div class="card-body tight" id="modelBody">
+            <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
+          </div>
+        </section>
 
-    <!-- KI-Kurzanalyse -->
-    <section class="card wide" id="cardAi">
-      <div class="card-head">
-        <span class="section-title">Kurzanalyse</span>
-        <span class="age" id="aiAge"></span>
+        <!-- KI-Kurzanalyse -->
+        <section class="card" id="cardAi">
+          <div class="card-head">
+            <span class="section-title">KI-Kurzanalyse</span>
+            <span class="age" id="aiAge"></span>
+            <button class="btn small hidden" id="aiBtn" type="button">KI-Analyse anfordern</button>
+          </div>
+          <div class="card-body tight" id="aiBody">
+            <div class="card-body"><div class="note">Noch nicht angefordert.</div></div>
+          </div>
+        </section>
       </div>
-      <div class="card-body tight" id="aiBody">
-        <div class="card-body"><div class="note">Noch nicht angefordert.</div></div>
-      </div>
-    </section>
+    </div>
 
   </main>
 

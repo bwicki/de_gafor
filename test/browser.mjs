@@ -165,6 +165,10 @@ const DWD_INDEX = {
   balloon: {}, errors: [],
 };
 let dwdIndex = DWD_INDEX;
+/* Bremse für den Nachlade-Knopf: ohne sie ist die gemockte Antwort schneller
+   da als der erste Blick des Tests, und die Prüfung auf „lädt…" wird zum
+   Glücksspiel. */
+let dwdDelayMs = 0;
 const aiCalls = [];
 let aiFail = false;
 
@@ -177,7 +181,10 @@ const METAR_REPO = {
 const routeAll = async (route) => {
   const url = route.request().url();
   if (url.includes('data/dwd/metar.json')) return route.fulfill({ json: METAR_REPO });
-  if (url.includes('data/dwd/index.json')) return route.fulfill({ json: dwdIndex });
+  if (url.includes('data/dwd/index.json')) {
+    if (dwdDelayMs) await new Promise(r => setTimeout(r, dwdDelayMs));
+    return route.fulfill({ json: dwdIndex });
+  }
   if (url.startsWith(base)) return route.continue();
   if (url.includes('ensemble-api.open-meteo.com'))
     return route.fulfill({ json: ensembleJSON() });
@@ -712,8 +719,9 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
      als täte der Knopf nichts. */
   {
     const btn = page.locator('#tileBody .stale .btn');
+    dwdDelayMs = 600;
     const p1 = btn.click();
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(150);
     const during = await btn.innerText().catch(() => '');
     /lädt/.test(during) ? ok(`der Knopf zeigt seinen Zustand („${during}")`)
                         : bad(`Knopfbeschriftung beim Laden: ${during}`);
@@ -725,6 +733,7 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
       : bad(`keine Rückmeldung nach dem Laden: ${note}`);
     (await page.locator('#tileBody .stale .btn').innerText()) === 'neu laden'
       ? ok('danach ist der Knopf wieder bedienbar') : bad('Knopf bleibt im Ladezustand');
+    dwdDelayMs = 0;
   }
 
   dwdIndex = DWD_INDEX;
@@ -1067,6 +1076,19 @@ await page.waitForTimeout(2500);
   await page.locator('#cardAi').evaluate(n => n.classList.contains('empty'))
     ? ok('die leere Karte ist als leer gekennzeichnet (fällt im Druck weg)')
     : bad('leere Karte nicht gekennzeichnet');
+  await page.locator('#aiBtn').isHidden()
+    ? ok('ohne Schlüssel steht kein Knopf da, der nichts täte')
+    : bad('der Knopf steht da, obwohl kein Schlüssel hinterlegt ist');
+
+  // Der Knopf gehört in die Kopfzeile, rechts vom Titel
+  await page.locator('#cardAi .card-head #aiBtn').count() === 1
+    ? ok('der Knopf sitzt in der Kopfzeile der Karte')
+    : bad('der Knopf steht nicht in der Kopfzeile');
+  /* textContent, nicht innerText: die Kopfzeile setzt den Titel per CSS in
+     Grossbuchstaben, und innerText liefert das Gerenderte. */
+  (await page.locator('#cardAi .section-title').textContent()).trim() === 'KI-Kurzanalyse'
+    ? ok('die Karte heisst KI-Kurzanalyse')
+    : bad(`Titel: ${await page.locator('#cardAi .section-title').textContent()}`);
 
   // Schlüssel eintragen
   await page.locator('#menuBtn').click();
@@ -1075,16 +1097,20 @@ await page.waitForTimeout(2500);
   await page.locator('#setAiKey').fill('sk-ant-testschluessel-0000000000');
   await page.locator('#setOk').click();
   await page.waitForTimeout(400);
-  (await page.locator('#aiBody .btn').innerText()).includes('Analyse anfordern')
+  (await page.locator('#aiBtn').innerText()).includes('Analyse anfordern')
     ? ok('mit Schlüssel steht der Knopf da') : bad('kein Knopf nach dem Eintragen');
 
   // anfordern
-  await page.locator('#aiBody .btn').click();
+  await page.locator('#aiBtn').click();
   await page.waitForTimeout(1200);
   aiCalls.length === 1 ? ok('genau ein Abruf') : bad(`Abrufe: ${aiCalls.length}`);
   {
     const c = aiCalls[0];
     c.model === 'claude-sonnet-5' ? ok(`Modell ${c.model}`) : bad(`Modell: ${c.model}`);
+    /* `temperature` lehnen die neueren Modelle mit 400 ab — der Parameter darf
+       nicht mitgehen, sonst kommt nie eine Analyse zurück. */
+    !('temperature' in c) ? ok('kein abgelehnter temperature-Parameter im Abruf')
+                          : bad(`temperature: ${c.temperature} geht mit`);
     const txt = c.messages[0].content;
     {
       const want = ['STUNDENRASTER', 'HÖHENPROFIL', 'STARTFENSTER',
@@ -1115,6 +1141,32 @@ await page.waitForTimeout(2500);
       ? ok('die Kopfzeile nennt Modell und Zeitpunkt') : bad('Kopfzeile der Analyse leer');
   }
 
+  // Sitz im Raster: rechte Spalte, direkt unter der Modellprognose
+  {
+    await page.setViewportSize({ width: 1280, height: 2600 });
+    await page.waitForTimeout(400);
+    const mo = await page.locator('#cardModel').boundingBox();
+    const ai = await page.locator('#cardAi').boundingBox();
+    const me = await page.locator('#cardMetar').boundingBox();
+    Math.abs(ai.x - mo.x) < 2 && ai.x > me.x
+      ? ok('die Kurzanalyse steht in der rechten Spalte, bündig zur Modellprognose')
+      : bad(`x: METAR ${Math.round(me.x)}, Modell ${Math.round(mo.x)}, KI ${Math.round(ai.x)}`);
+    const gap = ai.y - (mo.y + mo.height);
+    gap >= 0 && gap < 24
+      ? ok(`und direkt darunter (${Math.round(gap)} px Abstand)`)
+      : bad(`Abstand zur Modellprognose: ${Math.round(gap)} px`);
+    Math.abs(ai.width - mo.width) < 2
+      ? ok('beide Karten sind gleich breit') : bad('die Breiten weichen ab');
+    const head = await page.locator('#cardAi .card-head').boundingBox();
+    const btn = await page.locator('#aiBtn').boundingBox();
+    const ttl = await page.locator('#cardAi .section-title').boundingBox();
+    btn.x > ttl.x + ttl.width && btn.x + btn.width <= head.x + head.width + 1
+      ? ok('der Knopf steht rechts vom Titel, innerhalb der Kopfzeile')
+      : bad(`Knopf bei x=${Math.round(btn.x)}, Kopfzeile bis ${Math.round(head.x + head.width)}`);
+    await page.setViewportSize({ width: 430, height: 3200 });
+    await page.waitForTimeout(300);
+  }
+
   // DWD-Text zuschalten
   await page.locator('#menuBtn').click();
   await page.locator('#mSettingsBtn').click();
@@ -1122,14 +1174,14 @@ await page.waitForTimeout(2500);
   await page.locator('#setAiDwd').selectOption('1');
   await page.locator('#setOk').click();
   await page.waitForTimeout(400);
-  await page.locator('#aiBody .btn').click();
+  await page.locator('#aiBtn').click();
   await page.waitForTimeout(1200);
   /FLUGWETTERÜBERSICHT/.test(aiCalls[aiCalls.length - 1].messages[0].content)
     ? ok('eingeschaltet geht der DWD-Text mit') : bad('der Schalter wirkt nicht');
 
   // Fehler werden gezeigt, nicht verschluckt
   aiFail = true;
-  await page.locator('#aiBody .btn').click();
+  await page.locator('#aiBtn').click();
   await page.waitForTimeout(1200);
   /401/.test(await page.locator('#aiBody').innerText())
     ? ok('ein abgelehnter Schlüssel wird im Klartext gemeldet')

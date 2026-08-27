@@ -232,9 +232,10 @@ die Lage offen ist. Abschaltbar, weil es ein zweiter Abruf gegen einen anderen H
 Die Kopfzeile nennt den **absoluten** Zeitpunkt, für den die Werte gelten — Wochentag,
 Datum, Uhrzeit und Zeitzone —, nicht nur „in 6 h".
 
-## Kurzanalyse durch Claude
+## KI-Kurzanalyse
 
-Darunter steht eine Karte mit höchstens **24 Zeilen in drei Abschnitten**:
+**Direkt unter der Modellprognose** in der rechten Spalte — sie bezieht sich auf genau diese
+Werte — steht eine Karte mit höchstens **24 Zeilen in drei Abschnitten**:
 
 * **Grosswetterlage** — was die Lage trägt und wohin sie sich bewegt.
 * **Ballonspezifische Gefahren** — Bodenwind, Böen, Scherung zwischen Boden und
@@ -245,7 +246,10 @@ Darunter steht eine Karte mit höchstens **24 Zeilen in drei Abschnitten**:
   optimistisch oder zu streng hält.
 
 Eine Empfehlung zu starten gibt sie nicht; entschieden wird vor Ort. Sie wird **auf
-Knopfdruck** geholt, nicht automatisch — jeder Abruf kostet.
+Knopfdruck** geholt, nicht automatisch — jeder Abruf kostet. Der Knopf steht in der
+**Kopfzeile rechts vom Titel**: *KI-Analyse anfordern*, danach *KI-Analyse aktualisieren*,
+während des Abrufs *Claude denkt …* und gesperrt. Ohne hinterlegten Schlüssel erscheint er
+nicht.
 
 ### Der Schlüssel gehört dem Nutzer
 
@@ -254,7 +258,10 @@ Schlüssel für alle, die die Seite aufrufen. Er wird darum in den Einstellungen
 liegt im `localStorage` **genau dieses Geräts** und geht nur an `api.anthropic.com` — nie ins
 Repo, nie in einen geteilten Link, nie ins Seitenbild. Dasselbe Verfahren wie beim optionalen
 Open-Meteo-Schlüssel. Einen Schlüssel gibt es unter
-<https://console.anthropic.com>; ohne ihn erklärt die Karte, was ihr fehlt, und ruft nichts ab.
+<https://console.anthropic.com> → *API keys* → *Create key*; er beginnt mit `sk-ant-`.
+Die Konsole ist ein eigenes Konto mit eigenem Guthaben — ein Abonnement von Claude.ai oder
+Claude Code deckt sie **nicht** ab. Ohne Schlüssel erklärt die Karte, was ihr fehlt, und ruft
+nichts ab.
 
 Der Aufruf geht direkt aus dem Browser und braucht dafür den Kopf
 `anthropic-dangerous-direct-browser-access`, mit dem Anthropic CORS für genau diesen Fall
@@ -678,6 +685,7 @@ bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 
 ```
 index.html                  Kopfbereich (Suche · Ort · Gebiet · Stufen | Karte) · Zeitschieber · sieben Karten
+                            (METAR links; rechts Modellprognose und darunter die Kurzanalyse)
 css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür

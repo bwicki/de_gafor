@@ -228,10 +228,16 @@ body.guest .map-wrap{cursor:default;}
 .btn.small{height:26px;padding:0 10px;font-size:11px;}
 
 /* ---------- Kurzanalyse ---------- */
+/* Der Knopf sitzt in der Kopfzeile, hier steht nur noch, was er tun wird.
+   `align-self` muss sein: die Kopfzeile richtet an der Schriftlinie aus, und
+   ein Knopf hat keine, die dazu passt. */
+.card-head .btn{align-self:center;flex:0 0 auto;}
 .ai-bar{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin:11px 14px 0;}
 .ai-hint{font-family:var(--mono);font-size:9.5px;color:var(--text-dim);}
+/* Einspaltig: die Karte ist nur noch halb so breit wie früher, zwei Spalten
+   ergäben Zeilen von zwei Wörtern. Im Ausdruck läuft sie über die volle
+   Seitenbreite, dort bleiben drei Spalten. */
 .ai-text{margin:12px 14px 0;column-gap:26px;}
-@media (min-width:820px){ .ai-text{column-count:2;} }
 .ai-h{margin:0 0 4px;font-size:12.5px;font-weight:700;color:var(--text-strong);
   letter-spacing:.01em;break-after:avoid;}
 .ai-lines{margin:0 0 13px;padding-left:17px;break-inside:avoid-column;}
@@ -287,6 +293,13 @@ main.content{padding:12px 14px 0;}
 @media (min-width:900px){
   main.content{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;align-items:start;}
   main.content > .card.wide{grid-column:1 / -1;}
+  /* METAR links, rechts Modellprognose und direkt darunter die Kurzanalyse.
+     Als eigenes Raster statt über die Spalten von main.content: sonst käme die
+     Kurzanalyse in die nächste Rasterzeile und stünde unter der METAR-Karte —
+     oder, in die rechte Spalte gezwungen, mit einer Lücke darüber, sobald die
+     METAR-Karte die höhere ist. */
+  main.content > .duo{grid-column:1 / -1;display:grid;
+    grid-template-columns:1fr 1fr;gap:0 12px;align-items:start;}
 }
 
 /* ---------- Kasten mit den GAFOR-Stufen ---------- */
@@ -692,6 +705,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   /* alles Bedienbare weg */
   .gate,.menu,.search-block,.map-btns,.map-hint,.header-tools,.modal,
   .code-legend,.chips,.explain,.ens-note,.hs-row,.time-bar,.stale .btn,.ai-bar,
+  .card-head .btn,
   #savePlaceBtn,#favBtn,#gpsBtn,.leaflet-control-zoom,.leaflet-control-attribution{
     display:none !important;
   }

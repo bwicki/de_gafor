@@ -5,6 +5,35 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.18.2 — 2026-08-27
+
+* **Behoben: die Analyse kam nie zustande.** Der Abruf schickte `temperature: 0.2` mit; die
+  neueren Modelle lehnen den Parameter ab (»`temperature` is deprecated for this model«) und
+  brechen mit 400 ab. Er geht jetzt gar nicht mehr mit — die Strenge der Antwort kommt aus
+  dem Auftrag, nicht aus einer Zahl. Eine Prüfung im Browserlauf hält fest, dass der
+  Parameter nicht wieder auftaucht.
+* Die Karte heisst neu **KI-Kurzanalyse** statt nur *Kurzanalyse* — sie ist die einzige
+  Stelle der Seite, an der nicht gerechnet, sondern geschätzt wird, und das soll im Titel
+  stehen.
+* Testhygiene: die Prüfung auf den Ladezustand des Nachlade-Knopfes bremst die gemockte
+  DWD-Antwort jetzt ausdrücklich, statt auf ein Zeitfenster von 120 ms zu hoffen — sie schlug
+  etwa jedes dritte Mal grundlos fehl.
+
+## 1.18.1 — 2026-08-27
+
+* **Die Kurzanalyse steht jetzt in der rechten Spalte**, direkt unter der Modellprognose,
+  auf die sie sich bezieht — statt über die volle Breite unter beiden Karten. Dafür bilden
+  METAR und die rechte Säule (Modellprognose + Kurzanalyse) ein eigenes Raster; würde die
+  Karte nur in die rechte Rasterspalte von `main.content` gezwungen, klaffte über ihr eine
+  Lücke, sobald die METAR-Karte die höhere ist. Der Text läuft dort einspaltig, weil zwei
+  Spalten auf halber Breite Zeilen von zwei Wörtern ergäben; im Ausdruck bleiben es drei.
+* **Der Knopf sitzt neu in der Kopfzeile**, rechts vom Titel: *KI-Analyse anfordern*, nach
+  der ersten Analyse *KI-Analyse aktualisieren*, während des Abrufs *Claude denkt …* und
+  gesperrt. Er ist damit erreichbar, ohne an 24 Zeilen vorbeizuscrollen — und weil jeder
+  Druck Geld kostet, soll er dort stehen, wo man ihn absichtlich trifft. Ohne hinterlegten
+  Schlüssel erscheint er gar nicht erst.
+* Im Ausdruck fällt der Knopf weg wie die übrigen Bedienelemente; die zwei A4-Seiten bleiben.
+
 ## 1.18.0 — 2026-08-26
 
 * **Kurzanalyse durch Claude.** Unter der Modellprognose steht neu eine Karte mit höchstens

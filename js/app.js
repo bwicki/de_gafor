@@ -1886,7 +1886,17 @@
   function renderAi() {
     const body = U.clear(U.$('aiBody'));
     const age = U.$('aiAge');
+    const btn = U.$('aiBtn');
     age.className = 'age';
+
+    /* Der Knopf steht in der Kopfzeile, nicht im Text: er ist das einzige, was
+       hier Geld kostet, und muss ohne Scrollen erreichbar sein — auch dann,
+       wenn die Karte schon 24 Zeilen trägt. */
+    btn.className = 'btn small hidden' + (state.aiBusy ? '' : ' primary');
+    btn.disabled = state.aiBusy;
+    btn.textContent = state.aiBusy ? 'Claude denkt …'
+      : (state.ai && state.ai.sections ? 'KI-Analyse aktualisieren' : 'KI-Analyse anfordern');
+    btn.onclick = askAi;
     /* Ohne Analyse hat die Karte im Ausdruck nichts verloren — sie stünde
        sonst als leerer Kasten auf dem Blatt und kostet eine dritte Seite. */
     U.$('cardAi').classList.toggle('empty',
@@ -1906,12 +1916,8 @@
     }
     if (!state.om) { age.textContent = ''; body.appendChild(wrapNote('Noch keine Modelldaten.')); return; }
 
+    btn.classList.remove('hidden');
     const bar = U.el('div', 'ai-bar');
-    const btn = U.el('button', 'btn small' + (state.aiBusy ? '' : ' primary'),
-      state.aiBusy ? 'Claude denkt …' : (state.ai ? 'neu anfordern' : 'Analyse anfordern'));
-    btn.disabled = state.aiBusy;
-    btn.onclick = askAi;
-    bar.appendChild(btn);
     const hint = U.el('span', 'ai-hint');
     hint.textContent = state.aiBusy
       ? 'Der Lagebericht ist unterwegs; das dauert ein paar Sekunden.'
@@ -1942,7 +1948,8 @@
         'Einschätzung vor Ort.'));
     } else if (!state.aiBusy) {
       body.appendChild(wrapNote(
-        'Noch nicht angefordert. Der Knopf schickt einen Lagebericht aus den Werten dieser ' +
+        'Noch nicht angefordert. Der Knopf <strong>oben rechts</strong> schickt einen ' +
+        'Lagebericht aus den Werten dieser ' +
         'Seite an Claude und holt drei Abschnitte zurück: Grosswetterlage, ballonspezifische ' +
         'Gefahren und eine Gegenprobe zu den Startfenstern.'));
     }
