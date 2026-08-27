@@ -5,6 +5,22 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.18.4 — 2026-08-27
+
+* **Behoben: „Die Antwort liess sich nicht lesen."** Die Analyse wurde als Fliesstext
+  verlangt, aus dem die App das JSON wieder herausschneiden musste — ein Ratebetrieb, der an
+  jeder Vorrede, jedem Code-Zaun und jeder abgeschnittenen Klammer scheitert. Neu bindet
+  `tool_choice` das Modell an ein **Werkzeug `lagebericht`** mit festem Schema; die API
+  liefert den Inhalt fertig geparst im Block `tool_use`. Unlesbar kann er damit nicht mehr
+  zurückkommen. Der alte Weg bleibt als Rückfall stehen, falls ein Modell die Werkzeuge
+  einmal nicht bedient.
+* `max_tokens` von 1400 auf **4000**. Zu knapp bemessen schneidet die API mitten im Satz ab —
+  und genau das sah aus wie „unlesbar".
+* **Fehlermeldungen, mit denen man etwas anfangen kann.** Statt eines Satzes für alles jetzt:
+  abgeschnitten (`max_tokens`), verweigert, oder die ersten 120 Zeichen dessen, was
+  tatsächlich ankam. Drei neue Prüfungen halten Werkzeugzwang, Rückfall und
+  Abbruchmeldung fest.
+
 ## 1.18.3 — 2026-08-27
 
 * **Der Warnhinweis unterscheidet jetzt zwei völlig verschiedene Fälle.** Bisher hiess es in

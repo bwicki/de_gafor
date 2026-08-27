@@ -40,6 +40,34 @@ const AI = (() => {
   const VERSION = '2023-06-01';
   const MAX_LINES = 24;
 
+  /* Die Antwort kommt nicht als Fliesstext, sondern über ein erzwungenes
+     Werkzeug: `tool_choice` bindet das Modell an dieses Schema, und die API
+     liefert den Inhalt fertig geparst im Block `tool_use`. Damit entfällt der
+     ganze Ratebetrieb — Vorrede, Code-Zäune, ein abgeschnittenes JSON. */
+  const TOOL = {
+    name: 'lagebericht',
+    description: 'Gibt die fertige Kurzanalyse in drei Abschnitten zurück.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        sections: {
+          type: 'array',
+          description: 'Genau drei Abschnitte in der vorgegebenen Reihenfolge.',
+          items: {
+            type: 'object',
+            properties: {
+              title: { type: 'string', description: 'Titel des Abschnitts.' },
+              lines: { type: 'array', items: { type: 'string' },
+                       description: 'Je ein vollständiger Satz, höchstens 110 Zeichen.' },
+            },
+            required: ['title', 'lines'],
+          },
+        },
+      },
+      required: ['sections'],
+    },
+  };
+
   /* Auswahl bewusst klein gehalten: das Schnelle und das Gute. */
   const MODELS = [
     { key: 'claude-sonnet-5', name: 'Sonnet 5', note: 'ausgewogen, ca. 1,5 Rp. je Analyse' },
@@ -57,8 +85,8 @@ const AI = (() => {
     'eine knappe Einschätzung auf Deutsch (Schweizer Rechtschreibung, «ss» statt «ß»).',
     '',
     'Regeln:',
-    '- Antworte AUSSCHLIESSLICH mit JSON nach dem vorgegebenen Schema, ohne Vorrede,',
-    '  ohne Code-Zaun, ohne Markdown in den Zeilen.',
+    '- Gib deine Antwort ausschliesslich über das Werkzeug `lagebericht` ab, ohne Vorrede',
+    '  und ohne Markdown in den Zeilen.',
     '- Genau drei Abschnitte in dieser Reihenfolge und mit diesen Titeln:',
     '  "Grosswetterlage", "Ballonspezifische Gefahren", "Startfenster im Vergleich".',
     '- Zusammen höchstens 24 Zeilen. Jede Zeile ein vollständiger Satz, höchstens 110 Zeichen.',
@@ -71,9 +99,6 @@ const AI = (() => {
     '- Was die Daten nicht hergeben, sagst du als Lücke; erfinde nichts.',
     '- Keine Empfehlung zu starten oder nicht zu starten. Du lieferst die Einschätzung,',
     '  entschieden wird vor Ort.',
-    '',
-    'Schema:',
-    '{"sections":[{"title":"...","lines":["...","..."]}]}',
   ].join('\n');
 
   /** m/s in die angezeigte Einheit, gerundet. */
@@ -166,11 +191,16 @@ const AI = (() => {
       /* Kein `temperature`: die neueren Modelle lehnen den Parameter ab
          („`temperature` is deprecated for this model") und brechen den Abruf
          mit 400 ab. Die Strenge kommt ohnehin aus dem Auftrag, nicht aus einer
-         Zahl. */
+         Zahl.
+         `max_tokens` grosszügig: 24 Zeilen brauchen keine 4000, aber ein zu
+         knappes Budget schneidet die Antwort mitten im Satz ab, und das sah
+         bisher aus wie „liess sich nicht lesen". */
       body: JSON.stringify({
         model,
-        max_tokens: 1400,
+        max_tokens: 4000,
         system: SYSTEM,
+        tools: [TOOL],
+        tool_choice: { type: 'tool', name: TOOL.name },
         messages: [{ role: 'user', content: text }],
       }),
     });
@@ -187,11 +217,44 @@ const AI = (() => {
     }
 
     const j = await res.json();
-    const txt = (j.content || []).filter(c => c.type === 'text').map(c => c.text).join('');
-    const parsed = parse(txt);
-    if (!parsed.length) throw new Error('Die Antwort liess sich nicht lesen.');
+    const blocks = Array.isArray(j.content) ? j.content : [];
+
+    /* Der übliche Weg: der Werkzeugaufruf, den `tool_choice` erzwungen hat. */
+    const call = blocks.find(c => c.type === 'tool_use' && c.name === TOOL.name);
+    let parsed = call ? shape(call.input && call.input.sections) : [];
+
+    /* Der Rückfall, falls ein Modell die Werkzeuge einmal nicht bedient: dann
+       eben JSON aus dem Fliesstext. Kostet nichts und rettet den Abruf. */
+    const txt = blocks.filter(c => c.type === 'text').map(c => c.text).join('');
+    if (!parsed.length) parsed = parse(txt);
+
+    if (!parsed.length) throw new Error(why(j, txt));
     return { sections: clamp(parsed), model, at: new Date().toISOString(),
              usage: j.usage || null };
+  }
+
+  /**
+   * Warum nichts herauskam — so genau, dass man es beheben kann. „Die Antwort
+   * liess sich nicht lesen" allein hat niemandem geholfen.
+   */
+  function why(j, txt) {
+    if (j.stop_reason === 'max_tokens') {
+      return 'Die Antwort wurde abgeschnitten (max_tokens) und blieb unvollständig.';
+    }
+    if (j.stop_reason === 'refusal') return 'Das Modell hat die Antwort verweigert.';
+    const head = String(txt || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+    return head
+      ? `Unerwartete Antwort: „${head}…"`
+      : `Die Antwort enthielt keine Abschnitte (stop_reason: ${j.stop_reason || 'unbekannt'}).`;
+  }
+
+  /** Abschnitte säubern — aus dem Werkzeug wie aus dem Fliesstext. */
+  function shape(sections) {
+    return (Array.isArray(sections) ? sections : [])
+      .map(x => ({ title: String((x && x.title) || '').trim(),
+                   lines: (Array.isArray(x && x.lines) ? x.lines : [])
+                     .map(l => String(l).trim()).filter(Boolean) }))
+      .filter(x => x.title && x.lines.length);
   }
 
   /** JSON aus der Antwort holen — auch wenn doch ein Code-Zaun drumherum steht. */
@@ -202,12 +265,7 @@ const AI = (() => {
     const a = s.indexOf('{'), b = s.lastIndexOf('}');
     if (a < 0 || b < a) return [];
     try {
-      const o = JSON.parse(s.slice(a, b + 1));
-      return (Array.isArray(o.sections) ? o.sections : [])
-        .map(x => ({ title: String(x.title || '').trim(),
-                     lines: (Array.isArray(x.lines) ? x.lines : [])
-                       .map(l => String(l).trim()).filter(Boolean) }))
-        .filter(x => x.title && x.lines.length);
+      return shape(JSON.parse(s.slice(a, b + 1)).sections);
     } catch { return []; }
   }
 

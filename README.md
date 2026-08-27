@@ -282,8 +282,13 @@ oder weiterverarbeitet werden, und ein Abruf bei einem Dritten ist beides. Ein S
 den Einstellungen hebt das für den auf, der es verantworten will; ohne ihn fällt der
 Abschnitt zur Grosswetterlage dünner aus. Das ist die ehrlichere Vorgabe.
 
-Verlangt wird striktes JSON mit Abschnitten und Zeilen — Zeilen statt Prosa, weil sich die
-Grenze von 24 Zeilen so hart einhalten lässt, ohne Markdown zu parsen. Im Druck fällt die
+Die Antwort kommt **über ein erzwungenes Werkzeug** (`tool_choice` auf `lagebericht`) mit
+festem Schema aus Abschnitten und Zeilen — die API liefert sie fertig geparst zurück. Zeilen
+statt Prosa, weil sich die Grenze von 24 Zeilen so hart einhalten lässt; das Werkzeug statt
+Fliesstext, weil sonst jede Vorrede, jeder Code-Zaun und jede abgeschnittene Klammer die
+Antwort unlesbar macht. Liefert ein Modell doch Fliesstext, wird das JSON daraus als Rückfall
+trotzdem gelesen. Bleibt beides erfolglos, nennt die Meldung die Ursache — abgeschnitten,
+verweigert, oder wörtlich, was ankam. Im Druck fällt die
 Karte weg, solange sie leer ist.
 
 ## Die Karte

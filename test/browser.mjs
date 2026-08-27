@@ -170,6 +170,7 @@ let dwdIndex = DWD_INDEX;
    Glücksspiel. */
 let dwdDelayMs = 0;
 const aiCalls = [];
+let aiShape = 'tool';
 let aiFail = false;
 
 const METAR_REPO = {
@@ -206,16 +207,30 @@ const routeAll = async (route) => {
   if (url.includes('api.anthropic.com')) {
     aiCalls.push(JSON.parse(route.request().postData() || '{}'));
     if (aiFail) return route.fulfill({ status: 401, json: { error: { message: 'Der Schlüssel wird abgelehnt (401).' } } });
+    const sections = [
+      { title: 'Grosswetterlage', lines: ['Eine Warmfront zieht nordostwärts ab.',
+        'Rückseitig folgt feuchte, teils labile Luft.'] },
+      { title: 'Ballonspezifische Gefahren', lines: ['Bodenwind bleibt bis Mittag unter 4 kt.',
+        'Ab 14 UTC Böen bis 18 kt, dazu Scherung zwischen Boden und 2000 ft.',
+        'Im Umkreis von 100 km ab dem Nachmittag einzelne Schauer.'] },
+      { title: 'Startfenster im Vergleich', lines: ['Das Morgenfenster ist plausibel.',
+        'Das Abendfenster halte ich für zu optimistisch: die Böigkeit bleibt hoch.'] },
+    ];
+    /* aiShape steuert, was die Attrappe zurückgibt:
+       'tool'  — der Regelfall, ein erzwungener Werkzeugaufruf
+       'text'  — der Rückfall: JSON im Fliesstext
+       'cut'   — abgeschnitten, wie bei erschöpftem max_tokens */
+    if (aiShape === 'cut') {
+      return route.fulfill({ json: { stop_reason: 'max_tokens',
+        content: [{ type: 'text', text: '{"sections":[{"title":"Grosswetter' }] } });
+    }
+    if (aiShape === 'text') {
+      return route.fulfill({ json: { stop_reason: 'end_turn',
+        content: [{ type: 'text', text: '```json\n' + JSON.stringify({ sections }) + '\n```' }] } });
+    }
     return route.fulfill({ json: { usage: { input_tokens: 3200, output_tokens: 480 },
-      content: [{ type: 'text', text: JSON.stringify({ sections: [
-        { title: 'Grosswetterlage', lines: ['Eine Warmfront zieht nordostwärts ab.',
-          'Rückseitig folgt feuchte, teils labile Luft.'] },
-        { title: 'Ballonspezifische Gefahren', lines: ['Bodenwind bleibt bis Mittag unter 4 kt.',
-          'Ab 14 UTC Böen bis 18 kt, dazu Scherung zwischen Boden und 2000 ft.',
-          'Im Umkreis von 100 km ab dem Nachmittag einzelne Schauer.'] },
-        { title: 'Startfenster im Vergleich', lines: ['Das Morgenfenster ist plausibel.',
-          'Das Abendfenster halte ich für zu optimistisch: die Böigkeit bleibt hoch.'] },
-      ] }) }] } });
+      stop_reason: 'tool_use',
+      content: [{ type: 'tool_use', id: 'tu_1', name: 'lagebericht', input: { sections } }] } });
   }
   if (url.includes('tile.openstreetmap.org'))
     return route.fulfill({ status: 200, contentType: 'image/png', body: TILE });
@@ -1137,6 +1152,14 @@ await page.waitForTimeout(2500);
        nicht mitgehen, sonst kommt nie eine Analyse zurück. */
     !('temperature' in c) ? ok('kein abgelehnter temperature-Parameter im Abruf')
                           : bad(`temperature: ${c.temperature} geht mit`);
+    /* Die Antwort kommt über ein erzwungenes Werkzeug, nicht als Fliesstext:
+       nur so kann sie nicht mehr „unlesbar" zurückkommen. */
+    c.tools && c.tools[0] && c.tools[0].name === 'lagebericht' &&
+    c.tool_choice && c.tool_choice.type === 'tool' && c.tool_choice.name === 'lagebericht'
+      ? ok('die Antwort wird über das Werkzeug lagebericht erzwungen')
+      : bad(`tool_choice: ${JSON.stringify(c.tool_choice)}`);
+    c.max_tokens >= 4000 ? ok(`max_tokens ${c.max_tokens} — Platz für 24 Zeilen`)
+                         : bad(`max_tokens zu knapp: ${c.max_tokens}`);
     const txt = c.messages[0].content;
     {
       const want = ['STUNDENRASTER', 'HÖHENPROFIL', 'STARTFENSTER',
@@ -1204,6 +1227,25 @@ await page.waitForTimeout(2500);
   await page.waitForTimeout(1200);
   /FLUGWETTERÜBERSICHT/.test(aiCalls[aiCalls.length - 1].messages[0].content)
     ? ok('eingeschaltet geht der DWD-Text mit') : bad('der Schalter wirkt nicht');
+
+  /* Rückfall: liefert ein Modell doch Fliesstext statt eines Werkzeugaufrufs,
+     wird das JSON daraus geholt — samt Code-Zaun. */
+  aiShape = 'text';
+  await page.locator('#aiBtn').click();
+  await page.waitForTimeout(1400);
+  (await page.locator('#aiBody .ai-h').count()) === 3
+    ? ok('JSON im Fliesstext wird als Rückfall trotzdem gelesen')
+    : bad(`Rückfall auf Fliesstext scheitert: ${(await page.locator('#aiBody').innerText()).slice(0, 80)}`);
+
+  /* Abgeschnittene Antwort: die Meldung muss die Ursache nennen, nicht bloss
+     „liess sich nicht lesen" — daran ist niemand weitergekommen. */
+  aiShape = 'cut';
+  await page.locator('#aiBtn').click();
+  await page.waitForTimeout(1400);
+  /abgeschnitten|max_tokens/.test(await page.locator('#aiBody').innerText())
+    ? ok('eine abgeschnittene Antwort wird als solche gemeldet')
+    : bad(`Meldung bei Abbruch: ${(await page.locator('#aiBody').innerText()).slice(0, 90)}`);
+  aiShape = 'tool';
 
   // Fehler werden gezeigt, nicht verschluckt
   aiFail = true;
