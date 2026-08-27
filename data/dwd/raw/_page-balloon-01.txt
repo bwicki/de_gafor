@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html xml:lang="de" lang="de" class="no-js">
+  <head>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge" /> 
+   <base href="https://www.dwd.de/"/>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=320, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Wetter und Klima - Deutscher Wetterdienst   -  Ostfriesland </title>
+    <meta name="generator" content="Government Site Builder"/>
+
+    <script type="text/javascript">//<![CDATA[
+      // i18n
+        var PRINT_PAGE_TEXT = 'Seite drucken';
+        var PRINT_TOOLTIP = 'Seite drucken (öffnet Dialog)';
+        var MOBILENAVIGATION_JSON_URL = 'SiteGlobals/Functions/Navigation_Mobile/DE/mobile_navi_file.json;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?view=renderMobileNavigation';
+        var MOBILENAVIGATION_ACTIVENODE = 'node806816';
+        //constants
+        var CLINKS;
+        CLINKS = CLINKS || {};
+        CLINKS['calendar'] = "SiteGlobals/Functions/Kalender/DE/Kalender.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['search'] = "SiteGlobals/Forms/Suche/Autosuggest_Formular.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['search.json'] = "SiteGlobals/Forms/Suche/Autosuggest_Formular.json;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['requirePath'] = "SiteGlobals/Functions/JavaScript_Optimierung2/_standardlsg";
+        CLINKS['html5player'] = "SiteGlobals/Functions/JavaScript_Optimierung2/libs/jwplayer.html5.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1";
+        CLINKS['renderCityWeather.json?view=renderCityWeather'] = "SiteGlobals/Functions/CityWeather/RenderCityWeather.json;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?view=renderCityWeather";
+        CLINKS['RenderWeatherStatus.html?view=renderWeatherStatus'] = "SiteGlobals/Functions/Unwetterwarnung/RenderWeatherStatus.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?view=renderWeatherStatus";
+        CLINKS['CityWeatherCookiePath.value'] = "/SiteGlobals/";
+        CLINKS['CityWeatherSprite.normal'] = "/SiteGlobals/StyleBundles/Bilder/Allgemein/staedtewetter.svg;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=1";
+        CLINKS['ConsentBoxCookieExpiration.value'] = "360";
+        CLINKS['inkas_wirkungsanalyse'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['inkas_flaechenanalyse'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['inkasstart'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['inkas_wirkungsanalyse_en'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['inkas_flaechenanalyse_en'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['inkasstart_en'] = "_config/ConsentBoxCookieExpiration.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054";
+        CLINKS['svgInlineCSS'] = "SiteGlobals/Frontend/inkas/css/inkas-svg.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=2";
+        CLINKS['inkasKomplett'] = "SiteGlobals/Frontend/inkas/js/inkasKomplett.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1";
+        CLINKS['config.inkasJson'] = "/inkasbackend/inkas/config.json";
+        CLINKS['texts.inkasJson'] = "/inkasbackend/inkas/texts.json";
+        CLINKS['zeitlichewirkung.inkasCSV'] = "/inkasbackend/inkas/zeitlichewirkung.csv";
+        CLINKS['nrw/config-nrw.inkasJson'] = "/inkasbackend/inkas/nrw/config-nrw.json";
+        CLINKS['nrw/texts-nrw.inkasJson'] = "/inkasbackend/inkas/nrw/texts-nrw.json";
+        CLINKS['image_url_mejs_controls.normal'] = "/SiteGlobals/StyleBundles/Bilder/mediaelement/mejs_controls_svg.svg;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=1";
+        CLINKS.flashplayer = "/SiteGlobals/Functions/VideoPlayer/VideoPlayer.swf;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=value&amp;v=2";
+        var RQNAMES;
+        RQNAMES = RQNAMES || {};
+        RQNAMES['app/modules/showbox.js'] = "app/modules/showbox%2Ejs";
+        RQNAMES['../__enhanced.js'] = "../__enhanced%2Ejs";
+        RQNAMES['../__modules.js'] = "../__modules%2Ejs";
+        RQNAMES['Addon_UnwetterForm'] = "Addon_UnwetterForm";
+        RQNAMES['Addon_mmenu'] = "Addon_mmenu";
+        RQNAMES['Addon_MobileNavigations'] = "Addon_MobileNavigations";
+        RQNAMES['Addon_Accordion'] = "Addon_Accordion";
+        RQNAMES['Addon_Autosuggest'] = "Addon_Autosuggest";
+        RQNAMES['Addon_StaedteWetter'] = "Addon_StaedteWetter";
+        RQNAMES['Addon_GlossarPopup'] = "Addon_GlossarPopup";
+        RQNAMES['Addon_Lightbox'] = "JQuery_PlugIn_Lightbox";
+        RQNAMES['Addon_Lightbox_a11y'] = "JQuery_PlugIn_a11y";
+        RQNAMES['jQuery_UI_Position'] = "JQuery_UI_Position";
+        RQNAMES['jQuery_UI_Autocomplete'] = "JQuery_UI_Autocomplete";
+        RQNAMES['jQuery_UI_Menu'] = "JQuery_UI_Menu";
+        RQNAMES['libs/hammer.js'] = "libs/hammer%2Ejs";
+        RQNAMES['libs/jquery.ui.mouse.js'] = "libs/jquery.ui.mouse%2Ejs";
+        RQNAMES['libs/jquery.ui.slider.js'] = "libs/jquery.ui.slider%2Ejs";
+        var LABELS;
+        LABELS = LABELS || {};
+        LABELS['MobilesMenueLaed'] = decodeURIComponent("Mobiles Men%C3%BC wird geladen. Bitte warten.");
+        LABELS['MenueAusblenden'] = decodeURIComponent("Men%C3%BC ausblenden");
+        LABELS['MenueEinblenden'] = decodeURIComponent("Men%C3%BC einblenden");
+        LABELS['Schliessen'] = decodeURIComponent("Schlie%C3%9Fen");
+        LABELS['MehrAnzeigen'] = decodeURIComponent("Mehr anzeigen");
+        LABELS['TeilenUeberschrift'] = decodeURIComponent("In sozialen Medien teilen");
+        LABELS['TeilenLink'] = decodeURIComponent("Diese Seite teilen");
+        LABELS['InkasVergleichenButton'] = decodeURIComponent("Auswahl");
+        LABELS['InkasVergleichEntfernenButton'] = decodeURIComponent("Auswahl aufheben");
+        LABELS['TeilenEmailBodytext'] = decodeURIComponent("Sie erhalten diese E-Mail%2C weil Ihnen jemand einen Artikel auf www.dwd.de empfohlen hat%3A%0A%7Burl%7D");
+        LABELS['CONSENT_BUTTON'] = decodeURIComponent("Ich akzeptiere");
+        LABELS['CONSENT_DESCRIPTION'] = decodeURIComponent("Drittanbieter-Inhalte");
+        LABELS['CONSENT_LABEL'] = decodeURIComponent("Aktivierung erforderlich");
+        LABELS['CONSENT_TEXT'] = decodeURIComponent("Wir m%C3%B6chten Sie darauf hinweisen%2C dass nach der Aktivierung Daten an Drittanbieter %C3%BCbermittelt werden.");
+      //]]>
+    </script>
+
+    <meta name="keywords" content="Luftsportbericht"/>
+
+    <meta name="og:image" content="/SiteGlobals/StyleBundles/Bilder/Allgemein/OpenGraphImage-DWD-Logo.jpg;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=3" />
+
+
+    <link rel="canonical" href="https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_01.html"/>
+    <link rel="copyright" href="" type="text/html" title="Impressum" />
+    <link rel="glossary" href="" type="text/html" title="Glossar" />
+    <link rel="help" href="" type="text/html" title="Hilfe" />
+    <link rel="start" href="DE/Home/home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" type="text/html" title="Homepage" />
+    <link rel="contents" href="" type="text/html" title="&Uuml;bersicht" />
+    <link rel="search" href="" type="text/html" title="Suche" />
+    <link rel="shortcut icon" href="/SiteGlobals/StyleBundles/Bilder/favicon.ico;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=3" type="image/ico" />
+
+<link rel="alternate" type="application/rss+xml" title="Neueste Nachrichten für die Luftfahrt" href="SiteGlobals/Functions/RSSFeed/DE/Luftfahrt_aktuell/RSSNewsfeed.xml;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"/>
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/_libs/_all.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media="screen" />
+
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/styles.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=26" type="text/css" media="screen" />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/handheld/handheld_addon_mmenu.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=2" type="text/css" media="all and (max-width: 599px)" />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/screen_addon_autosuggest.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=2" type="text/css" media ="projection, screen, handheld"  />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/screen_addon_shariff.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=3" type="text/css" media ="projection, screen, handheld"  />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/materna_additional_stylesheet.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=100" type="text/css" media="screen" />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/mediaelementplayer.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=2" type="text/css" media="screen" />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/mediaelementplayer_additional.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media="screen" />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/custom.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=3" type="text/css" media="screen, projection" />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/jquery.tablesorter.theme.default.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media="screen" />
+<!-- Additional IE/Win specific style sheet (Conditional Comments) --><!--[if IE 8]><link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/ie8.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=3" type="text/css" media="screen, projection" /><![endif]-->
+<!-- Additional IE/Win specific style sheet (Conditional Comments) --><!--[if lte IE 7]><link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/ie6-7.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media="projection, screen" /><![endif]-->
+<!-- Additional IE/Win specific style sheet (Conditional Comments) --><!--[if lte IE 8]><link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/screen_iew.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media="projection, screen" /><![endif]-->
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/print/print.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=5" type="text/css" media="print" />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/screen_addon_fontawesome.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media ="projection, screen, handheld"  />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/screen_addon_button.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media ="projection, screen, handheld"  />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/screen_addon_multimedia.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1" type="text/css" media ="projection, screen, handheld"  />
+<link rel="stylesheet"  href="SiteGlobals/StyleBundles/CSS/screen/toodfeed.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=21" type="text/css" media ="projection, screen, handheld, print"  />
+<link rel="stylesheet" href="SiteGlobals/StyleBundles/CSS/screen/addon_flugwetter.css;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=2" type="text/css" media="screen, projection" />
+
+
+
+<!--[if IE 8]>
+ <script src="SiteGlobals/Functions/JavaScript/__ie8.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1"></script>
+ <![endif]-->
+ <!--[if ! lte IE 7]><!--> 
+<!--
+    <script src="SiteGlobals/Functions/JavaScript/__base.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1"></script>
+    <script src="SiteGlobals/Functions/JavaScript/__start.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1"></script>
+-->
+    <script src="SiteGlobals/Functions/JavaScript_Optimierung2/__everything.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=15"></script>
+ <!--<![endif]-->
+<!--[if IE 8]>
+        <script src="SiteGlobals/Functions/JavaScript/html5shiv.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1"></script>
+<![endif]-->
+  </head>
+  <body class=" lang-de">
+
+
+<a name="Start"></a>
+ <div class="navSkip">
+<ul>
+   <li><a href="DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_01.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054#Inhalt">Inhalt</a></li>
+   <li><a href="DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_01.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054#Hauptmenu">Hauptmenu</a></li>
+   <li><a href="DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_01.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054#Suche">Suche</a></li>
+</ul>
+</div>
+ <header role="banner" style="background-image: url(/DE/fachnutzer/luftfahrt/headerbild.jpg;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=11);">
+
+
+  <div id="top-bar" class="slot noWarning">
+   <div class="row">
+      <nav id="nav-meta" role="navigation">
+        <h1>MetaNavigation</h1>
+<a href="#" class="menu-button" title="Menü einblenden"><span>zum Haupt-</span>Menü</a>
+
+<ul><li ><a href="DE/presse/presseseite_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Presse">Pres­se</a></li><li ><a href="DE/service/kontakt/kontakt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Kontakt">Kon­takt</a></li><li ><a title="English" class="languageLink lang_en" href="EN/specialusers/aviation/aviation_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" xml:lang="en" hreflang="en" lang="en">En</a></li><li  class="icon lang-s"><a href="DE/service/gebaerdensprache/gebaerdenSprache_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Geb&#228;rdensprache">Ge­bär­den­spra­che</a></li><li  class="icon lang-e"><a href="DE/service/leichtesprache/leichte_sprache_home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Leichte Sprache">Leich­te Spra­che</a></li></ul>
+
+      </nav>
+<div class="weather weather-data">
+     <p>
+<a href="DE/wetter/wetterundklima_vorort/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Zum Städtewetter" alt="Zum Städtewetter">
+
+      <span class="weather-location"></span>
+      <span class="weather-icon icon-1"></span>
+      <span class="weather-temp"></span>
+</a>
+     </p>
+</div>
+      <div class="search-btn">
+         <a title="Suche einblenden" href="#">zur Suche</a>
+      </div>
+
+
+
+<div class="target-audience">
+<form method="post">
+<div class="select-box">
+<fieldset>
+<label for="select-box-id">Fachnutzer</label>
+
+<select id="select-box-id" class="target" name="navigateTo">
+<option>Fachnutzer</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/energiewirtschaft/energiewirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/energiewirtschaft/energiewirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Energiewirtschaft</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/forschung_lehre/forschung_lehre_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/forschung_lehre/forschung_lehre_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Forschung und Lehre</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/freizeitgaertner/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/freizeitgaertner/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Freizeitgärtner</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/geoinformationswirtschaft/geoinformationswirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/geoinformationswirtschaft/geoinformationswirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Geoinformationswirtschaft</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/gesundheit/gesundheit_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/gesundheit/gesundheit_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Gesundheit</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/hobbymet/hobbymet_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/hobbymet/hobbymet_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Hobbymeteorologen</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/katastrophenschutz/katschutz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/katastrophenschutz/katschutz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Katastrophenschutz</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/landwirtschaft/landwirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/landwirtschaft/landwirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Land- und Forstwirtschaft</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/luftfahrt/luftfahrt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/luftfahrt/luftfahrt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Luftfahrt</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/schifffahrt/schifffahrt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/schifffahrt/schifffahrt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Schifffahrt</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/veranstalter/veranstalter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/veranstalter/veranstalter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Veranstalter</option>
+              <option value='https://www.dwd.de/DE/fachnutzer/wasserwirtschaft/wasserwirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054' data-href='https://www.dwd.de/DE/fachnutzer/wasserwirtschaft/wasserwirtschaft_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054'>Wasserwirtschaft</option>
+</select>
+
+<input type="submit" value="&gt;&gt;" class="non-js">
+
+</fieldset>
+</div>
+</form>
+</div>
+
+
+<div class="weather weather-warning">
+            <p class="no-warning">
+            <a href="DE/wetter/warnungen/warnWetter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Zu den Wetterwarnungen" target="_blank">Kei­ne Un­wet­ter­war­nung</a>
+            </p>
+</div> 
+   </div><!-- row -->
+  </div><!-- slot -->
+ 
+  <div id="search" class="slot extended">
+   <div class="row">
+    <div class="search-box" role="search">
+
+<form name="ServicebereichSuche" action="SiteGlobals/Forms/Suche/Servicesuche_Formular.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" method="get" enctype="application/x-www-form-urlencoded">
+  
+  <input type="hidden" name="nn" value="806816"/>
+  <input type="hidden" name="resourceId" value="13898" />
+  <input type="hidden" name="input_" value="806816" />
+  <input type="hidden" name="pageLocale" value="de" />
+              
+<span class="formLabel">
+  <label for="f13898d20854">Suchtext </label></span>
+            
+  <input id="f13898d20854" name="templateQueryString" value="" title="Suchtext" type="text" placeholder="Suche ..." size="26" maxlength="100"/>
+  <input id="f13898d22552" name="sortOrder" value="score desc" type="hidden"/>
+            
+  <input type="submit" name="submitButton" value="Suchen" class="submit" title="Suchen"/>
+
+
+</form>
+    </div>
+   </div>
+  </div>  
+
+   <div id="nav" class="slot">
+<div class="PrintLogo"><img src="/SiteGlobals/StyleBundles/Bilder/Farbschema/img/logo.png;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?__blob=normal&amp;v=5" alt="Government Site Builder Standardl&ouml;sung" /></div>
+   <div class="row">
+    <nav role="navigation">
+     <h1 class="logo"><a href="DE/Home/home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054">Deutscher Wetterdienst <em>Wetter und Klima aus einer Hand</em></a></h1>    
+     <section>
+      <h1>Navigationsmenue</h1>
+<ul class="level-1"><li class="has-flyout virgin "><a href="DE/wetter/wetter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Alles rund um das aktuelle Wetter und die Wettervorhersage">Wet­ter</a>
+      <div class="flyout">
+        <div class="flyout-box-group">
+                <div class="flyout-box">
+          <ul>
+                <li><a href="DE/wetter/warnungen_gemeinden/warnWetter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Amtliche Warnungen aktuell">War­nun­gen</a></li>
+                <li><a href="DE/wetter/wetterundklima_vorort/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="lokale Wetter- und Klimawerte">Wet­ter und Kli­ma vor Ort</a></li>
+                <li class="last"><a href="DE/wetter/vorhersage_aktuell/vhs_brd_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="aktuelle Wetterberichte f&#252;r die n&#228;chsten Tage f&#252;r Deutschland und die Bundesl&#228;nder">Wet­ter­be­rich­te</a></li>
+                <li><a href="DE/wetter/wetter_weltweit/wetter_weltweit_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="aktuelle Wetterdaten und Vorhersagen weltweit">Wet­ter Eu­ro­pa und welt­weit</a></li>
+                <li><a href="DE/wetter/schon_gewusst/schongewusst_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Informationen &#252;ber den Erstellung von Wettervorhersagen, das DWD-Warnmanagement etc.">Schon ge­wusst?</a></li>
+                <li class="last"><a href="DE/wetter/vorhersage_profis/vorhersageprofis_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Wettervorhersagen f&#252;r Profis">Wet­ter­vor­her­sa­gen für Pro­fis</a></li>
+          </ul></div></div></div></li><li class="has-flyout virgin "><a href="DE/klimaumwelt/klimaumwelt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima und Umwelt">Kli­ma und Um­welt</a>
+      <div class="flyout">
+        <div class="flyout-box-group">
+                <div class="flyout-box">
+          <ul>
+                <li><a href="DE/klimaumwelt/klimawandel/klimawandel_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Basisfakten zum Klimawandel">Ba­sis­fak­ten zum Kli­ma­wan­del</a></li>
+                <li><a href="DE/klimaumwelt/klima-webdienste/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima-Webdienste">Kli­ma-Web­diens­te</a></li>
+                <li class="last"><a href="DE/klimaumwelt/ku_beratung/ku_beratung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima- und Umweltberatung">Kli­ma- und Um­welt­be­ra­tung</a></li>
+                <li><a href="DE/klimaumwelt/klimaueberwachung/klimaueberwachung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima&#252;berwachung">Kli­ma­über­wa­chung</a></li>
+                <li class="last"><a href="DE/klimaumwelt/klimaforschung/klimaforschung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klimaforschung">Kli­ma­for­schung</a></li>
+          </ul></div></div></div></li><li class="has-flyout virgin "><a href="DE/forschung/forschung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Forschung">For­schung</a>
+      <div class="flyout">
+        <div class="flyout-box-group">
+                <div class="flyout-box">
+          <ul>
+                <li><a href="DE/forschung/atmosphaerenbeob/atmosphaerenbeob_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Atmosph&#228;renbeobachtung">At­mo­sphä­ren­be­ob­ach­tung</a></li>
+                <li><a href="DE/forschung/wettervorhersage/wettervorhersage_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Wettervorhersage">Wet­ter­vor­her­sa­ge</a></li>
+                <li><a href="DE/forschung/klima_umwelt/klimaumwelt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima und Umwelt">Kli­ma und Um­welt</a></li>
+                <li class="last"><a href="DE/forschung/forschungsprogramme/herz/herz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Hans-Ertel-Zentrum">Hans-Er­tel-Zen­trum</a></li>
+                <li><a href="DE/forschung/forschungsprogramme/idea_s4s/idea_s4s_home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Italia &#8211; Deutschland science-4-services network in weather and climate ">IDEA-S4S Netz­werk</a></li>
+                <li><a href="DE/forschung/forschungsprogramme/forschungsprogramme_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="DWD-Forschungsprogramme">DWD-For­schungs­pro­gram­me</a></li>
+                <li><a href="DE/forschung/internationale_programme/internationale_programme_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Internationale Programme">In­ter­na­tio­na­le Pro­gram­me</a></li>
+                <li class="last"><a href="DE/forschung/projekte/projekte_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Projekte">Pro­jek­te</a></li>
+          </ul></div></div></div></li><li class="has-flyout virgin FlyoutLinks"><a href="DE/leistungen/_functions/Suche/Suche_Formular.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?nn=806816" title="Produkte und Leistungen des Deutschen Wetterdienstes">Leistungen</a></li><li class="has-flyout virgin FlyoutLinks"><a href="DE/derdwd/derdwd_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Der Deutsche Wetterdienst - Aufgaben, Organisation, Standorte">Der DWD</a>
+      <div class="flyout">
+        <div class="flyout-box-group">
+                <div class="flyout-box">
+          <ul>
+                <li><a href="DE/derdwd/aufgaben/aufgaben_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Aufgaben">Auf­ga­ben</a></li>
+                <li><a href="DE/derdwd/arbeitgeber/arbeitgeber_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Arbeitgeber DWD">Ar­beit­ge­ber DWD</a></li>
+                <li><a href="DE/derdwd/organisation/organisation_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Organisation">Or­ga­ni­sa­ti­on</a></li>
+                <li class="last"><a href="DE/derdwd/standorte/standorte_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Standorte">Stand­orte</a></li>
+                <li><a href="DE/derdwd/koop/koop_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Zusammenarbeit">Zu­sam­men­ar­beit</a></li>
+                <li><a href="DE/derdwd/messnetz/messnetz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Messnetz">Mess­netz</a></li>
+                <li><a href="DE/derdwd/it/it_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Informationstechnik">In­for­ma­ti­ons­tech­nik</a></li>
+                <li class="last"><a href="DE/derdwd/bibliothek/bibliothek_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Deutsche Meteorologische Bibliothek">Deut­sche Me­teo­ro­lo­gi­sche Bi­blio­thek</a></li>
+          </ul></div></div></div></li>
+</ul>
+     </section>
+    </nav>
+   </div><!-- row -->
+  </div><!-- slot -->   
+ </header>
+
+<main role="main" id="main">
+ <div id="breadcrumbs" class="slot content">
+   <div class="row">
+    <nav role="navigation">
+     <h1>Breadcrumb-<em> Menü</em></h1>
+     <ul>
+<li class="first"><a href="DE/Home/home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Startseite">Startseite</a></li><li><a href="DE/fachnutzer/fachnutzer_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Fachnutzerinformationen">Fachnutzer</a></li><li><a href="DE/fachnutzer/luftfahrt/luftfahrt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Luftfahrt">Luftfahrt</a></li><li><strong>Ostfriesland </strong></li>
+     </ul>
+    </nav>
+   </div><!-- row -->
+  </div><!-- slot -->
+
+  <div class="slot content">
+   <div class="row">
+      <div id="">
+<div class="row text"><article class="article-full" role="article"><div class="intro">
+<h1 class="isFirstInSlot">Gebietsvorhersagen für Ballonsport </h1></div><div class="body-text"><p>Bitte wählen Sie aus der GAFOR-Karte Deutschland eine Region aus, für welche zusätzliche Informationen bezüglich Bodenwerte/Wetter/Wind und Thermik in Tabellenform dargestellt werden sollen. </p>
+</div></article><div class="sectionRelated link-list"></div></div></div><MAP NAME="dl">
+
+<!--Gebiet 01-->
+  <area shape="poly"
+    coords="69,119,157,119,200,134,214,137,218,148,211,172,154,175,146,171,115,166,102,180,96,179,88,168,77,163,70,148"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_01" target="_self" alt="Ostfriesland (200 FT AMSL)" title="Ostfriesland (200 FT AMSL)">
+<!--Gebiet 02-->
+  <area shape="poly"
+    coords="158,16,173,9,192,26,206,28,209,42,209,53,216,78,212,84,217,98,210,130,203,132,193,126,156,114"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_02" target="_self" alt="Nordfriesland-Dithmarschen (100 FT AMSL)" title="Nordfriesland-Dithmarschen (100 FT AMSL)">
+<!--Gebiet 03-->
+  <area shape="poly"
+    coords="210,28,229,30,241,70,259,91,286,111,285,121,290,136,274,165,255,160,238,143,231,131,216,129,219,94"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_03" target="_self" alt="Schleswig-Holsteinische Geest (200 FT AMSL)" title="Schleswig-Holsteinische Geest (200 FT AMSL)">
+<!--Gebiet 04-->
+  <area shape="poly"
+    coords="236,33,267,32,297,52,327,54,378,76,319,119,308,176,278,168,295,142,289,110,262,89"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_04" target="_self" alt="Schleswig-Holsteinisches Hügelland (300 FT AMSL)" title="Schleswig-Holsteinisches Hügelland (300 FT AMSL)">
+<!--Gebiet 05-->
+  <area shape="poly"
+    coords="109,178,117,170,145,173,155,178,215,175,224,147,218,132,228,134,243,157,261,165,245,181,224,220,196,220,184,225,174,218,108,219"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_05" target="_self" alt="Nordwestliches Niedersachsen (200 FT AMSL)" title="Nordwestliches Niedersachsen (200 FT AMSL)">
+<!--Gebiet 06-->
+  <area shape="poly"
+    coords="230,221,240,198,267,165,283,176,291,174,315,188,335,204,338,234,327,266,317,267,295,260,265,240,248,238"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_06" target="_self" alt="Lüneburger Heide (400 FT AMSL)" title="Lüneburger Heide (400 FT AMSL)">
+<!--Gebiet 07-->
+  <area shape="poly"
+    coords="105,223,174,221,184,228,192,225,227,222,245,236,243,260,234,275,209,284,202,273,172,273,159,271,141,270,129,282,124,287,97,287,102,273,95,264,80,262,81,247,100,250"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_07" target="_self" alt="Westliches Niedersachsen (300 FT AMSL)" title="Westliches Niedersachsen (300 FT AMSL)">
+<!--Gebiet 08-->
+  <area shape="poly"
+    coords="245,242,260,248,265,245,302,268,306,267,316,271,299,297,293,305,276,299,260,295,239,278,243,263,250,253"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_08" target="_self" alt="Hannover und Braunschweig (600 FT AMSL)" title="Hannover und Braunschweig (600 FT AMSL)">
+<!--Gebiet 09-->
+  <area shape="poly"
+    coords="135,283,143,272,165,275,199,275,206,284,197,291,193,299,199,309,207,321,205,326,195,322,195,315,170,300,154,300,139,297"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_09" target="_self" alt="Teutoburger Wald (700 FT AMSL)" title="Teutoburger Wald (700 FT AMSL)">
+<!--Gebiet 10-->
+  <area shape="poly"
+    coords="198,295,212,285,234,279,249,290,278,305,287,308,280,322,287,340,302,350,299,356,293,352,279,354,277,364,260,369,249,361,245,346,242,342,235,350,222,359,213,353,203,328,212,321,201,308"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_10" target="_self" alt="Weser-Leine-Bergland (1.400 FT AMSL)" title="Weser-Leine-Bergland (1.400 FT AMSL)">
+<!--Gebiet 11-->
+  <area shape="poly"
+    coords="329,119,439,25,473,25,453,94,431,132,410,138,325,135"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_11" target="_self" alt="Mecklenburgisches Tiefland (300 FT AMSL)" title="Mecklenburgisches Tiefland (300 FT AMSL)">
+<!--Gebiet 12-->
+  <area shape="poly"
+    coords="477,25,523,26,516,102,514,123,521,167,497,163,484,150,446,135,436,133,455,97"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_12" target="_self" alt="Vorpommern (200 FT AMSL)" title="Vorpommern (200 FT AMSL)">
+<!--Gebiet 13-->
+  <area shape="poly"
+    coords="318,144,363,139,400,141,400,184,418,208,411,222,394,221,383,215,367,212,346,204,333,198,317,183"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_13" target="_self" alt="Westliche Mecklenburgische Seenplatte und Prignitz (400 FT AMSL)" title="Westliche Mecklenburgische Seenplatte und Prignitz (400 FT AMSL)">
+<!--Gebiet 14-->
+  <area shape="poly"
+    coords="404,140,435,137,481,153,502,169,524,170,527,190,523,202,520,213,512,217,511,226,470,228,461,233,432,229,417,229,421,210,420,202,403,180"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_14" target="_self" alt="Östliche Mecklenburgische Seenplatte und Uckermark (400 FT AMSL)" title="Östliche Mecklenburgische Seenplatte und Uckermark (400 FT AMSL)">
+<!--Gebiet 15-->
+  <area shape="poly"
+    coords="338,205,411,230,393,281,375,279,368,287,345,272,330,267,343,230"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_15" target="_self" alt="Altmark (400 FT AMSL)" title="Altmark (400 FT AMSL)">
+<!--Gebiet 16-->
+  <area shape="poly"
+    coords="393,283,419,288,438,301,472,305,469,319,466,324,455,326,440,327,417,320,393,299"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_16" target="_self" alt="Fläming (600 FT AMSL)" title="Fläming (600 FT AMSL)">
+<!--Gebiet 17-->
+  <area shape="poly"
+    coords="414,232,460,236,463,244,478,268,470,273,471,293,474,301,458,303,435,293,421,286,395,282,401,268,407,263,408,250"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_17" target="_self" alt="Havelland (300 FT AMSL)" title="Havelland (300 FT AMSL)">
+<!--Gebiet 18-->
+  <area shape="poly"
+    coords="534,278,536,266,539,252,509,230,466,232,465,240,471,249,481,268,488,275"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_18" target="_self" alt="Barnim und Oderbruch (400 FT AMSL)" title="Barnim und Oderbruch (400 FT AMSL)">
+<!--Gebiet 19-->
+  <area shape="poly"
+    coords="478,273,492,279,533,280,545,290,546,309,537,325,543,339,516,341,490,325,473,324,476,305,472,283"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_19" target="_self" alt="Dahme-Spree-Gebiet und Gubener Waldland (400 FT AMSL)" title="Dahme-Spree-Gebiet und Gubener Waldland (400 FT AMSL)">
+<!--Gebiet 20-->
+  <area shape="poly"
+    coords="319,270,343,273,356,285,370,293,375,280,390,283,389,300,394,305,370,315,373,327,361,340,355,331,328,324,295,309"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_20" target="_self" alt="Magdeburger Börde und nördliches Harzvorland (700 FT AMSL)" title="Magdeburger Börde und nördliches Harzvorland (700 FT AMSL)">
+<!--Gebiet 21-->
+  <area shape="poly"
+    coords="290,309,317,321,333,330,354,333,363,346,361,362,333,357,324,350,303,347,288,338,282,320"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_21" target="_self" alt="Harz (2.300 FT AMSL)" title="Harz (2.300 FT AMSL)">
+<!--Gebiet 22-->
+  <area shape="poly"
+    coords="364,340,378,327,379,314,395,306,413,323,446,332,468,326,457,360,461,374,442,370,421,382,415,392,385,392,368,367"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_22" target="_self" alt="Leipziger Tieflandsbucht und Elbe-Elster-Niederung (600 FT AMSL)" title="Leipziger Tieflandsbucht und Elbe-Elster-Niederung (600 FT AMSL)">
+<!--Gebiet 23-->
+  <area shape="poly"
+    coords="470,326,489,327,516,343,546,343,546,355,560,361,560,369,540,369,535,376,509,365,488,380,464,373,458,359"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_23" target="_self" alt="Niederlausitzer Heiden (600 FT AMSL)" title="Niederlausitzer Heiden (600 FT AMSL)">
+<!--Gebiet 24-->
+  <area shape="poly"
+    coords="292,373,306,351,324,356,330,362,364,364,379,388,384,393,396,395,387,405,394,423,398,436,385,436,347,426,337,422,294,404,298,386"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_24" target="_self" alt="Thüringer Becken (1.400 FT AMSL)" title="Thüringer Becken (1.400 FT AMSL)">
+<!--Gebiet 25-->
+  <area shape="poly"
+    coords="400,397,416,394,436,376,445,373,464,377,487,384,483,396,462,396,446,409,434,419,407,436,395,422,391,404"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_25" target="_self" alt="Mittelsächsisches Hügelland (1.300 FT AMSL)" title="Mittelsächsisches Hügelland (1.300 FT AMSL)">
+<!--Gebiet 26-->
+  <area shape="poly"
+    coords="489,385,509,370,539,379,542,371,561,373,560,401,548,417,542,417,537,400,522,395,521,403,524,412,508,418,491,405,484,396"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_26" target="_self" alt="Oberlausitz und Lausitzer Gebirge (1.500 FT AMSL)" title="Oberlausitz und Lausitzer Gebirge (1.500 FT AMSL)">
+<!--Gebiet 27-->
+  <area shape="poly"
+    coords="278,405,307,413,348,429,350,447,345,470,333,467,317,463,303,455,291,426,280,416"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_27" target="_self" alt="Thüringer Wald (2.800 FT AMSL)" title="Thüringer Wald (2.800 FT AMSL)">
+<!--Gebiet 28-->
+  <area shape="poly"
+    coords="483,397,455,405,423,428,398,442,393,455,406,477,421,455,445,455,458,444,474,432,483,423,493,425,504,418,486,405"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_28" target="_self" alt="Erzgebirge (2.800 FT AMSL)" title="Erzgebirge (2.800 FT AMSL)">
+<!--Gebiet 31-->
+  <area shape="poly"
+    coords="60,325,87,357,86,371,94,396,67,406,43,414,34,399,51,391,44,384,53,371,50,352,41,338,35,324"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_31" target="_self" alt="Niederrheinisches Tiefland (400 FT AMSL)" title="Niederrheinisches Tiefland (400 FT AMSL)">
+<!--Gebiet 32-->
+  <area shape="poly"
+    coords="93,293,127,289,132,286,139,300,166,304,193,318,192,325,179,327,164,334,132,340,106,334,77,341,63,325,84,316,90,313,81,304"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_32" target="_self" alt="Münsterland (500 FT AMSL)" title="Münsterland (500 FT AMSL)">
+<!--Gebiet 33-->
+  <area shape="poly"
+    coords="80,342,103,337,133,342,189,328,200,326,202,336,202,342,177,357,157,356,130,361,125,370,90,367,87,352"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_33" target="_self" alt="Ruhrgebiet und Ostwestfalen (800 FT AMSL)" title="Ruhrgebiet und Ostwestfalen (800 FT AMSL)">
+<!--Gebiet 34-->
+  <area shape="poly"
+    coords="41,418,66,409,100,398,107,405,108,417,114,425,106,432,103,437,80,433,69,421,56,419"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_34" target="_self" alt="Niederrheinische Bucht (700 FT AMSL)" title="Niederrheinische Bucht (700 FT AMSL)">
+<!--Gebiet 35-->
+  <area shape="poly"
+    coords="92,373,124,373,128,388,139,401,151,419,126,421,115,424,109,411,109,399,102,395,97,391"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_35" target="_self" alt="Bergisches Land (1.400 FT AMSL)" title="Bergisches Land (1.400 FT AMSL)">
+<!--Gebiet 36-->
+  <area shape="poly"
+    coords="129,370,131,363,165,358,180,359,205,344,212,353,194,388,188,416,166,415,160,411,152,417,144,397,131,390"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_36" target="_self" alt="Sauerland (2.400 FT AMSL)" title="Sauerland (2.400 FT AMSL)">
+<!--Gebiet 37-->
+  <area shape="poly"
+    coords="43,425,55,420,74,432,91,440,108,441,115,454,108,462,116,475,106,484,98,498,78,514,67,519,63,511,47,495,51,473,65,464,55,442"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_37" target="_self" alt="Eifel (2.000 FT AMSL)" title="Eifel (2.000 FT AMSL)">
+<!--Gebiet 38-->
+  <area shape="poly"
+    coords="119,454,133,459,133,464,118,476,111,463"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_38" target="_self" alt="Neuwieder Becken (1.000 FT AMSL)" title="Neuwieder Becken (1.000 FT AMSL)">
+<!--Gebiet 39-->
+  <area shape="poly"
+    coords="109,430,120,425,142,424,159,414,178,421,192,415,197,418,194,435,183,444,169,446,168,455,157,455,147,465,137,464,135,457,116,451"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_39" target="_self" alt="Westerwald (1.900 FT AMSL)" title="Westerwald (1.900 FT AMSL)">
+<!--Gebiet 41-->
+  <area shape="poly"
+    coords="62,523,76,519,115,480,131,471,147,499,114,517,66,542,67,542"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_41" target="_self" alt="Hunsrück (2.300 FT AMSL)" title="Hunsrück (2.300 FT AMSL)">
+<!--Gebiet 42-->
+  <area shape="poly"
+    coords="136,469,149,467,158,460,171,458,173,449,185,447,196,459,195,468,188,474,178,487,170,481,148,492"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_42" target="_self" alt="Taunus (2.000 FT AMSL)" title="Taunus (2.000 FT AMSL)">
+<!--Gebiet 43-->
+  <area shape="poly"
+    coords="190,413,193,403,198,387,213,359,225,361,241,347,246,361,265,375,285,357,294,357,299,359,289,371,296,388,291,404,276,401,264,430,254,435,242,460,236,462,216,458,215,441,197,434,200,414"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_43" target="_self" alt="Nordhessisches Bergland und Vogelsberg (2.000 FT AMSL)" title="Nordhessisches Bergland und Vogelsberg (2.000 FT AMSL)">
+<!--Gebiet 44-->
+  <area shape="poly"
+    coords="71,544,145,504,161,499,166,506,160,544,162,552,145,578,125,568,102,568,80,565"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_44" target="_self" alt="Rheinpfalz und Saarland (1.900 FT AMSL)" title="Rheinpfalz und Saarland (1.900 FT AMSL)">
+<!--Gebiet 45-->
+  <area shape="poly"
+    coords="189,443,196,437,212,443,213,459,221,475,216,488,221,499,207,510,197,506,191,511,191,521,192,543,165,533,168,505,165,497,150,496,167,489,173,485,180,491,186,480,197,468,201,459"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_45" target="_self" alt="Rhein-Main-Gebiet und Wetterau (800 FT AMSL)" title="Rhein-Main-Gebiet und Wetterau (800 FT AMSL)">
+<!--Gebiet 46-->
+  <area shape="poly"
+    coords="217,460,232,465,247,465,249,484,246,499,242,514,228,540,197,555,195,541,194,510,201,512,207,512,224,499,220,486,226,476"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_46" target="_self" alt="Odenwald und Spessart (1.800 FT AMSL" title="Odenwald und Spessart (1.800 FT AMSL">
+<!--Gebiet 47-->
+  <area shape="poly"
+    coords="272,421,268,429,259,434,254,451,246,461,250,465,249,475,256,488,268,479,274,463,296,451,294,441,289,424,277,420"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_47" target="_self" alt="Rhön (2.800 FT AMSL)" title="Rhön (2.800 FT AMSL)">
+<!--Gebiet 50-->
+  <area shape="poly"
+    coords="132,600,114,691,128,709,127,693,141,674,146,670,142,657,153,617,169,599"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_50" target="_self" alt="Südlicher Oberrheingraben (1.100 FT AMSL)" title="Südlicher Oberrheingraben (1.100 FT AMSL)">
+<!--Gebiet 51-->
+  <area shape="poly"
+    coords="165,537,190,547,194,558,191,571,186,575,171,594,138,598,152,592,154,581"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_51" target="_self" alt="Mittlerer Oberrheingraben (800 FT AMSL)" title="Mittlerer Oberrheingraben (800 FT AMSL)">
+<!--Gebiet 52-->
+  <area shape="poly"
+    coords="197,564,200,557,216,552,220,561,207,570,195,578,194,594,175,594,191,575,195,574"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_52" target="_self" alt="Kraichgau (1.100 FT AMSL)" title="Kraichgau (1.100 FT AMSL)">
+<!--Gebiet 53-->
+  <area shape="poly"
+    coords="235,537,220,548,224,562,199,577,197,594,209,610,207,620,194,640,194,643,215,638,232,625,256,611,238,611,229,609,235,592,230,579,235,566,254,542"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_53" target="_self" alt="Oberer und mittlerer Neckarraum (1.700 FT AMSL)" title="Oberer und mittlerer Neckarraum (1.700 FT AMSL)">
+<!--Gebiet 54-->
+  <area shape="poly"
+    coords="238,531,252,492,269,483,277,466,299,452,304,462,331,470,334,473,324,482,321,499,296,497,283,529,266,538,254,540"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_54" target="_self" alt="Mainfranken und nördliches Unterfranken (1.400 FT AMSL)" title="Mainfranken und nördliches Unterfranken (1.400 FT AMSL)">
+<!--Gebiet 55-->
+  <area shape="poly"
+    coords="259,543,280,535,295,540,289,569,289,574,295,588,296,597,279,592,276,597,253,606,245,609,230,607,239,593,236,588,232,582,235,571"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_55" target="_self" alt="Kocher-Jagst-Gebiet und Frankenhöhe (1.900 FT AMSL)" title="Kocher-Jagst-Gebiet und Frankenhöhe (1.900 FT AMSL)">
+<!--Gebiet 56-->
+  <area shape="poly"
+    coords="283,532,293,515,297,499,319,501,332,521,352,537,344,543,355,556,348,573,335,577,319,578,310,575,310,582,312,596,308,599,301,596,294,582,291,567,299,537"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_56" target="_self" alt="Mittelfranken (1.700 FT AMSL)" title="Mittelfranken (1.700 FT AMSL)">
+<!--Gebiet 57-->
+  <area shape="poly"
+    coords="337,474,352,476,371,501,382,512,397,522,396,534,378,537,355,536,329,513,322,502,326,482"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_57" target="_self" alt="Oberfranken (1.900 FT AMSL)" title="Oberfranken (1.900 FT AMSL)">
+<!--Gebiet 58-->
+  <area shape="poly"
+    coords="352,431,396,441,390,453,395,468,406,495,393,507,372,501,365,485,350,466"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_58" target="_self" alt="Frankenwald und Fichtelgebirge (2.700 FT AMSL)" title="Frankenwald und Fichtelgebirge (2.700 FT AMSL)">
+<!--Gebiet 61-->
+  <area shape="poly"
+    coords="171,597,153,627,144,657,149,670,129,695,135,704,150,706,164,705,178,673,189,644,195,631,208,613,197,598"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_61" target="_self" alt="Schwarzwald (4.000 FT AMSL)" title="Schwarzwald (4.000 FT AMSL)">
+<!--Gebiet 62-->
+  <area shape="poly"
+    coords="256,608,282,597,308,606,314,610,297,619,269,634,254,646,223,664,202,683,197,698,190,696,188,685,173,698,189,647,222,638,261,610"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_62" target="_self" alt="Schwäbische Alb (3.000 FT AMSL)" title="Schwäbische Alb (3.000 FT AMSL)">
+<!--Gebiet 63-->
+  <area shape="poly"
+    coords="347,545,353,540,372,543,378,556,380,575,387,583,373,589,357,596,337,600,325,605,315,600,311,582,313,577,326,585,337,577,350,574,357,565,357,554"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_63" target="_self" alt="Fränkische Alb (2.000 FT AMSL)" title="Fränkische Alb (2.000 FT AMSL)">
+<!--Gebiet 64-->
+  <area shape="poly"
+    coords="409,494,394,510,383,510,400,517,397,536,381,538,381,543,396,544,417,564,430,565,438,554,421,540,415,522,413,500"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_64" target="_self" alt="Oberpfälzer Wald (2.400 FT AMSL)" title="Oberpfälzer Wald (2.400 FT AMSL)">
+<!--Gebiet 71-->
+  <area shape="poly"
+    coords="168,705,185,692,196,700,207,686,238,696,249,685,246,704,252,708,255,722,248,728,236,710,218,698"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_71" target="_self" alt="Bodenseeraum (2.100 FT AMSL)" title="Bodenseeraum (2.100 FT AMSL)">
+<!--Gebiet 72-->
+  <area shape="poly"
+    coords="208,680,227,666,260,647,274,644,291,639,298,629,319,631,329,639,321,654,318,665,306,671,279,681,256,705,253,706,251,687,249,680,238,693"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_72" target="_self" alt="Schwäbische Hochebene (2.400 FT AMSL)" title="Schwäbische Hochebene (2.400 FT AMSL)">
+<!--Gebiet 73-->
+  <area shape="poly"
+    coords="311,605,313,602,326,608,352,599,386,586,392,588,385,594,372,606,355,614,335,629,331,620,325,621,326,631,321,629,318,626,295,626,288,635,259,646,279,631,298,621,319,609,318,609,317,607"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_73" target="_self" alt="Westliche Donauniederung (1.700 FT AMSL)" title="Westliche Donauniederung (1.700 FT AMSL)">
+<!--Gebiet 74-->
+  <area shape="poly"
+    coords="391,594,411,602,425,603,414,610,420,615,436,613,459,618,470,627,466,640,450,646,435,655,431,663,409,651,395,647,358,658,322,664,331,641,326,622,331,625,338,634"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_74" target="_self" alt="Südbayerisches Hügelland (1.800 FT AMSL)" title="Südbayerisches Hügelland (1.800 FT AMSL)">
+<!--Gebiet 75-->
+  <area shape="poly"
+    coords="373,540,378,540,380,546,394,545,410,562,398,564,397,580,411,583,413,575,424,576,430,588,451,605,475,615,471,626,454,612,427,611,423,612,424,600,401,595,391,589"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_75" target="_self" alt="Östliche Donau- und Naabniederung (1.600 FT AMSL)" title="Östliche Donau- und Naabniederung (1.600 FT AMSL)">
+<!--Gebiet 76-->
+  <area shape="poly"
+    coords="441,554,457,574,469,582,478,590,493,603,491,625,481,621,478,607,466,610,451,600,435,591,424,572,411,574,401,576,401,564,419,565,432,565"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_76" target="_self" alt="Bayerischer Wald (3.300 FT AMSL)" title="Bayerischer Wald (3.300 FT AMSL)">
+<!--Gebiet 81-->
+  <area shape="poly"
+    coords="321,668,300,676,277,690,257,706,275,707,295,704,312,704,326,698,324,685"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_81" target="_self" alt="Westliches Alpenvorland (3.300 FT AMSL)" title="Westliches Alpenvorland (3.300 FT AMSL)">
+<!--Gebiet 82-->
+  <area shape="poly"
+    coords="324,668,347,666,384,651,399,651,435,669,442,681,442,690,430,685,408,688,380,691,357,692,332,700"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_82" target="_self" alt="Östliches Alpenvorland (2.500 FT AMSL)" title="Östliches Alpenvorland (2.500 FT AMSL)">
+<!--Gebiet 83-->
+  <area shape="poly"
+    coords="256,707,300,706,329,703,334,712,315,719,302,722,290,735,270,729,261,713"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_83" target="_self" alt="Allgäuer Alpen (6.500 FT AMSL)" title="Allgäuer Alpen (6.500 FT AMSL)">
+<!--Gebiet 84-->
+  <area shape="poly"
+    coords="333,702,348,699,381,694,410,691,439,691,443,694,450,701,446,717,435,700,391,703,366,707,357,716,343,725,329,723,329,716,340,712"
+    href="/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_84" target="_self" alt="Östliche Bayerische Alpen (6.500 FT AMSL)" title="Östliche Bayerische Alpen (6.500 FT AMSL)">
+</MAP>
+
+<figure class="picture mitte">
+<img src="/DE/fachnutzer/luftfahrt/teaser/gafor/luftsportberichte_karte?__blob=normal"  border="1" title="Übersichtskarte GAFOR-Gebiete " alt="Kein Ort ausgewählt " usemap="#dl" />
+</figure><section><div id=""><div class="row text"><article class="article-full" role="article"><div class="body-text"><div class="paragraph"><!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html" charset=iso-8859-1>
+<meta http-equiv="expires" content="0">
+<title>Ballon</title>
+</head>
+<body>
+<center>
+<h1>GAFOR-Gebiet 01 - Ostfriesland (200 ft)</h1>
+<h3>Vorhersage ausgegeben 27.08.2026 05:00 UTC (ICON-EU 2026-08-27 00 UTC)</h3>
+<h1>Vorhersagen für Donnerstag, 27.08.2026</h1>
+<table width="90%" border="1" cellPadding="2" cellSpacing="2">
+<tr><td colspan="7" bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Astronomische Angaben [UTC]</font></td></tr>
+<tr><td colspan="2" width="25%" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D"">Sonnenaufgang</font></td><td colspan="2" width="25%" align="center">04:28</td><td colspan="2" width="25%" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Sonnenuntergang</font></td><td colspan="1" width="25%" align="center">18:30</td></tr>
+<tr><td colspan="2" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Beginn b&uuml;rgerl. D&auml;mmerung</font></td><td colspan="2" align="center">03:51</td><td colspan="2" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Ende b&uuml;rgerl. D&auml;mmerung</font></td><td colspan="1" align="center">19:06</td></tr>
+<tr><td width="15%" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Mondphase</font></td><td colspan="2" width="25%" align="center">Vollmond</td><td width="15%" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Mondaufgang</font></td><td width="15%" align="center">(27.08.) 18:16</td><td width="15%" bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Monduntergang</font></td><td width="15%" align="center">(27.08.) 03:18</td></tr>
+</table>
+<h2>Bodenwerte/Wetter/Wind f&uuml;r Wittmund (53.58&deg;N 7.78&deg;O - 10 ft)</h2>
+<table width="90%" border="1" cellPadding="2" cellSpacing="2">
+<tr bgcolor="#2D4B9D" align="center"><td><font color="#FFFFFF">Prognosezeit [UTC]</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 06</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 07</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 08</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 09</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 10</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 11</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 12</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 13</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 14</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 15</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 16</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 17</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 18</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 19</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 20</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 21</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 22</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 23</font></td>
+</tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Temperatur [&deg;C]</font></td></td><td align="center">16</td><td align="center">17</td><td align="center">19</td><td align="center">20</td><td align="center">22</td><td align="center">24</td><td align="center">26</td><td align="center">27</td><td align="center">27</td><td align="center">28</td><td align="center">27</td><td align="center">27</td><td align="center">26</td><td align="center">25</td><td align="center">24</td><td align="center">24</td><td align="center">23</td><td align="center">23</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Taupunkt [&deg;C]</font></td></td><td align="center">12</td><td align="center">12</td><td align="center">12</td><td align="center">13</td><td align="center">14</td><td align="center">14</td><td align="center">15</td><td align="center">15</td><td align="center">15</td><td align="center">15</td><td align="center">15</td><td align="center">16</td><td align="center">16</td><td align="center">16</td><td align="center">15</td><td align="center">15</td><td align="center">15</td><td align="center">15</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">QNH [hPa]</font></td></td><td align="center">1016</td><td align="center">1016</td><td align="center">1016</td><td align="center">1015</td><td align="center">1015</td><td align="center">1014</td><td align="center">1013</td><td align="center">1013</td><td align="center">1012</td><td align="center">1011</td><td align="center">1011</td><td align="center">1010</td><td align="center">1010</td><td align="center">1010</td><td align="center">1009</td><td align="center">1009</td><td align="center">1009</td><td align="center">1009</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Gesamtbedeckung [Achtel]</font></td></td><td align="center">0</td><td align="center">0</td><td align="center">0</td><td align="center">3</td><td align="center">0</td><td align="center">0</td><td align="center">2</td><td align="center">8</td><td align="center">7</td><td align="center">8</td><td align="center">6</td><td align="center">8</td><td align="center">8</td><td align="center">8</td><td align="center">8</td><td align="center">8</td><td align="center">8</td><td align="center">8</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Wetter [ICAO Code]</font></td></td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td><td align="center">-</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Windrichtung [&deg;]</font></td></td><td align="center">100</td><td align="center">110</td><td align="center">110</td><td align="center">110</td><td align="center">110</td><td align="center">100</td><td align="center">110</td><td align="center">110</td><td align="center">110</td><td align="center">120</td><td align="center">130</td><td align="center">120</td><td align="center">110</td><td align="center">110</td><td align="center">120</td><td align="center">120</td><td align="center">130</td><td align="center">130</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Wind Mittel [KT]</font></td></td><td bgcolor="#E69750" align="center"> 8</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E65050" align="center">11</td><td bgcolor="#E65050" align="center">11</td><td bgcolor="#E65050" align="center">12</td><td bgcolor="#E65050" align="center">11</td><td bgcolor="#E65050" align="center">10</td><td bgcolor="#E69750" align="center"> 8</td><td bgcolor="#E6E250" align="center"> 7</td><td bgcolor="#E6E250" align="center"> 7</td><td bgcolor="#E69750" align="center"> 8</td><td bgcolor="#E69750" align="center"> 9</td><td bgcolor="#E69750" align="center"> 9</td><td bgcolor="#E6E250" align="center"> 7</td></tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Wind B&ouml;en [KT]</font></td></td><td bgcolor="#E65050" align="center">16</td><td bgcolor="#E650A9" align="center">20</td><td bgcolor="#E650A9" align="center">20</td><td bgcolor="#E650A9" align="center">20</td><td bgcolor="#E650A9" align="center">20</td><td bgcolor="#E650A9" align="center">21</td><td bgcolor="#E650A9" align="center">22</td><td bgcolor="#E650A9" align="center">23</td><td bgcolor="#E650A9" align="center">23</td><td bgcolor="#E650A9" align="center">24</td><td bgcolor="#E650A9" align="center">22</td><td bgcolor="#E65050" align="center">19</td><td bgcolor="#E65050" align="center">16</td><td bgcolor="#E69750" align="center">14</td><td bgcolor="#E65050" align="center">16</td><td bgcolor="#E65050" align="center">17</td><td bgcolor="#E65050" align="center">18</td><td bgcolor="#E65050" align="center">17</td></tr> </table>
+ <h2>Thermikangaben</h2>
+ <table width="90%" border="1" cellPadding="2" cellSpacing="2">
+<tr bgcolor="#2D4B9D" align="center"><td><font color="#FFFFFF">Prognosezeit&nbsp;[UTC]</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 06</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 07</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 08</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 09</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 10</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 11</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 12</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 13</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 14</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 15</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 16</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 17</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 18</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 19</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 20</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 21</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 22</font></td>
+<td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Do 23</font></td>
+</tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Gebietsmittel</font></td><td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+</tr><tr><td bgcolor="#9FCFFF" align="center"><font color="#2D4B9D">Maximum&nbsp;im&nbsp;Gebiet</font></td><td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E6E250" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#E69750" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+<td bgcolor="#57E650" align="center"> </td>
+</tr> </table>
+ <br>
+ <table width="60%" border="1" cellPadding="2" cellSpacing="2">
+  <tr><td bgcolor="#2D4B9D" align="center" width="20%"><font color="#FFFFFF">Thermikbeginn&nbsp;(Gebietsmittel)</font></td><td bgcolor="#FFFFFF" align="center" width="10%"><font >05:45</font></td><td bgcolor="#2D4B9D" align="center" width="20%"><font color="#FFFFFF">Thermikende&nbsp;(Gebietsmittel)</font></td><td align="center" width="10%">16:45</td></tr>
+ </table>
+
+ <h3>Legenden</h3>
+ <table width="60%" border="0" cellPadding="2" cellSpacing="2">
+  <tr><td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Wind&nbsp;Mittel</font></td><td bgcolor="#E650A9" align="center">&ge;&nbsp;15 Knoten</td><td bgcolor="#E65050" align="center">10&nbsp;-&nbsp;&lt;&nbsp;15 Knoten</td><td bgcolor="#E69750" align="center">8&nbsp;-&nbsp;&lt;&nbsp;10 Knoten</td><td bgcolor="#E6E250" align="center">5&nbsp;-&nbsp;&lt;&nbsp;8 Knoten</td><td bgcolor="#57E650" align="center">&lt;&nbsp;5&nbsp;Knoten</td></tr>
+  <tr><td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Wind&nbsp;B&ouml;en</font></td><td bgcolor="#E650A9" align="center">&ge;&nbsp;20&nbsp;Knoten</td><td bgcolor="#E65050" align="center">15&nbsp;-&nbsp;&lt;&nbsp;20&nbsp;Knoten</td><td bgcolor="#E69750" align="center">13&nbsp;-&nbsp;&lt;&nbsp;15&nbsp;Knoten</td><td bgcolor="#E6E250" align="center">10&nbsp;-&nbsp;&lt;&nbsp;13&nbsp;Knoten</td><td bgcolor="#57E650" align="center">&lt;&nbsp;10&nbsp;Knoten</td></tr>
+  <tr><td bgcolor="#2D4B9D" align="center"><font color="#FFFFFF">Thermikst&auml;rke&nbsp;(Steigen)</font></td><td bgcolor="#E650A9" align="center">sehr&nbsp;stark (&ge;&nbsp;2.5 m/s)</td><td bgcolor="#E65050" align="center">stark (1.5&nbsp;-&nbsp;&lt;&nbsp;2.5&nbsp;m/s)</td><td bgcolor="#E69750" align="center">m&auml;&szlig;ig (0.5&nbsp;-&nbsp;&lt;&nbsp;1.5&nbsp;m/s)</td><td bgcolor="#E6E250" align="center">gering (0.1&nbsp;-&nbsp;&lt;&nbsp;0.5&nbsp;m/s)</td><td bgcolor="#57E650" align="center">keine</td></tr>
+ </table>
+<p><b>Hinweis</b>: Sämtliche Angaben basieren auf dem Modell ICON-EU; alle Zeitangaben erfolgen in UTC.<br>
+&copy;Deutscher Wetterdienst, Flugwetterdienst, 2024</p>
+</body></html>
+</div></div></article></div></div></section>
+     </div><!-- row -->
+     </div><!-- slot content -->
+
+</main>
+<script type="text/javascript">
+<!--
+window.rsConf = {general: {usePost: true}};
+//-->
+</script>
+
+<script src="SiteGlobals/Functions/ReadSpeakerModul/ReadSpeakerSandbox/readspeakerScript.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1&amp;pids=embhl" type="text/javascript"></script>
+
+
+
+ <footer role="contentinfo" class="dwd-services">
+<section class="materna-shariff-bar">
+  <div class="row">
+      <div class="materna-shariff subtle" data-lang="de">
+        <a id="materna-shariff-bar-opener"><span>Diese Seite teilen</span></a>
+      </div>
+   </div>
+</section>
+  <section class="services">
+   <div class="slot">
+    <div class="row">
+     <nav role="navigation">
+      <h1>Service-Navigations-<em> Menü</em></h1>
+      <ul>
+<li class="service-1">
+       <a href="DE/derdwd/bibliothek/bibliothek_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Deutsche Meteorologische Bibliothek"><span><span>Deutsche Meteorologische Bibliothek</span></span></a>
+</li>
+<li class="service-2">
+       <a href="DE/presse/mediathek_socialmedia/mediathek_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Mediathek"><span><span>Mediathek</span></span></a>
+</li>
+<li class="service-3">
+       <a class="external" href="/DE/service/lexikon/lexikon_node.html" title="Externer Link Wetter-Lexikon (Öffnet neues Fenster)" target="_blank" rel="noopener noreferrer"><span><span>Wetter-<br/>
+Lexikon</span></span></a>
+</li>
+<li class="service-4">
+       <a class="external" href="https://www.dwd-shop.de/" title="Externer Link WetterShop (Öffnet neues Fenster)" target="_blank" rel="noopener noreferrer"><span><span>WetterShop</span></span></a>
+</li>
+<li class="service-5">
+       <a href="DE/derdwd/arbeitgeber/arbeitgeber_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Arbeitgeber DWD"><span><span>Arbeitgeber DWD</span></span></a>
+</li>
+      </ul>
+     </nav>
+    </div><!-- row -->
+   </div><!-- slot -->
+  </section>
+</footer>
+<footer role="contentinfo">
+<section class="site-index">
+   <h1>Inhatsverzeichnis</h1>
+   <div class="slot">
+    <div class="row">
+         <nav class="box mod teaser type-2 link-list">
+      <div class="teaser-box">
+       <h1>DWD-Services</h1>
+       <ul>
+<li>
+       <a href="DE/service/archiv/archiv_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Zum Archiv ''DWD Aktuell''">Zum Archiv &#039;&#039;DWD Aktuell&#039;&#039;</a>
+</li>
+<li>
+       <a href="DE/service/termine/termine_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Termine, Veranstaltungen">Termine, Veranstaltungen</a>
+</li>
+<li>
+       <a href="DE/service/dwd-apps/dwdapps_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="DWD-Apps">DWD-Apps</a>
+</li>
+<li>
+       <a href="DE/service/newsletter/newsletter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Newsletter">Newsletter</a>
+</li>
+<li>
+       <a href="DE/service/kurzadressen/kurzadressen_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Kurzadressen">Kurzadressen</a>
+</li>
+       </ul>
+      </div>
+     </nav>
+     <nav class="box" role="navigation">
+      <div class="box-box">
+            <h1><a href="DE/wetter/wetter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Alles rund um das aktuelle Wetter und die Wettervorhersage">Wet­ter</a></h1>
+            <ul id="footer-links-1">
+              <li><a href="DE/wetter/warnungen_gemeinden/warnWetter_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Amtliche Warnungen aktuell"><span><span>Warnungen</span></span></a></li>
+              <li><a href="DE/wetter/wetterundklima_vorort/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="lokale Wetter- und Klimawerte"><span><span>Wetter und Klima vor Ort</span></span></a></li>
+              <li><a href="DE/wetter/vorhersage_aktuell/vhs_brd_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="aktuelle Wetterberichte f&#252;r die n&#228;chsten Tage f&#252;r Deutschland und die Bundesl&#228;nder"><span><span>Wetterberichte</span></span></a></li>
+              <li><a href="DE/wetter/wetter_weltweit/wetter_weltweit_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="aktuelle Wetterdaten und Vorhersagen weltweit"><span><span>Wetter Europa und weltweit</span></span></a></li>
+              <li><a href="DE/wetter/schon_gewusst/schongewusst_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Informationen &#252;ber den Erstellung von Wettervorhersagen, das DWD-Warnmanagement etc."><span><span>Schon gewusst?</span></span></a></li>
+              <li><a href="DE/wetter/vorhersage_profis/vorhersageprofis_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Wettervorhersagen f&#252;r Profis"><span><span>Wettervorhersagen für Profis</span></span></a></li>
+              </ul>
+        </div><!-- box-box -->
+     </nav><!-- box -->
+     <nav class="box" role="navigation">
+      <div class="box-box">
+            <h1><a href="DE/klimaumwelt/klimaumwelt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Klima und Umwelt">Kli­ma und Um­welt</a></h1>
+            <ul id="footer-links-2">
+              <li><a href="DE/klimaumwelt/klimawandel/klimawandel_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Basisfakten zum Klimawandel"><span><span>Basisfakten zum Klimawandel</span></span></a></li>
+              <li><a href="DE/klimaumwelt/klima-webdienste/_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Klima-Webdienste"><span><span>Klima-Webdienste</span></span></a></li>
+              <li><a href="DE/klimaumwelt/ku_beratung/ku_beratung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Klima- und Umweltberatung"><span><span>Klima- und Umweltberatung</span></span></a></li>
+              <li><a href="DE/klimaumwelt/klimaueberwachung/klimaueberwachung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Klima&#252;berwachung"><span><span>Klimaüberwachung</span></span></a></li>
+              <li><a href="DE/klimaumwelt/klimaforschung/klimaforschung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Klimaforschung"><span><span>Klimaforschung</span></span></a></li>
+              </ul>
+        </div><!-- box-box -->
+     </nav><!-- box -->
+     <nav class="box" role="navigation">
+      <div class="box-box">
+            <h1><a href="DE/forschung/forschung_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Forschung">For­schung</a></h1>
+            <ul id="footer-links-3">
+              <li><a href="DE/forschung/atmosphaerenbeob/atmosphaerenbeob_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Atmosph&#228;renbeobachtung"><span><span>Atmosphärenbeobachtung</span></span></a></li>
+              <li><a href="DE/forschung/wettervorhersage/wettervorhersage_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Wettervorhersage"><span><span>Wettervorhersage</span></span></a></li>
+              <li><a href="DE/forschung/klima_umwelt/klimaumwelt_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Klima und Umwelt"><span><span>Klima und Umwelt</span></span></a></li>
+              <li><a href="DE/forschung/forschungsprogramme/herz/herz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Hans-Ertel-Zentrum"><span><span>Hans-Ertel-Zentrum</span></span></a></li>
+              <li><a href="DE/forschung/forschungsprogramme/idea_s4s/idea_s4s_home_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Italia &#8211; Deutschland science-4-services network in weather and climate "><span><span>IDEA-S4S Netzwerk</span></span></a></li>
+              <li><a href="DE/forschung/forschungsprogramme/forschungsprogramme_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="DWD-Forschungsprogramme"><span><span>DWD-Forschungsprogramme</span></span></a></li>
+              <li><a href="DE/forschung/internationale_programme/internationale_programme_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Internationale Programme"><span><span>Internationale Programme</span></span></a></li>
+              <li><a href="DE/forschung/projekte/projekte_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Projekte"><span><span>Projekte</span></span></a></li>
+              </ul>
+        </div><!-- box-box -->
+     </nav><!-- box -->
+     <nav class="box" role="navigation">
+      <div class="box-box">
+            <h1><a href="DE/derdwd/derdwd_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054" title="Der Deutsche Wetterdienst - Aufgaben, Organisation, Standorte">Der DWD</a></h1>
+            <ul id="footer-links-4">
+              <li><a href="DE/derdwd/aufgaben/aufgaben_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Aufgaben"><span><span>Aufgaben</span></span></a></li>
+              <li><a href="DE/derdwd/arbeitgeber/arbeitgeber_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Arbeitgeber DWD"><span><span>Arbeitgeber DWD</span></span></a></li>
+              <li><a href="DE/derdwd/organisation/organisation_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Organisation"><span><span>Organisation</span></span></a></li>
+              <li><a href="DE/derdwd/standorte/standorte_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Standorte"><span><span>Standorte</span></span></a></li>
+              <li><a href="DE/derdwd/koop/koop_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Zusammenarbeit"><span><span>Zusammenarbeit</span></span></a></li>
+              <li><a href="DE/derdwd/messnetz/messnetz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Messnetz"><span><span>Messnetz</span></span></a></li>
+              <li><a href="DE/derdwd/it/it_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Informationstechnik"><span><span>Informationstechnik</span></span></a></li>
+              <li><a href="DE/derdwd/bibliothek/bibliothek_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Deutsche Meteorologische Bibliothek"><span><span>Deutsche Meteorologische Bibliothek</span></span></a></li>
+              </ul>
+        </div><!-- box-box -->
+     </nav><!-- box -->
+    </div><!-- row -->
+   </div><!-- slot -->
+</section>
+<section class="social-services">
+   <div class="slot">
+    <div class="row">
+     <div class="box youtube">
+      <div class="box-box">
+       <a href="http://www.youtube.com/user/DWDderWetterdienst" target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-YouTube-Seite (Öffnet neues Fenster)">
+        <span class="logo">You Tube</span>
+        <p>
+          Warn-Videos und viel mehr
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+     <div class="box facebook">
+      <div class="box-box">
+       <a href="https://www.facebook.com/DeutscherWetterdienst" target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-Facebook-Seite (Öffnet neues Fenster)">
+        <span class="logo">Facebook</span>
+        <p>
+          Wetter und Klima aktuell und unterhaltend
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+     <div class="box mastodon">
+      <div class="box-box">
+       <a href="https://social.bund.de/@DeutscherWetterdienst " target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-Mastodon-Seite (Öffnet neues Fenster)">
+        <span class="logo">mastodon</span>
+        <p>
+          @Deutscher Wetterdienst-Kanal auf social.bund.de von Mastodon
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+     <div class="box bluesky">
+      <div class="box-box">
+       <a href="https://bsky.app/profile/dwdderwetterdienst.bsky.social " target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-Bluesky-Seite (Öffnet neues Fenster)">
+        <span class="logo">bluesky</span>
+        <p>
+          Wetter- und Klima-Infos kurz und aktuell
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+  
+  <div class="box linkedin">
+      <div class="box-box">
+       <a href="https://de.linkedin.com/company/deutscher-wetterdienst" target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-LinkedIn-Seite (Öffnet neues Fenster)">
+        <span class="logo">LinkedIn</span>
+        <p>
+          Arbeitgeber-Infos auf dem LinkedIn-Kanal
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+  
+     <div class="box instagram">
+      <div class="box-box">
+       <a href="https://www.instagram.com/deutscherwetterdienst/" target="_blank" rel="noopener noreferrer" title="Externer Link zur DWD-Instagram-Seite (Öffnet neues Fenster)">
+        <span class="logo">Instagram</span>
+        <p>
+          #ichliebewetter – Schnappschüsse und Videos
+        </p>
+       </a>
+      </div><!-- box-box -->
+     </div><!-- box -->
+    </div><!-- row -->
+   </div><!-- slot -->
+</section>
+<section class="legal">
+   <div class="slot">
+    <div class="row">
+     <div class="box info">
+      <div class="box-box">
+       <p>
+        Der Deutsche Wetterdienst ist eine Bundesoberbehörde im Geschäftsbereich des Bundesministeriums für Verkehr.
+       </p>
+       <address>Deutscher Wetterdienst, Frankfurter Straße 135, 63067 Offenbach</address>
+      </div><!-- box-box -->
+     </div><!-- box -->
+<div class="box links">
+      <div class="box-box">
+       <ul>
+<li>
+       <a href="DE/service/impressum/impressum_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Impressum">Impressum</a>
+</li>
+<li>
+       <a href="DE/service/datenschutz/datenschutz_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Datenschutz">Datenschutz</a>
+</li>
+<li>
+       <a href="DE/service/disclaimer/disclaimer_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Disclaimer">Disclaimer</a>
+</li>
+<li>
+       <a href="DE/service/agb/agb_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="AGB">AGB</a>
+</li>
+<li>
+       <a href="DE/service/qm/qm_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Qualit&#228;tsmanagement">QM</a>
+</li>
+<li>
+       <a href="DE/service/rechtliche_hinweise/rechtliche_hinweise_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Rechtliche Hinweise">Rechtliche Hinweise</a>
+</li>
+<li>
+       <a href="DE/service/barrierefrei/barrierefrei_node.html;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054"  title="Erkl&#228;rung zur Barrierefreiheit">Erklärung zur Barrierefreiheit</a>
+</li>
+       </ul>
+      </div><!-- box-box -->
+     </div><!-- box -->
+    </div><!-- row -->
+   </div><!-- slot -->
+  </section>
+ </footer>
+
+ <!--[if ! lte IE 8]><!--> 
+<!--
+ <script type="text/javascript">
+  preloader.modules = "SiteGlobals/Functions/JavaScript/__modules.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=3";
+  preloader.enhanced= "SiteGlobals/Functions/JavaScript/__enhanced.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=4";
+  preloader.everything = "SiteGlobals/Functions/JavaScript_Optimierung2/__everything.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=15";
+  preloader.loadEverything = true;
+ </script>
+ <script src="SiteGlobals/Functions/JavaScript/__preload.js.js;jsessionid=3FF81058300DCE0D0086AF44BCBD5CAD.live11054?v=1"></script>
+-->
+
+ <!--<![endif]-->
+
+  </body>
+</html>
