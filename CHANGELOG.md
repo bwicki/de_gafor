@@ -5,6 +5,76 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.18.0 — 2026-08-26
+
+* **Kurzanalyse durch Claude.** Unter der Modellprognose steht neu eine Karte mit höchstens
+  24 Zeilen in drei Abschnitten: **Grosswetterlage**, **Ballonspezifische Gefahren**
+  (Bodenwind, Böen, Scherung zwischen Boden und 300–2000 ft, Schauer und Gewitter im
+  Umkreis von 100 km — je mit ihrer Entwicklung über den Modellhorizont) und **Startfenster
+  im Vergleich**, in dem die Analyse die von der App gerechneten Fenster gegen die Daten
+  prüft und sagt, wo sie ihr zu optimistisch oder zu streng erscheinen. Die Analyse wird
+  **auf Knopfdruck** geholt, nicht automatisch — jeder Abruf kostet.
+* **Der Schlüssel gehört dem Nutzer.** Die App ist eine öffentliche Seite ohne Server; ein
+  Schlüssel im Quelltext wäre ein Schlüssel für alle. Er steht darum in den Einstellungen,
+  liegt im `localStorage` genau dieses Geräts und geht nur an `api.anthropic.com` — nie ins
+  Repo, nie in einen geteilten Link, nie ins Seitenbild. Zwei Modelle zur Wahl: Sonnet 5
+  (ausgewogen) und Haiku 4.5 (schnell und günstig).
+* **Der DWD-Fliesstext geht ab Werk nicht mit.** Die Luftsportberichte dürfen nach den
+  Nutzungsbedingungen des DWD nicht weitergegeben oder weiterverarbeitet werden, und ein
+  Abruf bei einem Dritten ist beides. Ein Schalter in den Einstellungen hebt das für den
+  auf, der es verantworten will; ohne ihn fällt der Abschnitt zur Grosswetterlage dünner aus.
+* Geschickt wird nicht der Rohdatensatz, sondern ein **Lagebericht**: Ort und Gebiet, die
+  GAFOR-Stufen, das Stundenraster in Dreierschritten, das Höhenprofil an drei Zeitpunkten,
+  die METAR und TAF im Umkreis, die Dämmerungszeiten, die gerechneten Startfenster und die
+  eingestellten Schwellen.
+* Die **Kopfzeile der Modellprognose** nennt jetzt den absoluten Zeitpunkt, für den die
+  Werte gelten (Wochentag, Datum, Uhrzeit), statt nur einer relativen Angabe.
+* Im Druck fällt die Karte weg, solange sie leer ist — die zwei A4-Seiten bleiben.
+
+## 1.17.0 — 2026-08-26
+
+* **Eigenes Symbol.** Das bisherige — eine Kartennadel mit einem Stüve-Diagramm darin, in
+  Creme und Petrol — gehörte zu StueveCast und kam mit dem Baukasten mit. An seiner Stelle
+  steht jetzt das **Stufenband**: vier Balken in den GAFOR-Farben (Charlie · Oscar · Delta ·
+  Mike) in den kräftigen Werten des hellen Farbsatzes, auf hellem Grund mit feinem Rand —
+  ohne den Rand verschwände die Kachel auf einer weissen Tableiste.
+* Die **Jetzt-Marke** aus dem Zeitband der App ist bewusst **nicht** dabei: unter 32 px wird
+  sie zum Fleck, und die vier Balken tragen allein. Dafür sind die Balken höher und füllen
+  die Kachel.
+* Alles liegt **innerhalb des Kreises**, den Android aus einem maskablen Symbol schneidet
+  (äusserster Punkt 39,7 von 40); die maskable Fassung ist zusätzlich auf 80 % verkleinert
+  und randlos gefüllt, die Apple-Fassung auf 86 % und ohne eigene Rundung, weil iOS seine
+  eigene Maske legt.
+* Neu `scripts/build-icons.mjs`: erzeugt aus einer Geometrie den ganzen Satz — `favicon.svg`,
+  `favicon.ico` (16/32/48), `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` und
+  `apple-touch-icon.png`. Zehn Prüfungen in `test/run.mjs` halten das fest: Dateien vorhanden,
+  keine Schrift im Symbol (die fehlt auf fremden Geräten), die vier Stufenfarben, der
+  maskable Kreis, die Kantenlängen, und dass `index.html` und Manifest dieselben Dateien
+  nennen.
+
+## 1.16.1 — 2026-08-26
+
+Nur Dokumentation: **README konsolidiert.** Es war über die Versionen hinweg gewachsen, mit
+Abschnitten an der Stelle, an der die jeweilige Funktion entstand. Jetzt in fünf Teilen, in
+der Reihenfolge, in der man sie braucht:
+
+1. **Die Seite von oben nach unten** — Kopfbereich, Zeitschieber, Startfenster,
+   Flugwetterübersicht, Ballonbericht, Höhenwind, METAR/TAF, Modellprognose, Karte.
+2. **Bedienung** — die vier Knöpfe, Einstellungen (jetzt als Tabelle in der Reihenfolge des
+   Dialogs), Aktualität, Kennwort und Gastzugang.
+3. **Die GAFOR-Codes** und **Woher die Daten kommen** — Herkunft, die drei DWD-Produkte, die
+   METAR-Reihenfolge.
+4. **Die Gebietsgrenzen** samt Digitalisierung.
+5. **Betrieb** (Pages, Versionierung), **Aufbau**, **Tests**, **Lizenz**.
+
+Dabei aufgeräumt: die Karte wurde an zwei Stellen beschrieben, „Die vier Knöpfe" enthielt
+Dinge, die keine Knöpfe sind (automatisches Nachladen, Altersalarm), der Zeitschieber stand
+doppelt, ein Absatz über die GAFOR-Kacheln endete mitten in einem Vergleich mit einer
+Darstellung, die es nicht mehr gibt. Versionsnummern im Fliesstext („seit 1.14.0") sind weg,
+wo sie dem Leser nichts sagen; wo sie eine Entscheidung erklären (60 km zum Mittelpunkt →
+10 km zum Polygonrand), stehen sie als Begründung ohne Nummer. Der Testabschnitt nennt jetzt,
+was wirklich geprüft wird — Gastzettel, Sonnenstand, Startfensterampel, Druckseiten.
+
 ## 1.16.0 — 2026-08-26
 
 * **Der Knopf „neu laden" im Warnhinweis sagt jetzt, was er tut.** Er sah untätig aus, weil
