@@ -5,6 +5,94 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.20.0 — 2026-08-28
+
+**Flugwetterbericht**
+
+* Die Karte heisst **Flugwetterbericht DWD**.
+* Die **Gültigkeit** steht neu als erste Zeile im Bericht, auf grauem Grund und mit
+  ausgeschriebenem Datum: *gültig 28. August 2026 06:00 UTC bis 29. August 2026 01:00 UTC*.
+  Sie war als Kleingedrucktes in der Kopfzeile die wichtigste Angabe an der unwichtigsten
+  Stelle; im Tag zu irren war zu leicht.
+* Eine **Überschrift ohne eigenen Inhalt** bricht jetzt mit dem folgenden Abschnitt um.
+  „Höhenwind und -temperatur:" steht im DWD-Text allein und wird erst durch „GAFOR-Gebiete
+  54 - 58" gefüllt — blieb sie am Fuss der linken Spalte stehen, gehörte sie scheinbar zum
+  Vorangehenden und die Tabelle rechts hatte keinen Titel.
+
+**Startfenster**
+
+* Schalter **NVFR zulassen** in der Kopfzeile. Er hebt allein das Dämmerungskriterium auf,
+  alle übrigen Schwellen bleiben. In der Karte und nicht in den Einstellungen, weil die
+  Entscheidung zur einzelnen Fahrt gehört und nicht zur Grundhaltung.
+* Die **Begründung rechnet in der angezeigten Einheit** — „Böen 21,9 kt" statt „11,3 m/s".
+  Auch der Erklärtext darunter nennt jetzt die *eingestellten* Schwellen statt fest
+  verdrahteter Vorgaben.
+
+**Zeitschieber**
+
+* Der Nachtbalken sitzt **auf die Minute** zwischen **ECET** und **BCMT** (Ende und Beginn
+  der bürgerlichen Dämmerung), gerechnet für genau diesen Ort. Bisher wurde stündlich
+  abgetastet und die Kante lag bis zu 30 Minuten daneben — genau die Minuten, um die es beim
+  ersten und letzten Startfenster des Tages geht.
+
+**Ballonwetterbericht**
+
+* Titel **Ballonwetterbericht DWD**, dazu ein **heute/morgen**-Umschalter. Er richtet sich
+  nach dem, was auf der DWD-Seite steht: enthält sie zwei Tagesüberschriften, sind beide
+  abrufbar; enthält sie eine, ist „morgen" gesperrt und sagt warum. Eine zweite URL zu raten
+  wäre bequemer und falsch.
+* **`&ge;` in der Legende behoben.** Die Entität fehlte in der Tabelle des Fetchers und stand
+  darum wörtlich da. Der Fetcher kennt jetzt die üblichen Zeichen und **meldet unbekannte**,
+  statt sie still durchzureichen; die App löst benannte Entitäten zusätzlich beim Anzeigen
+  auf, damit die schon abgelegten Daten sofort stimmen.
+
+**METAR / TAF**
+
+* Die **TAF-Übersetzung ist vollständig.** Sie wurde bei 210 Zeichen mit „…" abgeschnitten —
+  eine Übersetzung, die mitten im Gewitter aufhört, ist schlimmer als keine. Jede
+  Änderungsgruppe steht jetzt auf einer eigenen Zeile.
+* Die **Altersanzeige kollidiert nicht mehr mit dem Titel.** Der Titel wurde in der
+  halbbreiten Karte zeichenweise umbrochen und die Anzeige legte sich darüber; passt sie
+  nicht daneben, rutscht sie jetzt darunter.
+
+**Überall**
+
+* **Aktualisieren-Knopf in jeder Kartenkopfzeile** (Flugwetterbericht, Ballonwetterbericht,
+  Höhenwind, METAR/TAF, Modellprognose, KI-Kurzanalyse) — derselbe runde Pfeil wie oben in
+  der Kopfzeile, aber nur für diese eine Karte. Die Altersanzeige bleibt daneben anklickbar.
+* Die **Windkurve im Stüve** ist geglättet (Catmull-Rom als Bézier). Sechs Druckflächen
+  ergaben einen Sägezahn; die Stützpunkte bleiben, wo sie sind, die Windfahnen sitzen
+  weiterhin genau auf ihnen.
+* Die **Quellenzeile** klebte in den randlosen Karten am Rahmen statt am Textrand.
+* Der **Ausdruck umfasst jetzt bis zu drei Seiten** statt zwei. Mit vollständiger
+  TAF-Übersetzung und einem echten Ballonbericht ist das ehrlicher als ein Ausdruck, dem man
+  das Zusammenquetschen ansieht; die Prüfung hält bei drei hart dagegen. Nebenbei fiel eine
+  doppelte `.report-h`-Regel auf, die den ganzen Block davor wirkungslos machte.
+
+## 1.19.0 — 2026-08-27
+
+* **Die App startet im Tagmodus.** Bisher folgte sie der Systemeinstellung des Geräts, was
+  auf einem dunkel eingestellten iPad hiess: draussen bei Sonne ein dunkles Blatt. Vorgabe ist
+  jetzt hell, unabhängig vom Gerät; wer es dunkel will, stellt es einmal um, und die Wahl
+  bleibt gespeichert. `data-theme` in `index.html` steht auf demselben Wert, sonst blitzte vor
+  dem ersten Skript das andere Farbschema auf — `node test/run.mjs` prüft beides zusammen und
+  dass `prefers-color-scheme` nicht mehr abgefragt wird.
+* Der Dunkel-Durchlauf der Browsertests hinterlegt die Wahl darum selbst im `localStorage`;
+  über die Systemeinstellung hätte er ab sofort zweimal dasselbe helle Farbschema geprüft.
+* **README konsolidiert.** Der Abschnitt über das plattgemachte Repo beschrieb nur die milde
+  Form (Dateien doppelt im Root) — die schlimme, bei der die Ordner ganz fehlen, steht jetzt
+  daneben, mit dem, was dabei je einzeln ausfällt: `index.html` weg → Pages liefert 404;
+  `.github/workflows/` weg → der Fetcher läuft nicht mehr, und das sieht stundenlang so aus,
+  als hätte der DWD nichts Neues; `data/dwd/` weg → leere Berichtskarten. Dazu der
+  Reparaturweg über `git` samt Kontrollliste der Pfade.
+* Neu **„Wenn der Workflow nicht mehr läuft"**: die vier Punkte im Actions-Tab in der
+  Reihenfolge, in der man sie prüft — abgeschalteter Zeitplan, roter Lauf, hängender Lauf,
+  Berechtigungen.
+* Ausserdem nachgeführt: Vorgabe *hell* in der Einstellungstabelle, `js/vendor/leaflet/`,
+  `img/`, `test/reference-places.json` und `CNAME` in der Dateiübersicht, und der Testabschnitt
+  nennt jetzt, was wirklich geprüft wird — beide Warnhinweise, die sechs Prüfungen der
+  KI-Kurzanalyse, das Farbschema.
+
 ## 1.18.4 — 2026-08-27
 
 * **Behoben: „Die Antwort liess sich nicht lesen."** Die Analyse wurde als Fliesstext

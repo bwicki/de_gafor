@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" data-theme="dark">
+<html lang="de" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -171,6 +171,11 @@
     <section class="card wide" id="cardFly">
       <div class="card-head">
         <span class="section-title">Startfenster</span>
+        <label class="sw" id="nvfrSwitch" title="Hebt nur das Dämmerungskriterium auf">
+          <input type="checkbox" id="nvfrChk">
+          <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
+          <span class="sw-lbl">NVFR zulassen</span>
+        </label>
         <span class="age" id="flyAge"></span>
       </div>
       <div class="card-body tight" id="flyBody">
@@ -181,8 +186,9 @@
     <!-- GAFOR -->
     <section class="card wide" id="cardGafor">
       <div class="card-head">
-        <span class="section-title">Flugwetterübersicht</span>
+        <span class="section-title">Flugwetterbericht DWD</span>
         <span class="age" id="gaforAge"></span>
+        <button class="card-refresh" data-card="gafor" type="button" title="Flugwetterbericht neu laden" aria-label="Flugwetterbericht neu laden">⟳</button>
       </div>
       <div class="card-body" id="gaforBody">
         <div class="note">Noch keine Daten geladen.</div>
@@ -192,8 +198,13 @@
     <!-- Ballon -->
     <section class="card wide" id="cardBalloon">
       <div class="card-head">
-        <span class="section-title">Ballonwetterbericht</span>
+        <span class="section-title">Ballonwetterbericht DWD</span>
+        <span class="seg" id="balloonDay" role="group" aria-label="Tag wählen">
+          <button type="button" class="on" data-day="0">heute</button
+          ><button type="button" data-day="1">morgen</button>
+        </span>
         <span class="age" id="balloonAge"></span>
+        <button class="card-refresh" data-card="balloon" type="button" title="Ballonwetterbericht neu laden" aria-label="Ballonwetterbericht neu laden">⟳</button>
       </div>
       <div class="card-body" id="balloonBody">
         <div class="note">Noch keine Daten geladen.</div>
@@ -205,6 +216,7 @@
       <div class="card-head">
         <span class="section-title">Höhenwind am Ort</span>
         <span class="age" id="windAge"></span>
+        <button class="card-refresh" data-card="wind" type="button" title="Höhenwind neu laden" aria-label="Höhenwind neu laden">⟳</button>
       </div>
       <div class="card-body tight" id="windBody">
         <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
@@ -219,6 +231,7 @@
         <div class="card-head">
           <span class="section-title">METAR / TAF in der Nähe</span>
           <span class="age" id="metarAge"></span>
+          <button class="card-refresh" data-card="metar" type="button" title="METAR und TAF neu laden" aria-label="METAR und TAF neu laden">⟳</button>
         </div>
         <div class="card-body tight" id="metarBody">
           <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
@@ -231,6 +244,7 @@
           <div class="card-head">
             <span class="section-title">Modellprognose am Ort</span>
             <span class="age" id="modelAge"></span>
+            <button class="card-refresh" data-card="model" type="button" title="Modellprognose neu laden" aria-label="Modellprognose neu laden">⟳</button>
           </div>
           <div class="card-body tight" id="modelBody">
             <div class="card-body"><div class="note">Noch keine Daten geladen.</div></div>
@@ -243,6 +257,7 @@
             <span class="section-title">KI-Kurzanalyse</span>
             <span class="age" id="aiAge"></span>
             <button class="btn small hidden" id="aiBtn" type="button">KI-Analyse anfordern</button>
+            <button class="card-refresh" data-card="ai" type="button" title="KI-Kurzanalyse neu laden" aria-label="KI-Kurzanalyse neu laden">⟳</button>
           </div>
           <div class="card-body tight" id="aiBody">
             <div class="card-body"><div class="note">Noch nicht angefordert.</div></div>

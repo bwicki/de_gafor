@@ -54,7 +54,24 @@ for (const f of shell) { try { await readFile(f); } catch { missing.push(f); } }
 missing.length ? bad(`in sw.js gelistet, aber nicht vorhanden: ${missing.join(', ')}`)
                : ok(`${shell.length} Shell-Dateien vorhanden`);
 
-// ---------------------------------------------------------------- 1c. Symbole
+// -------------------------------------------------------------- 1c. Farbschema
+head('Farbschema');
+{
+  const html = await readFile('index.html', 'utf8');
+  const app = await readFile('js/app.js', 'utf8');
+  const tag = (html.match(/<html[^>]*data-theme="([^"]+)"/) || [])[1];
+  const dflt = (app.match(/applyTheme\(U\.load\('theme',\s*'([a-z]+)'\)\)/) || [])[1];
+  dflt === 'light' ? ok('Vorgabe ist der Tagmodus') : bad(`Vorgabe: ${dflt || 'nicht erkannt'}`);
+  /* Beide müssen denselben Wert tragen, sonst blitzt vor dem ersten Skript das
+     andere Farbschema auf. */
+  tag === dflt ? ok(`index.html steht auf demselben Wert (${tag})`)
+               : bad(`index.html hat data-theme="${tag}", die Vorgabe ist "${dflt}"`);
+  !/prefers-color-scheme/.test(app)
+    ? ok('die Systemeinstellung entscheidet nicht mehr mit')
+    : bad('js/app.js fragt noch prefers-color-scheme ab');
+}
+
+// ---------------------------------------------------------------- 1d. Symbole
 head('Symbole');
 {
   const { stat } = await import('node:fs/promises');
@@ -887,6 +904,32 @@ head('Gastzugang im Link')
 }
 
 // ------------------------------------------------- 3b0. Sonnenstand
+head('HTML-Entitäten');
+{
+  /* „&ge; 15 Knoten" stand wörtlich in der Ballonlegende, weil die Entität im
+     Fetcher fehlte. Beide Seiten müssen sie kennen: der Fetcher für neue
+     Läufe, die App für die Daten, die schon im Repo liegen. */
+  const U = new Function(`${await readFile('js/util.js', 'utf8')}; return U;`)();
+  const fetcher = await readFile('scripts/fetch-dwd.mjs', 'utf8');
+  /ge:\s*'≥'/.test(fetcher) ? ok('der Fetcher kennt &ge;') : bad('&ge; fehlt im Fetcher');
+  /unknownEnts/.test(fetcher)
+    ? ok('unbekannte Entitäten werden gemeldet statt still durchgereicht')
+    : bad('keine Meldung für unbekannte Entitäten');
+  U.deEnt('&ge; 15 Knoten · &le; 3 &deg;C') === '≥ 15 Knoten · ≤ 3 °C'
+    ? ok('die App löst benannte Entitäten selbst auf')
+    : bad(`deEnt: ${U.deEnt('&ge; 15 Knoten · &le; 3 &deg;C')}`);
+  U.deEnt('&unbekannt; bleibt') === '&unbekannt; bleibt'
+    ? ok('und lässt Unbekanntes unangetastet') : bad('deEnt frisst Unbekanntes');
+}
+
+head('Ausgeschriebenes Datum');
+{
+  const U = new Function(`${await readFile('js/util.js', 'utf8')}; return U;`)();
+  const d = new Date(Date.UTC(2026, 7, 28, 6, 0));
+  U.fmtUTCLong(d) === '28. August 2026 06:00 UTC'
+    ? ok(`fmtUTCLong: ${U.fmtUTCLong(d)}`) : bad(`fmtUTCLong: ${U.fmtUTCLong(d)}`);
+}
+
 head('Sonnenstand und Dämmerung');
 {
   const SUN = new Function(`${await readFile('js/sun.js', 'utf8')}; return SUN;`)();

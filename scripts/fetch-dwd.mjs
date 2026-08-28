@@ -72,15 +72,33 @@ async function get(url) {
 }
 
 // ---------------------------------------------------------------- html → text
+/* Die Tabelle muss die Zeichen abdecken, die der DWD in den Legenden benutzt —
+   `&ge;` stand sonst wörtlich in der Ballonlegende („&ge; 15 Knoten"). Fehlt
+   eine Entität, bleibt sie stehen und wird unten gemeldet, statt still als
+   Buchstabensalat durchzurutschen. */
 const ENT = { nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
               auml: 'ä', ouml: 'ö', uuml: 'ü', Auml: 'Ä', Ouml: 'Ö', Uuml: 'Ü',
-              szlig: 'ß', deg: '°', ndash: '–', mdash: '—', shy: '' };
+              szlig: 'ß', deg: '°', ndash: '–', mdash: '—', shy: '',
+              ge: '≥', le: '≤', ne: '≠', asymp: '≈', minus: '−', plusmn: '±',
+              times: '×', divide: '÷', middot: '·', bull: '•', hellip: '…',
+              prime: '′', Prime: '″', micro: 'µ', permil: '‰',
+              frac12: '½', frac14: '¼', frac34: '¾', sup2: '²', sup3: '³',
+              laquo: '«', raquo: '»', lsquo: '‘', rsquo: '’', sbquo: '‚',
+              ldquo: '“', rdquo: '”', bdquo: '„', dagger: '†',
+              euro: '€', copy: '©', reg: '®', trade: '™',
+              larr: '←', uarr: '↑', rarr: '→', darr: '↓' };
+
+const unknownEnts = new Set();
 
 function decode(s) {
   return s
     .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d))
-    .replace(/&(\w+);/g, (m, n) => (n in ENT ? ENT[n] : m));
+    .replace(/&(\w+);/g, (m, n) => {
+      if (n in ENT) return ENT[n];
+      unknownEnts.add(n);
+      return m;
+    });
 }
 
 function htmlToText(html) {
@@ -920,6 +938,10 @@ async function main() {
   console.log(`\nGAFOR-Tabellen: ${Object.keys(index.gafor).length} · ` +
               `Flugwetterübersichten: ${Object.keys(index.overview).length} · ` +
               `Ballonberichte: ${Object.keys(index.balloon).length} · Fehler: ${errors.length}`);
+  if (unknownEnts.size) {
+    console.warn(`! unbekannte HTML-Entitäten (stehen wörtlich im Text): ` +
+                 [...unknownEnts].map(n => `&${n};`).join(' '));
+  }
 }
 
 /* Nur laufen, wenn die Datei direkt gestartet wurde — der Test importiert sie,

@@ -24,6 +24,8 @@
     om2: null,
     autoRefresh: U.load('autoRefresh', 1),
     fly: U.load('fly', null),                 // Startfenster-Schwellen, null = Vorgaben
+    nvfr: U.load('nvfr', 0),                  // Nachtfahrt zulassen: hebt nur das Dämmerungskriterium auf
+    balloonDay: 0,                            // Ballonbericht: 0 = heute, 1 = morgen
     aiModel: U.load('aiModel', AI.MODELS[0].key),
     aiDwd: U.load('aiDwd', 0),                // DWD-Text an die KI mitschicken
     ai: null,                                 // letzte Analyse {sections, at, model, key}
@@ -45,7 +47,12 @@
   document.addEventListener('DOMContentLoaded', boot);
 
   async function boot() {
-    applyTheme(U.load('theme', prefersDark() ? 'dark' : 'light'));
+    /* Vorgabe ist der Tagmodus, nicht die Systemeinstellung: die App wird im
+       Freien und bei Tageslicht gelesen. Wer es dunkel will, stellt es einmal
+       um — die Wahl bleibt gespeichert. `data-theme` in index.html steht auf
+       demselben Wert, sonst blitzte vor dem ersten Skript kurz das andere
+       Farbschema auf. */
+    applyTheme(U.load('theme', 'light'));
 
     /* Zuerst der Link: er kann einen Gastzettel tragen, und den muss die
        Sperre kennen, bevor sie sich meldet. */
@@ -94,7 +101,6 @@
     // mit ganz Deutschland im Bild. Der Knopf ◎ holt den Standort auf Wunsch.
   }
 
-  const prefersDark = () => window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
   /* Mitte Deutschlands, ungefähr bei Niederdorla. Zoom 6 zeigt das Land ganz —
      damit sieht man beim Öffnen die Gebiete und die abgegraute Umgebung, statt
@@ -135,12 +141,46 @@
     U.$('mReloadBtn').onclick = () => { menu.classList.add('hidden'); reloadAll(); };
     U.$('reloadBtn').onclick = () => reloadAll();
 
-    // jede Altersanzeige lädt ihre eigene Karte nach
-    cardReload('gaforAge', () => reloadDwd());
-    cardReload('balloonAge', () => reloadDwd());
-    cardReload('metarAge', () => { METAR.reload(); loadPointData(true, ['metar']); });
-    cardReload('modelAge', () => loadPointData(true, ['model', 'ens']));
-    cardReload('windAge', () => loadPointData(true, ['model']));
+    /* Jede Karte lädt sich einzeln nach — über den runden Pfeil in ihrer
+       Kopfzeile und, wie bisher, über die Altersanzeige. Beide rufen dieselbe
+       Aktion; die Anzeige bleibt anklickbar, weil man dort zuerst hinschaut. */
+    const CARD_RELOAD = {
+      gafor:   () => reloadDwd(),
+      balloon: () => reloadDwd(),
+      metar:   () => { METAR.reload(); return loadPointData(true, ['metar']); },
+      model:   () => loadPointData(true, ['model', 'ens']),
+      wind:    () => loadPointData(true, ['model']),
+      ai:      () => askAi(),
+    };
+    for (const [key, fn] of Object.entries(CARD_RELOAD)) cardReload(`${key}Age`, fn);
+    for (const btn of document.querySelectorAll('.card-refresh')) {
+      const fn = CARD_RELOAD[btn.dataset.card];
+      if (!fn) continue;
+      btn.onclick = async () => {
+        if (btn.classList.contains('spinning')) return;
+        btn.classList.add('spinning');
+        try { await fn(); } catch { /* die Karte meldet es selbst */ }
+        btn.classList.remove('spinning');
+      };
+    }
+
+    /* NVFR: hebt allein das Dämmerungskriterium auf. In der Karte, nicht in den
+       Einstellungen — die Entscheidung gehört zur einzelnen Fahrt. */
+    const nvfr = U.$('nvfrChk');
+    nvfr.checked = !!state.nvfr;
+    nvfr.onchange = () => {
+      state.nvfr = nvfr.checked ? 1 : 0;
+      U.save('nvfr', state.nvfr);
+      renderFly();
+    };
+
+    // Ballonwetterbericht: heute oder morgen
+    U.$('balloonDay').onclick = (e) => {
+      const b = e.target.closest('button[data-day]');
+      if (!b || b.disabled) return;
+      state.balloonDay = +b.dataset.day;
+      renderReports();
+    };
     U.$('mAboutBtn').onclick = () => { menu.classList.add('hidden'); showAbout(); };
 
     // Drucken und Teilen
@@ -1072,14 +1112,20 @@
     renderReports();
   }
 
-  /** Flugwetterübersicht eines Bereichs in die eigene Karte. */
+  /** Flugwetterbericht eines Bereichs in die eigene Karte. */
   function renderOverview(body, age, ov) {
-    age.textContent = [
-      ov.bereich ? `Bereich ${ov.bereich}` : '',
-      ov.validFrom && ov.validTo
-        ? `gültig ${U.fmtUTC(new Date(ov.validFrom))} – ${U.fmtUTC(new Date(ov.validTo))}` : '',
-    ].filter(Boolean).join(' · ');
+    /* Die Gültigkeit stand als Kleingedrucktes in der Kopfzeile. Sie ist aber
+       die wichtigste Angabe des ganzen Berichts — steht sie oben im Text und
+       mit ausgeschriebenem Datum, kann man sich nicht mehr im Tag irren. */
+    age.textContent = ov.bereich ? `Bereich ${ov.bereich}` : '';
     age.className = 'age';
+    if (ov.validFrom && ov.validTo) {
+      const v = U.el('div', 'valid-line');
+      v.innerHTML = `<span class="vl-k">gültig</span> ` +
+        `${U.fmtUTCLong(new Date(ov.validFrom))} <span class="vl-k">bis</span> ` +
+        `${U.fmtUTCLong(new Date(ov.validTo))}`;
+      body.appendChild(v);
+    }
     if (ov.bulletin) {
       const meta = U.el('div', 'note');
       meta.style.marginBottom = '8px';
@@ -1346,6 +1392,14 @@
     const colR = U.el('div', 'report-col');
     wrap.appendChild(colL); wrap.appendChild(colR);
 
+    /* An welchen Stellen darf überhaupt geschnitten werden?
+       Nicht hinter einem Block, der nur aus seiner Überschrift besteht:
+       „Höhenwind und -temperatur:" steht im DWD-Text allein und wird erst
+       durch die folgenden „GAFOR-Gebiete 00 - 04" mit Inhalt gefüllt. Bleibt
+       so eine Überschrift am Fuss der linken Spalte stehen, gehört sie
+       scheinbar zum Vorangehenden und die Tabelle rechts hat keinen Titel. */
+    const cuttable = (k) => k > 0 && k < groups.length && blocks[k - 1].parts.length > 0;
+
     const split = (k) => {
       colL.replaceChildren(...groups.slice(0, k).flat());
       colR.replaceChildren(...groups.slice(k).flat());
@@ -1361,20 +1415,25 @@
       run += len[i];
       if (run >= total - run) { k0 = i + 1; break; }
     }
+    while (k0 > 1 && !cuttable(k0)) k0--;
     split(k0);
     parent.appendChild(wrap);
 
-    wrap._balance = () => balanceReport(wrap, colL, colR, groups.length, split);
+    wrap._balance = () => balanceReport(wrap, colL, colR, groups.length, split, cuttable);
     requestAnimationFrame(wrap._balance);
   }
 
   /** Schnitt so lange verschieben, bis die linke Spalte die höhere ist. */
-  function balanceReport(wrap, colL, colR, n, split) {
+  function balanceReport(wrap, colL, colR, n, split, cuttable) {
     if (!wrap.isConnected || n < 2) return;
     // einspaltig (Handy, Druck) gibt es nichts auszugleichen
     if (getComputedStyle(wrap).gridTemplateColumns.split(/\s+/).length < 2) return;
-    let chosen = n - 1;
-    for (let k = 1; k < n; k++) {
+    const ok = cuttable || (() => true);
+    const places = [];
+    for (let k = 1; k < n; k++) if (ok(k)) places.push(k);
+    if (!places.length) return;
+    let chosen = places[places.length - 1];
+    for (const k of places) {
       split(k);
       if (colL.offsetHeight >= colR.offsetHeight) { chosen = k; break; }
     }
@@ -1475,8 +1534,11 @@
       if (!state.area || String(state.area.id) !== wantId) return;
       U.clear(slot);
       if (!det) { slot.appendChild(note('Der ausführliche Bericht ist nicht abrufbar.')); return; }
-      if (det.blocks && det.blocks.length) {
-        for (const blk of det.blocks) renderBalloonBlock(slot, blk, det.title);
+      const days = balloonDays(det.blocks || []);
+      setBalloonDaySwitch(days);
+      const pick = days[Math.min(state.balloonDay, days.length - 1)];
+      if (pick && pick.blocks.length) {
+        for (const blk of pick.blocks) renderBalloonBlock(slot, blk, det.title);
       } else if (det.text) {
         slot.appendChild(Object.assign(U.el('pre', 'report'), { textContent: det.text }));
       }
@@ -1484,10 +1546,55 @@
     });
   }
 
+  /**
+   * Der Bericht nach Tagen zerlegt.
+   *
+   * Der DWD gliedert die Seite mit Überschriften der Form „Vorhersagen für
+   * Freitag, 28.08.2026". Enthält eine Seite mehrere solche Überschriften, sind
+   * es mehrere Tage — dann trägt der Umschalter in der Kopfzeile. Enthält sie
+   * nur eine, gibt es nur heute, und der Umschalter sagt das, statt einen
+   * zweiten Tag vorzutäuschen. Absichtlich am Inhalt entschieden und nicht an
+   * einer geratenen zweiten URL: was der DWD nicht liefert, erfindet die App
+   * nicht.
+   */
+  function balloonDays(blocks) {
+    const isDay = (h) => /Vorhersage\w*\s+f(?:ü|ue)r\s+\w+,?\s*\d{1,2}\.\d{1,2}\./i.test(h || '');
+    const days = [];
+    const lead = [];                       // Blöcke vor der ersten Tagesüberschrift
+    for (const blk of blocks) {
+      if (isDay(blk.heading)) {
+        days.push({ label: U.deEnt(blk.heading), blocks: [] });
+      } else if (!days.length) {
+        lead.push(blk);                    // Kopf der Seite — gehört zum ersten Tag
+        continue;
+      }
+      days[days.length - 1].blocks.push(blk);
+    }
+    if (!days.length) return [{ label: '', blocks }];
+    days[0].blocks = lead.concat(days[0].blocks);
+    return days;
+  }
+
+  /** Der heute/morgen-Umschalter — nur aktiv, wenn es den zweiten Tag gibt. */
+  function setBalloonDaySwitch(days) {
+    const box = U.$('balloonDay');
+    if (!box) return;
+    const has2 = days.length > 1;
+    if (!has2 && state.balloonDay) state.balloonDay = 0;
+    for (const btn of box.querySelectorAll('button[data-day]')) {
+      const d = +btn.dataset.day;
+      btn.disabled = d > 0 && !has2;
+      btn.classList.toggle('on', d === state.balloonDay);
+      btn.title = btn.disabled
+        ? 'Der DWD veröffentlicht für dieses Gebiet nur den laufenden Tag.'
+        : (days[d] ? days[d].label : '');
+    }
+  }
+
   /** Eine Tabelle des Ballonberichts: erste Zeile Kopf, erste Spalte Bezeichnung. */
   function renderBalloonBlock(parent, blk, pageTitle) {
     if (blk.heading && blk.heading !== pageTitle) {
-      const h = U.el('div', 'section-title', blk.heading);
+      const h = U.el('div', 'section-title', U.deEnt(blk.heading));
       h.style.margin = '14px 0 6px';
       parent.appendChild(h);
     }
@@ -1504,7 +1611,7 @@
         if (!isHead && (ci === 0 || cell.c === 'b')) td.className = 'lbl';
         else if (cell.c && !isHead && 'gyor'.includes(cell.c)) td.className = `sw-${cell.c}`;
         if (cell.s > 1) td.colSpan = cell.s;
-        td.textContent = cell.t || '';
+        td.textContent = U.deEnt(cell.t || '');
         if (!cell.t && cell.c && 'gyor'.includes(cell.c)) td.classList.add('bar');
         tr.appendChild(td);
       });
@@ -1752,9 +1859,12 @@
                    (g.prob ? ` (${g.prob} %)` : '');
       return `${head}: ${groupBits(g).join(', ')}`;
     });
-    let two = changes.join(' · ');
-    if (two.length > 210) two = two.slice(0, 208).replace(/[ ,·]+$/, '') + ' …';
-    return [one.join(' · '), two];
+    /* Vollständig, nicht auf 210 Zeichen gekappt: eine Übersetzung, die mitten
+       im Gewitter aufhört, ist schlimmer als keine — man liest sie zu Ende und
+       merkt nicht, dass die zweite Böenlinie fehlt. Statt zu kürzen bekommt
+       jede Änderungsgruppe ihre eigene Zeile; das liest sich ohnehin besser als
+       eine mit Mittelpunkten verkettete Wurst. */
+    return [one.join(' · '), ...changes];
   }
 
   /* Die NOAA schreibt "Stuttgart Arpt, BW, DE". Die Abkürzungen ausschreiben,
@@ -1797,12 +1907,20 @@
    */
   const FLY_CLS = { 2: 'ok', 1: 'limit', 0: 'no' };
 
-  /** Bewertung der Stunde `i`, mit Tageslicht für genau diesen Ort. */
+  /**
+   * Bewertung der Stunde `i`, mit Tageslicht für genau diesen Ort.
+   *
+   * Der Schalter **NVFR zulassen** hebt allein das Dämmerungskriterium auf —
+   * alle übrigen Schwellen bleiben, wie sie sind. Er steht in der Karte und
+   * nicht in den Einstellungen, weil er zur einzelnen Fahrt gehört und nicht
+   * zur Grundhaltung.
+   */
   function flyAt(j, i) {
     const rec = OM.at(j, i);
     const off = (j.utc_offset_seconds || 0) * 1000;
     const ms = Date.parse(j.hourly.time[i] + ':00Z') - off;
-    return OM.flyRating(rec, SUN.isDaylight(state.lat, state.lon, ms), state.fly);
+    const lim = Object.assign({}, state.fly, state.nvfr ? { needLight: 0 } : null);
+    return OM.flyRating(rec, SUN.isDaylight(state.lat, state.lon, ms), lim, state.unit);
   }
 
   function renderFly() {
@@ -1893,12 +2011,22 @@
     }
     body.appendChild(lane);
 
+    /* Die Erklärung nennt die **eingestellten** Schwellen in der **gewählten**
+       Einheit. Fest verdrahtete m/s-Werte widersprachen sonst der Tabelle
+       darüber, sobald jemand die Schwellen anpasste oder auf Knoten stellte. */
+    const L = OM.flyLimits(state.fly);
+    const uL = U.unitLabel[state.unit];
+    const cv = (ms) => (ms * U.MS_TO[state.unit]).toFixed(1).replace('.', ',');
     body.appendChild(explainNote(
       'Eigene Einschätzung aus dem Punktmodell, <strong>keine DWD-Aussage</strong>. ' +
-      '<em>fahrbar</em> heisst: Bodenwind bis 4 m/s, Böen bis 6 m/s, kein Niederschlag, ' +
-      'CAPE unter 300 J/kg, Sicht über 1,5 km, Wolkenbasis über 1000 ft AGL und innerhalb ' +
-      'der bürgerlichen Dämmerung. <em>grenzwertig</em> bis 6 bzw. 8 m/s. Massgebend ist ' +
-      'immer die amtliche Beratung und die Einschätzung vor Ort.'));
+      `<em>fahrbar</em> heisst: Bodenwind bis ${cv(L.wind[0])} ${uL}, Böen bis ` +
+      `${cv(L.gust[0])} ${uL}, kein Niederschlag, CAPE unter ${L.cape[0]} J/kg, Sicht über ` +
+      `${String(L.visKm).replace('.', ',')} km, Wolkenbasis über ${L.baseFt} ft AGL` +
+      (state.nvfr
+        ? ' — die Dämmerung bleibt ausser Betracht, weil <strong>NVFR zugelassen</strong> ist.'
+        : ' und innerhalb der bürgerlichen Dämmerung.') +
+      ` <em>grenzwertig</em> bis ${cv(L.wind[1])} bzw. ${cv(L.gust[1])} ${uL}. ` +
+      'Massgebend ist immer die amtliche Beratung und die Einschätzung vor Ort.'));
     body.appendChild(sourceLine('Open-Meteo', 'https://open-meteo.com'));
   }
 
@@ -2470,24 +2598,55 @@
   }
 
   /** Nachtschattierung als ein Farbverlauf mit harten Kanten. */
+  /**
+   * Der Nachtbalken — exakt zwischen **ECET** (Ende der bürgerlichen
+   * Abenddämmerung) und **BCMT** (Beginn der bürgerlichen Morgendämmerung).
+   *
+   * Bis 1.19.0 wurde stündlich abgetastet: der Balken sprang auf die volle
+   * Stunde und lag je nach Jahreszeit bis zu 30 Minuten daneben. Das sind
+   * genau die Minuten, um die es beim ersten und letzten Startfenster des
+   * Tages geht. Jetzt werden die beiden Zeiten je Tag gerechnet und als
+   * Prozentwert gesetzt — die Kante sitzt auf die Minute.
+   */
   function paintNight(j, span) {
     const el = U.$('timeNight');
     const off = (j.utc_offset_seconds || 0) * 1000;
     const t0 = Date.parse(j.hourly.time[OM.nowIndex(j)] + ':00Z') - off;
-    const stops = [];
-    let prev = null;
-    for (let h = 0; h <= span; h++) {
-      const light = SUN.isDaylight(state.lat, state.lon, t0 + h * HOUR_MS);
-      if (light !== prev) {
-        const pct = (h / span) * 100;
-        if (prev !== null) stops.push(`${col(prev)} ${pct}%`);
-        stops.push(`${col(light)} ${pct}%`);
-        prev = light;
-      }
+    const t1 = t0 + span * HOUR_MS;
+    const pct = (ms) => U.clamp(((ms - t0) / (t1 - t0)) * 100, 0, 100);
+
+    /* Alle Nächte im Fenster sammeln: Abenddämmerungsende eines Tages bis
+       Morgendämmerungsbeginn des nächsten. Ein Tag Vorlauf und ein Tag
+       Nachlauf, damit die Nacht an beiden Rändern vollständig ist. */
+    const nights = [];
+    for (let d = -1; d <= Math.ceil(span / 24) + 1; d++) {
+      const day = SUN.times(state.lat, state.lon, t0 + d * 86400000);
+      const next = SUN.times(state.lat, state.lon, t0 + (d + 1) * 86400000);
+      if (day.dusk == null || next.dawn == null) continue;
+      const a = day.dusk, b = next.dawn;
+      if (b <= t0 || a >= t1) continue;
+      nights.push([Math.max(a, t0), Math.min(b, t1)]);
     }
-    stops.push(`${col(prev)} 100%`);
+    nights.sort((x, y2) => x[0] - y2[0]);
+
+    const stops = ['var(--ts-day) 0%'];
+    for (const [a, b] of nights) {
+      const pa = pct(a), pb = pct(b);
+      if (pb - pa < 0.01) continue;
+      stops.push(`var(--ts-day) ${pa.toFixed(3)}%`, `var(--ts-night) ${pa.toFixed(3)}%`,
+                 `var(--ts-night) ${pb.toFixed(3)}%`, `var(--ts-day) ${pb.toFixed(3)}%`);
+    }
+    stops.push('var(--ts-day) 100%');
     el.style.background = `linear-gradient(90deg, ${stops.join(',')})`;
-    function col(light) { return light ? 'var(--ts-day)' : 'var(--ts-night)'; }
+    el.title = nights.length
+      ? 'Grau: Nacht zwischen ECET und BCMT (Ende und Beginn der bürgerlichen Dämmerung)'
+      : '';
+  }
+
+  /** ECET und BCMT für den gewählten Ort und einen Zeitpunkt, als Text. */
+  function twilightBounds(ms) {
+    const d = SUN.times(state.lat, state.lon, ms);
+    return { ecet: d.dusk, bcmt: d.dawn };
   }
 
   /** Feine Striche alle zwei Stunden, kräftige alle sechs. */
@@ -2796,9 +2955,11 @@
     w.classList.add('explain');
     return w;
   }
+  /* Die Quellenzeile steht in Karten mit und ohne eigenen Innenabstand. Der
+     Einzug kommt darum aus der Klasse, nicht aus einem Stil hier — sonst klebt
+     sie in den „tight"-Karten am Rahmen statt am Text darüber. */
   function sourceLine(label, url) {
-    const d = U.el('div', 'note');
-    d.style.marginTop = '10px';
+    const d = U.el('div', 'note src-line');
     d.innerHTML = `Quelle: <a href="${url}" target="_blank" rel="noopener">${label}</a>`;
     return d;
   }

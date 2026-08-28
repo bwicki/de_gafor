@@ -24,6 +24,32 @@ const STUEVE = (() => {
 
   const NS = 'http://www.w3.org/2000/svg';
   let uid = 0;
+
+  /**
+   * Weiche Kurve durch alle Punkte (Catmull-Rom, in Bézier umgerechnet).
+   *
+   * Das Windprofil ist eine Funktion der Höhe: zu jeder Höhe genau ein Wert.
+   * Damit kann die Kurve nicht schlingen, und die Glättung erfindet nichts —
+   * sie legt nur die Ecken zwischen den Druckflächen rund, statt aus sechs
+   * Stützstellen einen Sägezahn zu machen. Die Stützpunkte selbst bleiben, wo
+   * sie sind; die Windfahnen sitzen weiterhin exakt auf ihnen.
+   *
+   * `t` ist die Straffheit: 0 = Polygonzug, 0.5 = die übliche Rundung.
+   */
+  function smooth(pts, t) {
+    if (pts.length < 3) return pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+    const k = (t == null ? 0.5 : t) / 3;
+    const at = (i) => pts[Math.max(0, Math.min(pts.length - 1, i))];
+    let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+      const c1 = [p1[0] + (p2[0] - p0[0]) * k, p1[1] + (p2[1] - p0[1]) * k];
+      const c2 = [p2[0] - (p3[0] - p1[0]) * k, p2[1] - (p3[1] - p1[1]) * k];
+      d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ` +
+           `${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return d;
+  }
   const mk = (tag, attrs, txt) => {
     const n = document.createElementNS(NS, tag);
     for (const k in attrs) n.setAttribute(k, attrs[k]);
@@ -262,15 +288,15 @@ const STUEVE = (() => {
     if (cmp.length >= 3) {
       const cw = [...cmp].filter(l => l.spd != null).sort((a, b) => a.hPa - b.hPa);
       if (cw.length > 1) {
-        svg.appendChild(mk('polyline', {
-          points: cw.map(l => `${xW(U.clamp(l.spd * conv, 0, maxV)).toFixed(1)},${y(l.hPa).toFixed(1)}`).join(' '),
+        svg.appendChild(mk('path', {
+          d: smooth(cw.map(l => [xW(U.clamp(l.spd * conv, 0, maxV)), y(l.hPa)])),
           class: 'sv-wind sv-cmp',
         }));
       }
     }
     if (wind.length > 1) {
-      svg.appendChild(mk('polyline', {
-        points: wind.map(l => `${xW(l.spd * conv).toFixed(1)},${yOf(l).toFixed(1)}`).join(' '),
+      svg.appendChild(mk('path', {
+        d: smooth(wind.map(l => [xW(l.spd * conv), yOf(l)])),
         class: 'sv-wind',
       }));
       for (const l of wind) {

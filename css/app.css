@@ -313,6 +313,11 @@ main.content{padding:12px 14px 0;}
   display:flex;flex-direction:column;}
 .tb-body > .code-legend{margin-top:auto;}
 .tb-body > .note{margin:9px 13px;}
+/* Quellenzeile: Einzug wie der Kartentext. In Karten mit eigenem Innenabstand
+   ist er schon da, in den randlosen („tight") nicht — darum hier und dort
+   zurückgenommen, statt an jeder Aufrufstelle geraten. */
+.src-line{margin-top:10px;padding:0 14px;}
+.card-body:not(.tight) .src-line{padding:0;}
 
 .stale{display:flex;align-items:center;gap:9px;margin:9px 13px 0;padding:6px 9px;
   border:1px solid var(--gafor-d);border-radius:7px;font-size:12px;line-height:1.35;
@@ -428,6 +433,10 @@ main.content{padding:12px 14px 0;}
 .metar-plain .pl + .pl{color:var(--text-dim);}
 .metar-plain.taf{margin:8px 0 6px;padding-top:6px;border-top:1px solid var(--line-soft);}
 .metar-plain.taf .pl:first-child{color:var(--text-strong);}
+/* Jede Änderungsgruppe des TAF steht auf einer eigenen Zeile und hängt leicht
+   ein — die Übersetzung wird nicht mehr gekürzt, und ohne Einzug verschwämme
+   die Gruppe mit der Kopfzeile darüber. */
+.metar-plain.taf .pl + .pl{padding-left:11px;text-indent:-11px;margin-top:2px;}
 .metar-row pre.raw{margin:0;}
 .metar-row pre.raw.taf{margin-top:6px;color:var(--text-dim);}
 
@@ -476,6 +485,12 @@ main.content{padding:12px 14px 0;}
 .report-cols{display:grid;grid-template-columns:1fr;gap:0 26px;align-items:start;}
 @media (min-width:820px){ .report-cols{grid-template-columns:1fr 1fr;} }
 .report-col{min-width:0;}
+/* Gültigkeit des Flugwetterberichts: erste Zeile, auf grauem Grund. Sie ist
+   die wichtigste Angabe des Berichts und stand vorher klein in der Kopfzeile. */
+.valid-line{margin:0 0 10px;padding:7px 11px;border-radius:7px;
+  background:var(--panel-2);border:1px solid var(--line-soft);
+  font-family:var(--mono);font-size:11.5px;line-height:1.45;color:var(--text-strong);}
+.valid-line .vl-k{color:var(--text-dim);}
 .report-h{margin:14px 0 4px;font-size:12.5px;font-weight:700;color:var(--text-strong);
   letter-spacing:.01em;}
 .report-col > .report-h:first-child{margin-top:2px;}
@@ -632,9 +647,53 @@ table.rt th.num{text-align:center;}
 .bw-table .sw-r{background:color-mix(in srgb,var(--gafor-x) 40%,transparent);}
 
 /* freshness */
-.age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;}
+/* Die Kopfzeile darf umbrechen, und der Titel bricht dabei nie zeichenweise:
+   in der halbbreiten METAR-Karte wurde er sonst zur senkrechten Buchstabensäule
+   und die Altersanzeige legte sich darüber. Statt zu quetschen rutscht die
+   Anzeige auf eine zweite Zeile — unter den Titel, wo sie hingehört. */
+.card-head{flex-wrap:wrap;}
+.card-head .section-title{flex:1 1 auto;white-space:nowrap;}
+.age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;
+  flex:0 1 auto;min-width:0;margin-left:auto;}
+
+/* Aktualisieren-Knopf je Karte — dasselbe Zeichen wie in der Kopfzeile. */
+.card-refresh{flex:0 0 auto;align-self:center;order:9;
+  width:24px;height:24px;padding:0;line-height:1;font-size:14px;
+  background:transparent;border:1px solid var(--line);border-radius:6px;
+  color:var(--text-dim);cursor:pointer;}
+.card-refresh:hover{color:var(--amber);border-color:var(--amber);}
+.card-refresh.spinning{animation:spin .8s linear infinite;color:var(--amber);}
+
+/* Zweiwegschalter (heute/morgen) */
+.seg{display:inline-flex;flex:0 0 auto;border:1px solid var(--line);border-radius:7px;
+  overflow:hidden;font-family:var(--mono);font-size:10px;}
+.seg button{background:transparent;border:none;color:var(--text-dim);cursor:pointer;
+  padding:3px 9px;font:inherit;}
+.seg button + button{border-left:1px solid var(--line);}
+.seg button.on{background:var(--amber);color:#1a1200;font-weight:600;}
+.seg button:disabled{opacity:.38;cursor:not-allowed;}
+
+/* Schieberschalter „NVFR zulassen" */
+.sw{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;cursor:pointer;
+  font-family:var(--mono);font-size:10px;color:var(--text-dim);}
+.sw input{position:absolute;opacity:0;width:0;height:0;}
+.sw-track{width:30px;height:17px;border-radius:9px;background:var(--panel-2);
+  border:1px solid var(--line);position:relative;transition:background .15s,border-color .15s;}
+.sw-knob{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;
+  background:var(--text-dim);transition:transform .15s,background .15s;}
+.sw input:checked + .sw-track{background:color-mix(in srgb,var(--amber) 28%,transparent);
+  border-color:var(--amber);}
+.sw input:checked + .sw-track .sw-knob{transform:translateX(13px);background:var(--amber);}
+.sw input:focus-visible + .sw-track{outline:2px solid var(--amber);outline-offset:2px;}
+.sw input:checked ~ .sw-lbl{color:var(--amber);}
 @media (max-width:520px){ .card-head{flex-wrap:wrap;gap:2px 10px;}
-  .card-head .section-title{flex:1 0 100%;} .age{flex:1 0 100%;text-align:left;} }
+  /* Auf dem Handy teilen sich Titel und Aktualisieren-Knopf die erste Zeile,
+     die Altersanzeige bekommt die zweite. Nahm der Titel die volle Breite,
+     rutschte der Knopf auf eine dritte Zeile und die Kopfzeile wurde hoch. */
+  .card-head .section-title{flex:1 1 auto;}
+  .card-refresh{order:2;}
+  .age{flex:1 0 100%;order:5;text-align:left;margin-left:0;}
+  .sw,.seg{order:6;} }
 .age.stale{color:var(--gafor-d);}
 .age.old{color:var(--temp);}
 .age[role="button"]{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
@@ -644,7 +703,7 @@ table.rt th.num{text-align:center;}
 #reloadBtn{font-size:16px;line-height:1;}
 #reloadBtn.spinning{color:var(--amber);animation:spin .9s linear infinite;}
 #reloadBtn.ok{color:var(--gafor-c);}
-@media (prefers-reduced-motion:reduce){ #reloadBtn.spinning{animation:none;opacity:.55;} }
+@media (prefers-reduced-motion:reduce){ #reloadBtn.spinning,.card-refresh.spinning{animation:none;opacity:.55;} }
 
 /* footer */
 footer{margin:18px 14px 0;padding-top:14px;border-top:1px solid var(--line);
@@ -716,6 +775,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .hs-track{padding:0;}
   .hs-label{position:static;transform:none;font-size:7pt;color:#111;}
   .card-head .age{display:none !important;}
+  .card-refresh,.sw,.seg{display:none !important;}
 
   .app{max-width:none;padding:0;}
   body{font-size:7.2pt;line-height:1.25;color:#111;}
@@ -783,32 +843,41 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
      Seitenrand weiterfliessen, statt als Block auf die nächste Seite zu springen. */
   .report-cols{display:block;column-count:3;column-gap:4mm;}
   .report-col{display:block;}
-  .report-p{font-size:6.2pt;line-height:1.22;text-align:justify;hyphens:auto;}
+  .report-p{font-size:5.9pt;line-height:1.18;text-align:justify;hyphens:auto;}
   .report-p + .report-p,.report-p + pre.report,pre.report + .report-p,
   .report-tbl + .report-p{margin-top:0.8mm;}
   .report-cols pre.report{font-size:6pt;line-height:1.2;padding:1mm;}
   .report-tbl{margin:1.5mm 0 0;overflow:visible;}
   table.rt{font-size:6pt;} table.rt th,table.rt td{padding:0.2mm 1.2mm;}
   .rt-foot{font-size:5.5pt;margin-top:0.6mm;}
+  /* Eine zweite, überschreibende Regel stand hier bis 1.20.0 unbemerkt daneben
+     und machte den ganzen Block wirkungslos. */
   .report-h{font-size:7pt;margin:1.5mm 0 0.6mm;}
-  .report-h{font-size:8pt;margin:2mm 0 1mm;}
+  .valid-line{margin:0 0 1.2mm;padding:0.8mm 1.5mm;font-size:6.2pt;border-radius:1mm;}
 
   .wp-split{gap:0 4mm;flex-wrap:nowrap;align-items:flex-start;}
   .wp-col-table{flex:1 1 45%;min-width:0;}
   .wp-col-table .wp-table{max-width:none;}
   .wp-col-chart{flex:0 0 53%;min-width:0;padding:0;}
-  .wp-col-chart svg{width:100%;height:auto;max-height:58mm;}
-  .wp-table,.bw-table,.fc-table{font-size:7pt;}
-  .wp-table td,.wp-table th{padding:0.6mm 2mm;}
+  .wp-col-chart svg{width:100%;height:auto;max-height:52mm;}
+  .wp-table,.fc-table{font-size:6.6pt;}
+  /* Der Ballonbericht ist die längste Tabelle des Ausdrucks — er entscheidet
+     darüber, ob es bei zwei Seiten bleibt. */
+  .bw-table{font-size:5.8pt;}
+  .bw-table td,.bw-table th{padding:0.3mm 1mm;}
+  .bw-table td.bar{height:2.2mm;min-width:2mm;}
+  #cardBalloon .section-title{font-size:7pt;margin:1.5mm 0 0.5mm;}
+  .wp-table td,.wp-table th{padding:0.45mm 1.8mm;}
   .fc-scroll{overflow:hidden;}
   .fc-table{font-size:5.9pt;} .fc-table td{padding:0.35mm 0.9mm;} .fc-table th{padding:0.35mm 1.5mm;}
   /* der Kachelstreifen wiederholt nur, was in der Stundentabelle steht */
   .stat-strip,.ens{display:none !important;}
-  .metar-row{padding:1mm 2.5mm;} .metar-name{font-size:7.4pt;}
+  .metar-row{padding:0.8mm 2.5mm;} .metar-name{font-size:7pt;}
   .metar-top{margin-bottom:0.8mm;}
-  .metar-plain .pl{font-size:6.3pt;line-height:1.22;}
+  .metar-plain .pl{font-size:6pt;line-height:1.18;}
+  .metar-plain.taf .pl + .pl{padding-left:2mm;text-indent:-2mm;margin-top:0.3mm;}
   .metar-plain{margin:0 0 0.8mm;} .metar-plain.taf{margin:1mm 0 0.8mm;padding-top:0.8mm;}
-  .metar-row pre.raw{padding:0.6mm 1.2mm;font-size:6.4pt;}
+  .metar-row pre.raw{padding:0.5mm 1.2mm;font-size:6pt;line-height:1.2;}
 
   .note{font-size:7pt;}
   footer{margin:3mm 0 0;font-size:6.5pt;padding-top:2mm;}

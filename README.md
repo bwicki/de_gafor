@@ -51,7 +51,9 @@ Karten haben keine eigene Zeitwahl mehr.
 Die Skala ist **fest** über `OM.SPAN_H` = 168 Stunden, unabhängig vom gewählten Modell — nur
 so bleiben Tageseinteilung und Nachtschattierung beim Modellwechsel an derselben Stelle.
 Über dem Schieber stehen die Wochentage, in der Spur Striche alle zwei Stunden, und die
-**Nacht ist grau hinterlegt**. Was das gewählte Modell nicht mehr rechnet, ist
+**Nacht ist grau hinterlegt** — exakt zwischen **ECET** und **BCMT** (Ende der bürgerlichen
+Abend- und Beginn der Morgendämmerung), auf die Minute für genau diesen Ort gerechnet, nicht
+stündlich abgetastet. Was das gewählte Modell nicht mehr rechnet, ist
 **schraffiert und nicht erreichbar**: der Griff rastet am Horizont ein, mit ICON-D2 also bei
 +48 h. Der Knopf **jetzt** springt zurück auf die aktuelle Stunde.
 
@@ -81,6 +83,13 @@ Bewertet wird (Vorgaben in `OM.FLY_DEFAULTS`):
 | Wolkenbasis | 1000 ft AGL | — |
 | Dämmerung | — | ausserhalb |
 
+Der Schalter **NVFR zulassen** in der Kopfzeile der Karte hebt allein das
+Dämmerungskriterium auf; alle übrigen Schwellen bleiben. Er steht dort und nicht in den
+Einstellungen, weil die Entscheidung zur einzelnen Fahrt gehört und nicht zur Grundhaltung.
+
+Die Begründung jeder Stunde rechnet in der **angezeigten Windeinheit** („Böen 21,9 kt"), und
+der Erklärtext unter der Karte nennt die *eingestellten* Schwellen, nicht die Vorgaben.
+
 Alle Schwellen sind unter Menü → Einstellungen → *Startfenster* änderbar. Windangaben stehen
 dort in der gewählten Einheit, gespeichert wird intern in m/s; „nein ab" rutscht nie unter
 „grenzwertig ab", und ein Knopf stellt die Vorgaben wieder her.
@@ -93,9 +102,15 @@ Das ist eine **eigene Einschätzung aus dem Punktmodell, keine DWD-Aussage**; de
 steht auch unter der Karte. Massgebend bleiben die amtliche Beratung und die Einschätzung
 vor Ort.
 
-## Flugwetterübersicht
+## Flugwetterbericht DWD
 
-Der Prosatext des Bereichs, an seinen Abschnittsüberschriften in **zwei Spalten** gelegt. Wo
+Die **Gültigkeit** steht als erste Zeile im Bericht, auf grauem Grund und mit
+ausgeschriebenem Datum („gültig 28. August 2026 06:00 UTC bis 29. August 2026 01:00 UTC").
+Als Kleingedrucktes in der Kopfzeile war die wichtigste Angabe des Berichts an der
+unwichtigsten Stelle.
+
+Darunter der Prosatext des Bereichs, an seinen Abschnittsüberschriften in **zwei Spalten**
+gelegt. Wo
 geschnitten wird, ist nicht geschätzt, sondern gemessen: gesucht ist der kleinste Schnitt,
 bei dem die **linke** Spalte in Pixeln mindestens so hoch ist wie die rechte. Eine Schätzung
 über die Zeichenzahl lag verlässlich daneben — Überschriften haben Abstände, und eine
@@ -114,13 +129,23 @@ Ortsnamen zu verrutschen. Zwei Regeln machen den Parser allgemein genug für bei
 
 Zeilen ohne `|` unterhalb der Tabelle sind Fussnoten und bleiben Text.
 
+Eine **Überschrift ohne eigenen Inhalt** wandert immer mit dem folgenden Abschnitt in die
+zweite Spalte. „Höhenwind und -temperatur:" steht im DWD-Text allein und wird erst durch
+„GAFOR-Gebiete 54 - 58" gefüllt; bliebe sie am Fuss der linken Spalte stehen, gehörte sie
+scheinbar zum Vorangehenden und die Tabelle rechts hätte keinen Titel.
+
 Vom **Höhenwind** enthält ein Bereichsbulletin zwei oder drei Tabellen, jede mit einer
 Überschrift wie `GAFOR-Gebiete 54 - 58, 63, 64`. Angezeigt wird nur die des eigenen Gebiets;
 ist keine dabei, steht das als Satz da statt einer leeren Überschrift. Lässt sich die Liste
 nicht lesen oder ist kein Gebiet bestimmt, bleibt alles stehen — lieber zu viel als das
 Falsche weg.
 
-## Ballonwetterbericht
+## Ballonwetterbericht DWD
+
+Ein **heute/morgen**-Umschalter in der Kopfzeile richtet sich nach dem, was die DWD-Seite
+hergibt: enthält sie zwei Tagesüberschriften („Vorhersagen für Freitag, 28.08.2026"), sind
+beide Tage abrufbar; enthält sie eine, ist *morgen* gesperrt und sagt warum. Eine zweite URL
+zu raten wäre bequemer und falsch.
 
 Der Bericht des DWD für genau dieses Gebiet: astronomische Angaben, stündliche Bodenwerte und
 die Thermik. Er kommt nicht als Text, sondern als drei Tabellen, die Thermik rein über
@@ -201,6 +226,10 @@ Vorhersage 26. 06 bis 27. 12 UTC · Wind 140°, 5 kt · Sicht ≥10 km · Wolken
 zeitweise 26. 12–18 UTC: Regenschauer, Wolken 5–7/8 ab 1500 ft
    TAF EDDS 260500Z 2606/2712 14005KT 9999 SCT030 TEMPO 2612/2618 SHRA BKN015
 ```
+
+Die Übersetzung ist **vollständig**: erste Zeile Gültigkeit und Grundwetter, danach je
+Änderungsgruppe eine eigene Zeile. Bis 1.19.0 brach sie bei 210 Zeichen mit „…" ab — eine
+Übersetzung, die mitten im Gewitter aufhört, ist schlimmer als keine.
 
 Beim TAF werden FM, TEMPO, BECMG, INTER und PROB erkannt; PROB30 gehört zur folgenden
 TEMPO-Gruppe. Witterungskürzel sind übersetzt (`-SHRA` → Regenschauer, leicht),
@@ -288,8 +317,7 @@ statt Prosa, weil sich die Grenze von 24 Zeilen so hart einhalten lässt; das We
 Fliesstext, weil sonst jede Vorrede, jeder Code-Zaun und jede abgeschnittene Klammer die
 Antwort unlesbar macht. Liefert ein Modell doch Fliesstext, wird das JSON daraus als Rückfall
 trotzdem gelesen. Bleibt beides erfolglos, nennt die Meldung die Ursache — abgeschnitten,
-verweigert, oder wörtlich, was ankam. Im Druck fällt die
-Karte weg, solange sie leer ist.
+verweigert, oder wörtlich, was ankam. Im Druck fällt die Karte weg, solange sie leer ist.
 
 ## Die Karte
 
@@ -331,23 +359,26 @@ python3 scripts/digitize/build-boundaries.py
 Sie stehen links vom Logo.
 
 **⟳ Aktualisieren** holt alles neu — DWD-Index, Ballonbericht, METAR/TAF, Modell und
-Ensemble. Wer nur eine Karte auffrischen will, klickt auf deren Altersanzeige rechts in der
-Kartenkopfzeile.
+Ensemble. Wer nur eine Karte auffrischen will, nimmt den **runden Pfeil in deren Kopfzeile**;
+jede Berichtskarte hat einen. Die Altersanzeige daneben tut dasselbe.
 
-**⎙ Drucken** legt die Seite auf zwei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Zeitband,
+**⎙ Drucken** legt die Seite auf zwei bis drei A4-Seiten: Kopf, Karte, Ort, Gebiet, GAFOR-Zeitband,
 Startfenster und Flugwetterübersicht auf die erste, Ballonbericht, Höhenwind, METAR/TAF und
 Modellprognose auf die zweite — in der Reihenfolge, in der sie auch am Bildschirm stehen.
 Bedienelemente und Erklärtexte fallen weg, die Übersicht wird
-dreispaltig gesetzt, die Farben der GAFOR-Stufen bleiben. Ob es wirklich zwei Seiten bleiben,
-hängt an der Länge der Berichte — bei einem sehr langen Ballonbericht kommt eine dritte dazu.
-`node test/browser.mjs` erzeugt das PDF und zählt die Seiten nach.
+dreispaltig gesetzt, die Farben der GAFOR-Stufen bleiben. Wie viele es werden, hängt an der Länge der
+Berichte; mit vollständiger TAF-Übersetzung und einem ausführlichen Ballonbericht sind es
+drei. `node test/browser.mjs` erzeugt das PDF und zählt die Seiten nach — **vier** gelten als
+Rückschritt und lassen die Prüfung fehlschlagen.
 
 **⤴ Teilen** bietet zweierlei: ein **PNG der ganzen Seite** (gerendert mit dem
 mitgelieferten html2canvas, funktioniert offline) oder den **Link auf genau diesen Ort** in
 die Zwischenablage. Dieser Link öffnet sich beim Empfänger 30 Minuten lang ohne Kennwort —
 siehe *Geteilte Links* weiter unten.
 
-**≡ Menü** enthält Hell/Dunkel, Einstellungen, Neuladen, Über und Sperren.
+**≡ Menü** enthält Hell/Dunkel, Einstellungen, Neuladen, Über und Sperren. Die App startet
+im **Tagmodus**, unabhängig davon, wie das Gerät eingestellt ist — sie wird im Freien und bei
+Tageslicht gelesen. Wer es dunkel will, stellt es einmal um; die Wahl bleibt gespeichert.
 
 ## Einstellungen
 
@@ -358,7 +389,7 @@ Menü → **Einstellungen**, in der Reihenfolge des Dialogs:
 | METAR/TAF-Umkreis | 25 – 300 km, Vorgabe 100 km |
 | Höchstens Plätze | wie viele METAR-Karten höchstens erscheinen |
 | Windeinheit | kt · km/h · m/s |
-| Darstellung | hell / dunkel |
+| Darstellung | **hell (Vorgabe)** / dunkel |
 | TAF anzeigen | ja / nein |
 | Höhenprofil bis | 700 / 500 / 400 / 300 hPa |
 | Höhen in | Fuss oder Meter AMSL |
@@ -641,17 +672,58 @@ ohne Änderung.
 
 ### Wenn Drag & Drop die Ordnerstruktur plattgemacht hat
 
-Zieht man den entpackten Ordner im Browser auf GitHub, landen die Dateien je nach Browser
-flach im Wurzelverzeichnis — `app.js`, `metar.js`, `leaflet.js` und so weiter liegen dann
-doppelt da, einmal richtig unter `js/` und einmal als Leiche im Root. Benutzt werden sie
-nicht, `index.html` lädt aus `js/`; aber sie veralten still und machen jede Fehlersuche zur
-Lotterie.
+Zieht man den entpackten Ordner im Browser auf GitHub, gibt der Browser je nach Fall nur die
+**Dateien** durch, nicht die Ordner. Die milde Form: die Dateien liegen doppelt da, einmal
+richtig unter `js/` und einmal als Leiche im Root — benutzt werden sie nicht, aber sie
+veralten still und machen jede Fehlersuche zur Lotterie.
 
-Aufräumen lässt sich das am schnellsten im Web-Editor: im Repository **`.` drücken** (öffnet
-github.dev), im Dateibaum die Leichen markieren, löschen, committen. Im Wurzelverzeichnis
-gehören nur: `index.html`, `sw.js`, `manifest.webmanifest`, `README.md`, `CHANGELOG.md`,
-gegebenenfalls `CNAME` — und die Ordner `css/ data/ icons/ img/ js/ scripts/ test/ tools/
-.github/`.
+Die schlimme Form: die Ordner sind **ganz weg**, alles liegt flach im Wurzelverzeichnis. Dann
+fällt gleich mehreres aus, und zwar unterschiedlich laut:
+
+* `index.html` fehlt → GitHub Pages liefert **404**, die Seite ist tot. Das merkt man sofort.
+* `.github/workflows/fetch-dwd.yml` liegt als `fetch-dwd.yml` im Root → GitHub findet dort
+  keine Workflows, der **Fetcher läuft nicht mehr**. Das merkt man erst Stunden später an
+  veralteten Bulletins, und es sieht aus, als hätte der DWD nichts Neues.
+* `data/dwd/` ist gelöscht → die Berichtskarten stehen leer, bis der Workflow einmal lief.
+
+**Reparieren mit `git`, nicht mit der Weboberfläche.** Das stellt die Struktur in einem Zug
+her und behält die Vorgeschichte:
+
+```
+git clone https://github.com/<user>/<repo>.git && cd <repo>
+git rm -r --quiet --cached .
+find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+unzip /Pfad/zu/gafor-repo.zip -d .
+git add -A && git commit -m "Ordnerstruktur wiederherstellen" && git push
+```
+
+Vor dem Push kontrollieren, dass es diese Pfade wirklich gibt — fehlt einer, ist die
+Struktur noch flach: `index.html`, `sw.js`, `manifest.webmanifest`, `js/app.js`,
+`css/app.css`, `data/gafor-areas.geojson`, `scripts/fetch-dwd.mjs`,
+`.github/workflows/fetch-dwd.yml`. Danach im Actions-Tab **Run workflow** einmal von Hand,
+damit `data/dwd/` wieder entsteht.
+
+Im Wurzelverzeichnis gehören nur: `index.html`, `sw.js`, `manifest.webmanifest`, `README.md`,
+`CHANGELOG.md`, gegebenenfalls `CNAME` — und die Ordner `css/ data/ icons/ img/ js/ scripts/
+test/ tools/ .github/`.
+
+### Wenn der Workflow nicht mehr läuft
+
+Erkennbar am Warnhinweis über den GAFOR-Stufen: *„Die Kopie im Repo stammt von … und wird
+seit … nicht mehr erneuert."* Der Knopf **neu laden** kann daran nichts ändern — die App darf
+`dwd.de` nicht selbst abrufen und liest ausschliesslich `data/dwd/` aus dem Repo. Im
+Actions-Tab der Reihe nach:
+
+1. **DWD-Berichte holen** anklicken. Steht dort *„This scheduled workflow is disabled …"* mit
+   Knopf **Enable workflow**? GitHub schaltet Cron-Läufe still ab; ein Klick genügt.
+2. Läufe da, aber **rot** → kein Zeitplan-, sondern ein Laufzeitproblem. Log ansehen.
+3. Ein Lauf seit Stunden **in progress** → er blockiert wegen `concurrency: fetch-dwd` alle
+   folgenden. *Cancel workflow*.
+4. Settings → Actions → General: *Allow all actions*, und Workflow permissions auf
+   **Read and write**.
+
+Sofort-Abhilfe in jedem Fall: **Run workflow** von Hand; die Kopie ist dann in ein bis zwei
+Minuten aktuell.
 
 ## Das Symbol
 
@@ -704,7 +776,7 @@ bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 ```
 index.html                  Kopfbereich (Suche · Ort · Gebiet · Stufen | Karte) · Zeitschieber · sieben Karten
                             (METAR links; rechts Modellprognose und darunter die Kurzanalyse)
-css/base.css                Farbtokens und Bausteine (dunkel/hell), aus dem S2-/StueveCast-Set
+css/base.css                Farbtokens und Bausteine (hell/dunkel), aus dem S2-/StueveCast-Set
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
 js/util.js                  Helfer: Geometrie (point-in-polygon), Distanz, Peilung, Formatierung, Storage
@@ -720,7 +792,9 @@ js/stueve.js                Stüve-Diagramm mit Windfeld, einstellbare Feuchtesc
 js/mapview.js               Leaflet-Karte, drei Grenzebenen, Merknadeln, festes Fadenkreuz in der Mitte
 js/app.js                   Zustand, Bedienung, Rendering aller Karten, Zeitschieber, Sperre und Gastzugang
 js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
+js/vendor/leaflet/          Leaflet samt Bildern, mitgeliefert statt vom CDN — die App läuft offline
 icons/                      Symbolsatz, erzeugt aus scripts/build-icons.mjs
+img/wicki-logo.png          Logo in der Kopfzeile
 data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe „Die Gebietsgrenzen"
 data/gafor-regions.geojson  Umrisse der fünf Bereiche (aus den Gebieten verschmolzen)
 data/gafor-meta.json        die 68 Gebiete: Nummer, Bezeichnung, Bezugshöhe, Bereich
@@ -735,8 +809,10 @@ tools/digitize.html         Karte von Hand nachziehen und korrigieren, exportier
 .github/workflows/fetch-dwd.yml   holt die Berichte dreimal pro Stunde und committet sie
 test/run.mjs                Prüfungen ohne Browser
 test/browser.mjs            Durchlauf in headless Chromium mit gemockten Antworten
-test/sample-*.txt           echte DWD-Bulletins, gegen die der Parser geprüft wird
+test/sample-*.txt/.json     echte DWD-Bulletins und METAR/TAF, gegen die die Parser laufen
+test/reference-places.json  41 Orte mit bekanntem Gebiet — die Zuordnung darf nie stillschweigend kippen
 CHANGELOG.md                was sich je Version geändert hat
+CNAME                       eigene Domain für GitHub Pages (gafor.wicki.aero)
 sw.js                       Offline: Shell cache-first, Daten network-first mit Cache-Fallback
 ```
 
@@ -749,7 +825,8 @@ node test/run.mjs
 ```
 
 Läuft ohne Netz und ohne Abhängigkeiten und prüft: Syntax aller Module, Version und
-Cache-Name, Struktur und Plausibilität der Gebietsgeometrie (Nummern eindeutig, Ringe
+Cache-Name, das Farbschema (Vorgabe hell, und `index.html` trägt denselben Wert), den
+Symbolsatz, Struktur und Plausibilität der Gebietsgeometrie (Nummern eindeutig, Ringe
 geschlossen, Koordinaten innerhalb Deutschlands), den DWD-Parser gegen echte Beispieltexte,
 die METAR/TAF-Auswahl samt Bundeslandtabelle, den Gastzettel (Ablauf, Prüfsumme,
 umgeschriebener Ort), den Sonnenstand gegen bekannte Werte, die Startfensterampel mit ihren
@@ -761,14 +838,25 @@ npm i -D playwright && npx playwright install chromium
 node test/browser.mjs [--dark] [--shot bild.png]
 ```
 
-Startet einen lokalen Server, mockt Open-Meteo, die NOAA, Nominatim und die Kartenkacheln und
-spielt die App headless durch — rund 170 Prüfungen: Sperre und Zwei-Stunden-Ablauf, Rendern
-aller Karten, Kopfbereich und Spaltenaufteilung, GAFOR-Zeitband mit Definitionen, Startfenster
-samt Schwellenänderung in den Einstellungen, gemeinsamer Zeitschieber mit Modellhorizont,
-Modellvergleich im Stüve, METAR-Kopfzeile, Warnhinweis bei altem Bulletin samt Rückmeldung des
-Knopfs, PNG-Export, Druck (das PDF wird erzeugt und die Seiten werden gezählt) und ein
-kompletter Gastdurchlauf in einem frischen Browserfenster. Mit `--shot` fallen Bildschirmfotos
-der ganzen Seite und einzelner Karten an, mit `--dark` läuft alles im dunklen Farbsatz.
+Startet einen lokalen Server, mockt Open-Meteo, die NOAA, Nominatim, Anthropic und die
+Kartenkacheln und spielt die App headless durch — rund 240 Prüfungen: Sperre und
+Zwei-Stunden-Ablauf, Rendern aller Karten, Kopfbereich und Spaltenaufteilung, GAFOR-Zeitband
+mit Definitionen, Startfenster samt Schwellenänderung in den Einstellungen, gemeinsamer
+Zeitschieber mit Modellhorizont, Modellvergleich im Stüve, METAR-Kopfzeile, die beiden
+Warnhinweise bei alten Daten (abgelaufenes Bulletin gegen stehengebliebene Repo-Kopie) samt
+Rückmeldung des Knopfs, die KI-Kurzanalyse (Werkzeugzwang, Rückfall auf Fliesstext,
+abgeschnittene Antwort, DWD-Schalter, abgelehnter Schlüssel, Sitz im Raster), PNG-Export,
+Druck (das PDF wird erzeugt und die Seiten werden gezählt) und ein kompletter Gastdurchlauf in
+einem frischen Browserfenster. Dazu seit 1.20.0: die Gültigkeitszeile mit ausgeschriebenem
+Datum, dass keine nackte Überschrift am Fuss der linken Spalte stehenbleibt, die sechs
+Aktualisieren-Knöpfe, der NVFR-Schalter (Nachtstunden vorher/nachher), Knoten statt m/s in
+der Begründung, die vollständige TAF-Übersetzung, dass die Altersanzeige den METAR-Titel
+nicht überlagert, die Minutengenauigkeit des Nachtbalkens, die geglättete Windkurve als
+Bézierpfad und der heute/morgen-Umschalter.
+
+Mit `--shot` fallen Bildschirmfotos der ganzen Seite und einzelner Karten an. `--dark`
+hinterlegt die Wahl *dunkel* im `localStorage` und läuft alles im dunklen Farbsatz durch —
+seit die Vorgabe hell ist, genügt die Systemeinstellung dafür nicht mehr.
 
 ---
 

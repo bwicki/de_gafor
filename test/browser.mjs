@@ -112,11 +112,20 @@ const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAADG0lEQV
 
 // ---------------------------------------------------------------- Lauf
 const shotArg = process.argv.indexOf('--shot');
+const wantDark = process.argv.includes('--dark');
 const browser = await chromium.launch();
 const page = await browser.newPage({
   viewport: { width: 430, height: 3200 }, deviceScaleFactor: 2,
-  colorScheme: process.argv.includes('--dark') ? 'dark' : 'light',
+  colorScheme: wantDark ? 'dark' : 'light',
 });
+/* Die App richtet sich seit 1.18.5 nicht mehr nach der Systemeinstellung —
+   Vorgabe ist der Tagmodus. Der Dunkel-Durchlauf muss die Wahl darum selbst
+   hinterlegen, sonst prüft er zweimal dasselbe helle Farbschema. */
+if (wantDark) {
+  await page.addInitScript(() => {
+    try { localStorage.setItem('gaforcast.theme', '"dark"'); } catch { /* egal */ }
+  });
+}
 const errors = [];
 const seen = [];
 page.on('request', r => seen.push(r.url()));
@@ -162,7 +171,36 @@ const DWD_INDEX = {
         .replace(/^[\s\S]*?Wetterlage/, 'Wetterlage'),
     },
   },
-  balloon: {}, errors: [],
+  /* Ballonbericht für jedes Gebiet. Der Inhalt kommt aus BALLOON_DOC unten —
+     zwei Tagesüberschriften, damit der heute/morgen-Umschalter etwas zu tun
+     hat und nicht bloss unbenutzt danebensteht. */
+  balloon: Object.fromEntries((JSON.parse(await readFile('data/gafor-meta.json', 'utf8')).areas || [])
+    .map(a => [String(a.id), { id: String(a.id), name: a.name, refAltFt: a.refAltFt,
+      source: 'https://www.dwd.de/ballon', title: 'Gebietsvorhersagen für Ballonsport',
+      station: { name: 'Teststation', lat: 49.1, lon: 9.75, elevFt: 980 },
+      fetched: new Date().toISOString(), blocks: 4, cells: 40 }])),
+  errors: [],
+};
+
+/* Ein kleiner, aber echt geformter Ballonbericht: Kopfblock, dann zwei Tage.
+   Die Legendenzelle trägt absichtlich „&ge;" — genau der Fehler, den die App
+   beim Anzeigen auflösen muss. */
+const BALLOON_DOC = {
+  title: 'Gebietsvorhersagen für Ballonsport',
+  station: { name: 'Teststation', lat: 49.1, lon: 9.75, elevFt: 980 },
+  blocks: [
+    { heading: 'Gebietsvorhersagen für Ballonsport',
+      rows: [[{ t: 'Gebiet' }, { t: '54' }]] },
+    { heading: 'Vorhersagen für Freitag, 28.08.2026',
+      rows: [[{ t: 'Prognosezeit [UTC]' }, { t: 'Fr 06' }, { t: 'Fr 07' }],
+             [{ t: 'Wind Mittel [KT]' }, { t: '3', c: 'g' }, { t: '5', c: 'y' }]] },
+    { heading: 'Legenden',
+      rows: [[{ t: 'Wind Mittel' }, { t: '&ge; 15 Knoten' }, { t: '10 - < 15 Knoten' }]] },
+    { heading: 'Vorhersagen für Samstag, 29.08.2026',
+      rows: [[{ t: 'Prognosezeit [UTC]' }, { t: 'Sa 06' }, { t: 'Sa 07' }],
+             [{ t: 'Wind Mittel [KT]' }, { t: '9', c: 'o' }, { t: '11', c: 'r' }]] },
+  ],
+  text: 'Ballonwetterbericht (Testfassung).',
 };
 let dwdIndex = DWD_INDEX;
 /* Bremse für den Nachlade-Knopf: ohne sie ist die gemockte Antwort schneller
@@ -182,6 +220,7 @@ const METAR_REPO = {
 const routeAll = async (route) => {
   const url = route.request().url();
   if (url.includes('data/dwd/metar.json')) return route.fulfill({ json: METAR_REPO });
+  if (/data\/dwd\/balloon\/\d+\.json/.test(url)) return route.fulfill({ json: BALLOON_DOC });
   if (url.includes('data/dwd/index.json')) {
     if (dwdDelayMs) await new Promise(r => setTimeout(r, dwdDelayMs));
     return route.fulfill({ json: dwdIndex });
@@ -193,9 +232,23 @@ const routeAll = async (route) => {
     return route.fulfill({ json: forecastJSON(url) });
   if (url.includes('api.open-meteo.com/v1/elevation'))
     return route.fulfill({ json: { elevation: [340] } });
-  if (url.includes('aviationweather.gov'))
-    return route.fulfill({ json: JSON.parse(await readFile(
-      url.includes('/taf') ? 'test/sample-taf.json' : 'test/sample-metar.json', 'utf8')) });
+  if (url.includes('aviationweather.gov')) {
+    const data = JSON.parse(await readFile(
+      url.includes('/taf') ? 'test/sample-taf.json' : 'test/sample-metar.json', 'utf8'));
+    /* Ein absichtlich langer TAF: seine Übersetzung überschreitet die 210
+       Zeichen, an denen sie bis 1.20.0 mit „…" abbrach. Er gehört nicht in
+       sample-taf.json — dort stehen echte Meldungen —, sondern hierher. */
+    if (url.includes('/taf') && Array.isArray(data) && data.length) {
+      data[0] = { ...data[0], rawTAF:
+        'TAF EDDS 260500Z 2606/2712 14005KT 9999 SCT030 ' +
+        'BECMG 2608/2610 23008KT ' +
+        'TEMPO 2611/2615 SHRA BKN012CB ' +
+        'PROB40 TEMPO 2612/2615 21015G30KT 4000 +TSRA BKN008 BKN020CB ' +
+        'BECMG 2618/2620 30006KT ' +
+        'TEMPO 2700/2706 3000 BR BKN004' };
+    }
+    return route.fulfill({ json: data });
+  }
   if (url.includes('nominatim.openstreetmap.org/reverse')) {
     const u = new URL(url);
     const la = (+u.searchParams.get('lat')).toFixed(2);
@@ -245,6 +298,15 @@ const bad = (m) => { console.log(`  FAIL ${m}`); fails++; };
 await page.goto(base + '#49.1000,9.7500,9', { waitUntil: 'domcontentloaded' });
 
 console.log('\nBrowser');
+
+// Farbschema: Vorgabe hell, unabhängig von der Systemeinstellung
+{
+  const th = await page.evaluate(() => document.documentElement.dataset.theme);
+  th === (wantDark ? 'dark' : 'light')
+    ? ok(`Farbschema ${th}${wantDark ? ' (hinterlegte Wahl)' : ' als Vorgabe'}`)
+    : bad(`Farbschema ${th}, erwartet ${wantDark ? 'dark' : 'light'}`);
+}
+
 // Zugangssperre
 await page.waitForSelector('#gate:not([hidden])', { timeout: 8000 }).catch(() => {});
 (await page.locator('#gate').count()) === 1 && await page.locator('#gate').isVisible()
@@ -395,6 +457,78 @@ await page.waitForTimeout(300);
     ? ok(`Grafik so hoch wie die Tabelle (${Math.round(sBox.height)} zu ${Math.round(tBox.height)} px)`)
     : bad(`Höhen: Grafik ${sBox && Math.round(sBox.height)}, Tabelle ${tBox && Math.round(tBox.height)}`);
 
+  // ---- Kartentitel, Gültigkeitszeile, Aktualisieren-Icons ----
+  (await page.locator('#cardGafor .section-title').textContent()).trim() === 'Flugwetterbericht DWD'
+    ? ok('die Karte heisst Flugwetterbericht DWD')
+    : bad(`Titel: ${await page.locator('#cardGafor .section-title').textContent()}`);
+  {
+    const v = page.locator('#gaforBody .valid-line');
+    if (await v.count() === 1) {
+      const txt = (await v.innerText()).replace(/\s+/g, ' ');
+      /gültig .*\d{1,2}\. (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember) \d{4} \d{2}:\d{2} UTC/.test(txt)
+        ? ok(`Gültigkeit ausgeschrieben: „${txt.slice(0, 62)}…"`)
+        : bad(`Gültigkeitszeile: ${txt}`);
+      const first = await page.locator('#gaforBody > *').first().getAttribute('class');
+      /valid-line/.test(first || '')
+        ? ok('und steht als erste Zeile des Berichts')
+        : bad(`erstes Element im Bericht: ${first}`);
+      !/gültig/.test(await page.locator('#gaforAge').innerText())
+        ? ok('die Kopfzeile wiederholt sie nicht') : bad('Gültigkeit steht doppelt');
+    } else bad('keine Gültigkeitszeile');
+  }
+  {
+    const n = await page.locator('.card-refresh').count();
+    n === 6 ? ok(`${n} Karten haben ihren eigenen Aktualisieren-Knopf`)
+            : bad(`Aktualisieren-Knöpfe: ${n}`);
+    const cards = await page.locator('.card-refresh').evaluateAll(
+      ns => ns.map(x => x.closest('section').id));
+    ['cardGafor', 'cardBalloon', 'cardWind', 'cardMetar', 'cardModel', 'cardAi']
+      .every(id => cards.includes(id))
+      ? ok('je einer in Bericht, Ballon, Höhenwind, METAR, Modell und KI')
+      : bad(`Knöpfe sitzen in: ${cards.join(', ')}`);
+  }
+
+  /* Der Nachtbalken sitzt auf die Minute zwischen ECET und BCMT: die
+     Farbwechsel im Verlauf müssen krumme Prozentwerte haben. Ganze Prozente
+     wären das alte, stündlich abgetastete Raster. */
+  {
+    const bg = await page.locator('#timeNight').evaluate(n => getComputedStyle(n).backgroundImage);
+    const stops = (bg.match(/(\d+(?:\.\d+)?)%/g) || []).map(x => parseFloat(x));
+    const inner = stops.filter(v => v > 0 && v < 100);
+    inner.length >= 2 ? ok(`${inner.length} Kanten im Nachtbalken`) : bad('kein Nachtabschnitt');
+    inner.some(v => Math.abs(v - Math.round(v)) > 0.02)
+      ? ok('die Kanten liegen auf die Minute, nicht auf der vollen Stunde')
+      : bad(`nur ganze Prozente: ${inner.slice(0, 6).join(', ')}`);
+    /ECET/.test(await page.locator('#timeNight').getAttribute('title') || '')
+      ? ok('der Balken sagt, was er zeigt (ECET/BCMT)') : bad('kein Hinweis am Nachtbalken');
+  }
+
+  /* Die Windkurve wird als geglättete Bézierkurve gezeichnet, nicht als
+     Polygonzug — sechs Druckflächen ergaben sonst einen Sägezahn. */
+  {
+    const d = await page.locator('#windProfile svg path.sv-wind').first()
+      .getAttribute('d').catch(() => null);
+    d && /C/.test(d)
+      ? ok('die Windkurve ist geglättet (Bézier statt Polygonzug)')
+      : bad(`Windkurve: ${d ? d.slice(0, 40) : 'kein path.sv-wind'}`);
+    (await page.locator('#windProfile svg polyline.sv-wind').count()) === 0
+      ? ok('und kein Polygonzug mehr daneben') : bad('es steht noch eine polyline da');
+  }
+
+  /* Ballonbericht: der Umschalter steht da, „morgen" ist gesperrt, solange der
+     DWD nur den laufenden Tag liefert — statt einen zweiten Tag vorzutäuschen. */
+  {
+    const seg = page.locator('#balloonDay button[data-day]');
+    (await seg.count()) === 2 ? ok('heute/morgen steht in der Kopfzeile') : bad('kein Tagesumschalter');
+    await seg.nth(0).evaluate(n => n.classList.contains('on'))
+      ? ok('„heute" ist gewählt') : bad('„heute" nicht markiert');
+    const dis = await seg.nth(1).isDisabled();
+    const tip = await seg.nth(1).getAttribute('title');
+    !dis || /nur den laufenden Tag/.test(tip || '')
+      ? ok(dis ? 'für „morgen" liegt nichts vor, und das steht dran' : '„morgen" ist verfügbar')
+      : bad(`gesperrt ohne Begründung: ${tip}`);
+  }
+
   const cols = page.locator('#gaforBody .report-cols .report-col');
   if (await cols.count() === 2) {
     const a = await cols.nth(0).boundingBox(), b2 = await cols.nth(1).boundingBox();
@@ -411,6 +545,16 @@ await page.waitForTimeout(300);
     (await page.locator('#gaforBody .report-h').count()) >= 2
       ? ok('Abschnittstitel sind eigene, fette Überschriften')
       : bad('keine Abschnittstitel');
+    /* Eine Überschrift ohne eigenen Inhalt („Höhenwind und -temperatur:")
+       darf nie allein am Fuss der linken Spalte stehen — sie gehört zum
+       folgenden Abschnitt und muss mit ihm umbrechen. */
+    {
+      const lastL = cols.nth(0).locator('> *').last();
+      const cls = await lastL.getAttribute('class').catch(() => '');
+      !/report-h/.test(cls || '')
+        ? ok('die linke Spalte endet nicht mit einer nackten Überschrift')
+        : bad(`linke Spalte endet mit „${await lastL.innerText()}"`);
+    }
     /* Tabellen werden als echte Tabellen gesetzt, nicht als Textblock in
        fester Breite — sonst verrutschen die Zahlen unter unterschiedlich
        langen Ortsnamen. Ein <pre> darf gar nicht mehr vorkommen. */
@@ -621,6 +765,41 @@ firstAlt !== secondAlt ? ok('Schieber ändert das Profil')
     ? ok('Klick in den Streifen setzt den Zeitschieber') : bad(`Schieber: ${before} → ${after}`);
   await page.locator('#timeNow').click();
   await page.waitForTimeout(300);
+
+  /* Die Begründung steht in der angezeigten Windeinheit, nicht in m/s —
+     sonst liest man „5,2 m/s" neben einer Tabelle voller Knoten. */
+  {
+    const why = await page.locator('#flyBody .fly-cell').evaluateAll(
+      ns => ns.map(n => n.title).join(' | '));
+    /\d,\d kt|\d\.\d kt/.test(why) && !/m\/s/.test(why)
+      ? ok('die Begründung rechnet in Knoten, nicht in m/s')
+      : bad(`Einheiten in der Begründung: ${why.slice(0, 110)}`);
+    const note = await page.locator('#flyBody .explain').innerText();
+    !/m\/s/.test(note) ? ok('auch der Erklärtext unter der Karte')
+                        : bad(`Erklärtext: ${note.slice(0, 100)}`);
+  }
+
+  /* NVFR: der Schalter hebt allein das Dämmerungskriterium auf. Eine
+     Nachtstunde, die nur daran scheitert, muss danach besser dastehen. */
+  {
+    const nightNo = async () => page.locator('#flyBody .fly-cell').evaluateAll(ns =>
+      ns.filter(n => /· (0[0-2]|2[2-3]):00/.test(n.title))
+        .filter(n => /\bno\b/.test(n.className)).length);
+    const before2 = await nightNo();
+    await page.locator('#nvfrSwitch').click();   // die Kiste selbst ist unsichtbar, das Etikett trägt
+    await page.waitForTimeout(400);
+    const after2 = await nightNo();
+    after2 < before2
+      ? ok(`NVFR zugelassen: ${before2} → ${after2} Nachtstunden mit „nein"`)
+      : bad(`NVFR ohne Wirkung: ${before2} → ${after2}`);
+    /NVFR zugelassen/.test(await page.locator('#flyBody .explain').innerText())
+      ? ok('der Erklärtext sagt, dass die Dämmerung ausser Betracht bleibt')
+      : bad('der Erklärtext erwähnt NVFR nicht');
+    await page.locator('#nvfrSwitch').click();
+    await page.waitForTimeout(400);
+    (await nightNo()) === before2
+      ? ok('ausgeschaltet gilt die Dämmerung wieder') : bad('NVFR lässt sich nicht zurücknehmen');
+  }
 }
 
 // Startfenster-Schwellen in den Einstellungen
@@ -899,6 +1078,42 @@ if (shotArg > 0) {
     ? ok('Pfeil trägt Peilung und Richtung als Hinweis') : bad('kein Hinweis am Pfeil');
 }
 
+/* Die Warnbox der Altersanzeige darf den Titel nicht überlagern: passt sie
+   nicht daneben, rutscht sie unter ihn. */
+{
+  const t = await page.locator('#cardMetar .section-title').boundingBox();
+  const a = await page.locator('#metarAge').boundingBox();
+  const apart = a.y >= t.y + t.height - 1 || a.x >= t.x + t.width - 1;
+  apart ? ok('die Altersanzeige überlagert den METAR-Titel nicht')
+        : bad(`Titel bis x=${Math.round(t.x + t.width)}/y=${Math.round(t.y + t.height)}, ` +
+              `Anzeige bei x=${Math.round(a.x)}/y=${Math.round(a.y)}`);
+  const h = await page.locator('#cardMetar .section-title').evaluate(
+    n => getComputedStyle(n).whiteSpace);
+  h === 'nowrap' ? ok('und der Titel bricht nicht zeichenweise um')
+                 : bad(`white-space des Titels: ${h}`);
+}
+
+/* Die TAF-Übersetzung darf nicht abbrechen: keine Auslassungspunkte am Ende,
+   und jede Änderungsgruppe bekommt ihre eigene Zeile. */
+{
+  const lines = await page.locator('#metarBody .metar-plain.taf .pl').allInnerTexts();
+  const joined = lines.join(' ');
+  !/…\s*$/.test(lines[lines.length - 1] || '')
+    ? ok('die TAF-Übersetzung endet nicht mit „…"')
+    : bad(`abgeschnitten: „${lines[lines.length - 1].slice(-60)}"`);
+  const raws = await page.locator('#metarBody pre.raw.taf').allInnerTexts();
+  const long = raws.find(r => /PROB40/.test(r)) || raws[0] || '';
+  const groups = (long.match(/\b(TEMPO|BECMG|FM\d{6})\b/g) || []).length;
+  const all = (await page.locator('#metarBody .metar-plain.taf').allInnerTexts()).join(' ');
+  const chunk = all.length;
+  chunk > 260
+    ? ok(`${chunk} Zeichen Übersetzung — die alte 210-Zeichen-Grenze ist weg`)
+    : bad(`Übersetzung nur ${chunk} Zeichen lang`);
+  lines.length >= Math.min(groups, 5)
+    ? ok(`${lines.length} Zeilen für ${groups} Änderungsgruppen — nichts weggelassen`)
+    : bad(`${lines.length} Zeilen für ${groups} Gruppen: ${joined.slice(0, 90)}`);
+}
+
 (await page.locator('#metarBody pre.raw').count()) >= 2
   ? ok('Rohmeldungen werden angezeigt') : bad('keine Rohmeldungen');
 {
@@ -910,11 +1125,15 @@ if (shotArg > 0) {
   const t1 = await mp.first().innerText();
   /Wind .*·.*Sicht .*·.*Wolken|Wind .*·.*Sicht/.test(t1)
     ? ok(`erste Zeile: „${t1}"`) : bad(`erste Zeile: ${t1}`);
-  // je Zeile höchstens zwei — deshalb zeilenweise prüfen, nicht über die Karte
+  /* Erste Zeile Gültigkeit und Grundwetter, danach je Änderungsgruppe eine
+     eigene Zeile. Bis 1.19.0 waren es starr zwei, und alles darüber hinaus fiel
+     unter den Tisch — der Grund, warum die Übersetzung mitten im Gewitter
+     aufhörte. Geprüft wird darum nicht mehr eine Obergrenze, sondern dass
+     jeder Platz mit TAF mindestens seine Kopfzeile hat. */
   const perRow = [];
   for (const r of await rows.all()) perRow.push(await r.locator('.metar-plain.taf .pl').count());
-  perRow.every(n => n <= 2) && perRow.some(n => n === 2)
-    ? ok(`TAF-Klartext je Platz höchstens zwei Zeilen (${perRow.join(', ')})`)
+  perRow.some(n => n >= 3)
+    ? ok(`TAF-Klartext je Platz eine Zeile pro Änderungsgruppe (${perRow.join(', ')})`)
     : bad(`TAF-Klartextzeilen je Platz: ${perRow.join(', ')}`);
   const tp = rows.first().locator('.metar-plain.taf .pl');
   /Vorhersage \d+\. \d\d bis \d+\. \d\d UTC/.test(await tp.first().innerText())
@@ -981,15 +1200,21 @@ await page.waitForTimeout(3200);
     await writeFile(process.argv[shotArg + 1].replace('.png', '-druck.pdf'), pdf);
   }
   const pages = (pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g) || []).length;
-  if (pages === 2) ok('Druck ergibt genau zwei A4-Seiten');
+  /* Zwei Seiten waren die Vorgabe, solange der Ballonbericht in diesem
+     Durchlauf fehlte. Mit ihm — und mit einer vollständig übersetzten TAF —
+     sind es drei, und das ist ehrlicher als ein Ausdruck, dem man das
+     Zusammenquetschen ansieht. Die Grenze bleibt hart: vier wären ein
+     Rückschritt, und dann steht unten, welcher Block den Platz frisst. */
+  if (pages <= 3) ok(`Druck ergibt ${pages} A4-Seiten (höchstens drei)`);
   else {
     // Bei Abweichung gleich zeigen, welcher Block den Platz frisst
     await page.emulateMedia({ media: 'print' });
     await page.setViewportSize({ width: 794, height: 1123 });
     await page.waitForTimeout(400);
     const parts = [];
-    for (const sel of ['header.topbar', '.place-bar', '.area-head', '.map-block', '#cardGafor',
-                       '#cardBalloon', '#cardWind', '#cardMetar', '#cardModel', 'footer']) {
+    for (const sel of ['header.topbar', '.place-bar', '.area-head', '.map-block', '#cardFly',
+                       '#cardGafor', '#cardBalloon', '#cardWind', '#cardMetar', '#cardModel',
+                       '#cardAi', 'footer']) {
       const bx = await page.locator(sel).boundingBox().catch(() => null);
       if (bx) parts.push(`${sel} ${Math.round(bx.height / 1055 * 100)}%`);
     }

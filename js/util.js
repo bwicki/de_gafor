@@ -11,6 +11,20 @@ const U = (() => {
   };
   const clear = (node) => { while (node.firstChild) node.removeChild(node.firstChild); return node; };
 
+  /* Notbremse für benannte HTML-Entitäten, die im gespeicherten DWD-Text
+     stehengeblieben sind — „&ge; 15 Knoten" in der Ballonlegende. Der Fetcher
+     löst sie seit 1.20.0 selbst auf; das hier rettet die Daten, die schon im
+     Repo liegen, ohne auf den nächsten Workflow-Lauf zu warten. Bewusst nur
+     benannte Entitäten: `&#…;` kam nie vor, und ein `innerHTML`-Umweg wäre an
+     dieser Stelle ein Einfallstor. */
+  const ENT = { ge: '≥', le: '≤', ne: '≠', asymp: '≈', minus: '−', plusmn: '±',
+                times: '×', divide: '÷', middot: '·', bull: '•', hellip: '…',
+                deg: '°', nbsp: ' ', amp: '&', lt: '<', gt: '>', quot: '"',
+                sup2: '²', sup3: '³', frac12: '½', frac14: '¼', frac34: '¾',
+                laquo: '«', raquo: '»', ndash: '–', mdash: '—', micro: 'µ' };
+  const deEnt = (t) => String(t == null ? '' : t)
+    .replace(/&(\w+);/g, (m, n) => (n in ENT ? ENT[n] : m));
+
   // ---------- numbers & geometry ----------
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const rad = (d) => d * Math.PI / 180;
@@ -66,6 +80,12 @@ const U = (() => {
   /** Ortszeit als HH:MM. */
   const fmtLocalTime = (d) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
   const fmtUTC = (d) => `${pad(d.getUTCDate())}. ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+
+  const MONTHS = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli',
+                  'August', 'September', 'Oktober', 'November', 'Dezember'];
+  /** "28. August 2026 06:00 UTC" — ausgeschrieben, für die Gültigkeitszeile. */
+  const fmtUTCLong = (d) => `${d.getUTCDate()}. ${MONTHS[d.getUTCMonth()]} ` +
+    `${d.getUTCFullYear()} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
 
   /** "vor 12 min" / "vor 3 h 40 min". */
   function ago(iso) {
@@ -126,8 +146,8 @@ const U = (() => {
     return r.json();
   }
 
-  return { $, el, clear, clamp, distKm, inGeometry, centroid,
-           fmtCoord, fmtUTC, fmtLocalTime, ago, ageClass, pad, MS_TO,
+  return { $, el, clear, deEnt, clamp, distKm, inGeometry, centroid,
+           fmtCoord, fmtUTC, fmtUTCLong, fmtLocalTime, ago, ageClass, pad, MS_TO,
            wind, unitLabel, dirName, dirArrow, bearing, bearingArrow,
            load, save, getJSON };
 })();

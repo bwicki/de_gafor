@@ -257,9 +257,18 @@ const OM = (() => {
   };
   const flyLimits = (o) => Object.assign({}, FLY_DEFAULTS, o || {});
 
-  function flyRating(rec, light, limits) {
+  /**
+   * `unit` ist die angezeigte Windeinheit ('kt' | 'kmh' | 'ms'). Gerechnet wird
+   * durchweg in m/s — das liefert das Modell —, aber die Begründung muss in der
+   * Einheit dastehen, in der auch die Tabellen und Schwellen stehen. Sonst
+   * liest man „Bodenwind 5,2 m/s" neben „21 kt" und rechnet im Kopf um.
+   */
+  function flyRating(rec, light, limits, unit) {
     if (!rec) return { level: null, txt: '—', why: [] };
     const L = flyLimits(limits);
+    const u = unit || 'kt';
+    const uLab = { kt: 'kt', kmh: 'km/h', ms: 'm/s' }[u] || 'kt';
+    const cv = (ms) => (ms * ({ kt: 1.943844, kmh: 3.6, ms: 1 }[u] || 1)).toFixed(1);
     const why = [];
     let lvl = FLY.GOOD;
     const down = (to, reason) => { if (to < lvl) lvl = to; why.push(reason); };
@@ -268,17 +277,17 @@ const OM = (() => {
 
     const w = rec.w10, g = rec.gust;
     if (w != null) {
-      if (w > L.wind[1]) down(FLY.NO, `Bodenwind ${w.toFixed(1)} m/s`);
-      else if (w > L.wind[0]) down(FLY.LIMIT, `Bodenwind ${w.toFixed(1)} m/s`);
+      if (w > L.wind[1]) down(FLY.NO, `Bodenwind ${cv(w)} ${uLab}`);
+      else if (w > L.wind[0]) down(FLY.LIMIT, `Bodenwind ${cv(w)} ${uLab}`);
     }
     if (g != null) {
-      if (g > L.gust[1]) down(FLY.NO, `Böen ${g.toFixed(1)} m/s`);
-      else if (g > L.gust[0]) down(FLY.LIMIT, `Böen ${g.toFixed(1)} m/s`);
+      if (g > L.gust[1]) down(FLY.NO, `Böen ${cv(g)} ${uLab}`);
+      else if (g > L.gust[0]) down(FLY.LIMIT, `Böen ${cv(g)} ${uLab}`);
     }
     if (w != null && g != null) {
       const d = g - w;
-      if (d > L.gustSpread[1]) down(FLY.NO, `sehr böig (+${d.toFixed(1)} m/s)`);
-      else if (d > L.gustSpread[0]) down(FLY.LIMIT, `böig (+${d.toFixed(1)} m/s)`);
+      if (d > L.gustSpread[1]) down(FLY.NO, `sehr böig (+${cv(d)} ${uLab})`);
+      else if (d > L.gustSpread[0]) down(FLY.LIMIT, `böig (+${cv(d)} ${uLab})`);
     }
     if (rec.precip != null && rec.precip >= L.precip) {
       down(FLY.NO, `Niederschlag ${rec.precip.toFixed(1)} mm/h`);
