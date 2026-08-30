@@ -4,17 +4,17 @@ GAFOR-Einstufung LBZ Hamburg
 
 GAFOR Bereich LBZ Hamburg 30.08.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-00  Deutsche Bucht  D1 ISOL SHRA  D1  O
+00  Deutsche Bucht  O  O  O
 
-01  Ostfriesland  D1 ISOL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+01  Ostfriesland  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
 
-02  Nordfriesland-Dithmarschen  D1 ISOL SHRA  D1 ISOL SHRA  O
+02  Nordfriesland-Dithmarschen  O ISOL SHRA  O  O
 
-03  Schleswig-Holsteinische Geest  D1 ISOL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+03  Schleswig-Holsteinische Geest  D1 ISOL SHRA  D1 ISOL SHRA  O
 
-04  Schleswig-Holsteinisches Hügelland  D1 ISOL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+04  Schleswig-Holsteinisches Hügelland  D1 ISOL SHRA  D1 ISOL SHRA  O
 
 05  Nordwestliches Niedersachsen  D1 ISOL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
 
@@ -22,9 +22,9 @@ Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
 
 07  Westliches Niedersachsen  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
 
-08  Hannover und Braunschweig  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+08  Hannover und Braunschweig  O ISOL SHRA  O  O
 
-09  Teutoburger Wald  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+09  Teutoburger Wald  D1 ISOL SHRA  O  O
 
 10  Weser-Leine-Bergland  O ISOL SHRA  O  O
 
@@ -32,125 +32,125 @@ GAFOR-Einstufung LBZ Berlin
 
 GAFOR Bereich LBZ Berlin 30.08.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-11  Mecklenburgisches Tiefland  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+11  Mecklenburgisches Tiefland  O ISOL SHRA  O ISOL SHRA  O
 
-12  Vorpommern  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+12  Vorpommern  O ISOL SHRA  O ISOL SHRA  O
 
-13  Westliche Mecklenburgische Seenplatte und Prignitz  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+13  Westliche Mecklenburgische Seenplatte und Prignitz  O ISOL SHRA  O  O
 
-14  Östliche Mecklenburgische Seenplatte und Uckermark  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+14  Östliche Mecklenburgische Seenplatte und Uckermark  O  O  O
 
 15  Altmark  O  O  O
 
-16  Fläming  O  O  O
+16  Fläming  O  O  C
 
-17  Havelland  O  O  O
+17  Havelland  O  O  C
 
-18  Barnim und Oderbruch  O  O ISOL SHRA  O
+18  Barnim und Oderbruch  O ISOL SHRA  O  C
 
-19  Dahme-Spree-Gebiet und Gubener Waldland  O  O  O
+19  Dahme-Spree-Gebiet und Gubener Waldland  O  O  C
 
-20  Magdeburger Börde und Nördliches Harzvorland  O  O  O
+20  Magdeburger Börde und Nördliches Harzvorland  O  O  C
 
-21  Harz  O  O  O
+21  Harz  O  O  C
 
-22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  O  O  O
+22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  O  O  C
 
-23  Niederlausitzer Heiden  O  O  O
+23  Niederlausitzer Heiden  O  O  C
 
-24  Thüringer Becken  O  O  O
+24  Thüringer Becken  O  O  C
 
-25  Mittelsächsisches Hügelland  O  O  O
+25  Mittelsächsisches Hügelland  O  O  C
 
-26  Oberlausitz und Lausitzer Gebirge  O  O  O
+26  Oberlausitz und Lausitzer Gebirge  O  O  C
 
-27  Thüringer Wald  O  O  O
+27  Thüringer Wald  O  O  C
 
-28  Erzgebirge  O  O  O
+28  Erzgebirge  O  O  C
 
 GAFOR-Einstufung RWZ Essen
 
 GAFOR Bereich RWZ Essen 30.08.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-31  Niederrheinisches Tiefland  O  O  O
+31  Niederrheinisches Tiefland  O  O  C
 
 32  Münsterland  O  O  O
 
-33  Ruhrgebiet und Ostwestfalen  O  O  O
+33  Ruhrgebiet und Ostwestfalen  O  O  C
 
-34  Niederrheinische Bucht  O  O  C
+34  Niederrheinische Bucht  O  C  C
 
-35  Bergisches Land  O  O  C
+35  Bergisches Land  O  C  C
 
-36  Sauerland  O  O  O
+36  Sauerland  O  O  C
 
-37  Eifel  O  O  O
+37  Eifel  O  O  O ISOL RA
 
-38  Neuwieder Becken  O  O  C
+38  Neuwieder Becken  O  C  C
 
-39  Westerwald  O  O  O
+39  Westerwald  O  O  C
 
 GAFOR-Einstufung FWZ Frankfurt
 
 GAFOR Bereich FWZ Frankfurt 30.08.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-41  Hunsrück  O  O  O
+41  Hunsrück  O  O  C
 
-42  Taunus  O  O  O
+42  Taunus  O  O  C
 
-43  Nordhessisches Bergland und Vogelsberg  O ISOL SHRA  O ISOL SHRA  O
+43  Nordhessisches Bergland und Vogelsberg  O  O  C
 
-44  Rheinpfalz und Saarland  O  O  O
+44  Rheinpfalz und Saarland  C  C  C
 
-45  Rhein-Main-Gebiet und Wetterau  O  O  O
+45  Rhein-Main-Gebiet und Wetterau  C  C  C
 
-46  Odenwald und Spessart  O  O  O
+46  Odenwald und Spessart  O  O  C
 
-47  Rhön  O  O  O
+47  Rhön  C  C  C
 
-50  Südlicher Oberrheingraben  O  O  O
+50  Südlicher Oberrheingraben  C  C  C
 
-51  Mittlerer Oberrheingraben  O  O  O
+51  Mittlerer Oberrheingraben  C  C  C
 
-52  Kraichgau  O  O  O
+52  Kraichgau  C  C  C
 
-53  Oberer und mittlerer Neckarraum  O  O  O
+53  Oberer und mittlerer Neckarraum  O  O  C
 
-61  Schwarzwald  M2 ISOL SHRA  D1  O
+61  Schwarzwald  O  O  O
 
 GAFOR-Einstufung LBZ Muenchen
 
 GAFOR Bereich LBZ Muenchen 30.08.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
 54  Mainfranken und Nördliches Unterfranken  C  C  C
 
-55  Kocher-Jagst-Gebiet und Frankenhöhe  O ISOL SHRA  O ISOL SHRA  O
+55  Kocher-Jagst-Gebiet und Frankenhöhe  O  C  C
 
-56  Mittelfranken  O  O ISOL SHRA  O
+56  Mittelfranken  O  O  O
 
-57  Oberfranken  C  C  O
+57  Oberfranken  C  C  C
 
 58  Frankenwald und Fichtelgebirge  C  C  C
 
-62  Schwäbische Alb  O ISOL DS  O ISOL SHRA  O
+62  Schwäbische Alb  O  C  C
 
-63  Fränkische Alb  O  O ISOL SHRA  O
+63  Fränkische Alb  O  O  O
 
-64  Oberpfälzer Wald  O  O  O ISOL SHRA
+64  Oberpfälzer Wald  O  O  O
 
 71  Bodenseeraum  C  C  C
 
-72  Schwäbische Hochebene  C  C ISOL SHRA  C
+72  Schwäbische Hochebene  C  C  C
 
-73  Westliche Donauniederung  O  O  O
+73  Westliche Donauniederung  O  C  C
 
 74  Südbayerisches Hügelland  C  C  C
 
@@ -162,9 +162,9 @@ Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
 
 82  Östliches Alpenvorland  C  C  C
 
-83  Allgäuer Alpen  C  D1  O
+83  Allgäuer Alpen  D1  D1  D1 ISOL SHRA
 
-84  Östliche Bayerische Alpen  C  D1  D1 ISOL SHRA
+84  Östliche Bayerische Alpen  D1  M2 ISOL SHRA  M2 ISOL TSRA
 
 GAFOR Legende
 
