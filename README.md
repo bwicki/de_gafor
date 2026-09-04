@@ -824,7 +824,7 @@ sw.js                       Offline: Shell cache-first, Daten network-first mit 
 node test/run.mjs
 ```
 
-Läuft ohne Netz und ohne Abhängigkeiten und prüft: Syntax aller Module, Version und
+Rund 185 Prüfungen ohne Netz und ohne Abhängigkeiten: Syntax aller Module, Version und
 Cache-Name, das Farbschema (Vorgabe hell, und `index.html` trägt denselben Wert), den
 Symbolsatz, Struktur und Plausibilität der Gebietsgeometrie (Nummern eindeutig, Ringe
 geschlossen, Koordinaten innerhalb Deutschlands), den DWD-Parser gegen echte Beispieltexte,
@@ -839,7 +839,7 @@ node test/browser.mjs [--dark] [--shot bild.png]
 ```
 
 Startet einen lokalen Server, mockt Open-Meteo, die NOAA, Nominatim, Anthropic und die
-Kartenkacheln und spielt die App headless durch — rund 240 Prüfungen: Sperre und
+Kartenkacheln und spielt die App headless durch — rund 230 Prüfungen: Sperre und
 Zwei-Stunden-Ablauf, Rendern aller Karten, Kopfbereich und Spaltenaufteilung, GAFOR-Zeitband
 mit Definitionen, Startfenster samt Schwellenänderung in den Einstellungen, gemeinsamer
 Zeitschieber mit Modellhorizont, Modellvergleich im Stüve, METAR-Kopfzeile, die beiden

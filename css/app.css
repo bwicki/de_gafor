@@ -652,7 +652,15 @@ table.rt th.num{text-align:center;}
    und die Altersanzeige legte sich darüber. Statt zu quetschen rutscht die
    Anzeige auf eine zweite Zeile — unter den Titel, wo sie hingehört. */
 .card-head{flex-wrap:wrap;}
-.card-head .section-title{flex:1 1 auto;white-space:nowrap;}
+/* Zwei Dinge, die zusammengehören:
+   `flex-wrap` oben — passt die Altersanzeige nicht neben den Titel, rutscht
+   sie auf eine zweite Zeile, statt den Titel zu einer Buchstabensäule zu
+   quetschen. Das war der eigentliche Fehler; ein `white-space:nowrap` am
+   Titel hätte ihn nur gegen Überlauf eingetauscht.
+   `flex:0 1 auto` — der Titel wächst nicht, sonst schöbe er alles, was gleich
+   rechts von ihm stehen soll (den NVFR-Schalter), an den anderen Rand. Nach
+   rechts gedrückt wird nur, was das will: die Anzeige über `margin-left:auto`. */
+.card-head .section-title{flex:0 1 auto;}
 .age{font-family:var(--mono);font-size:10px;color:var(--text-dim);text-align:right;
   flex:0 1 auto;min-width:0;margin-left:auto;}
 
@@ -674,10 +682,18 @@ table.rt th.num{text-align:center;}
 .seg button:disabled{opacity:.38;cursor:not-allowed;}
 
 /* Schieberschalter „NVFR zulassen" */
-.sw{display:inline-flex;align-items:center;gap:7px;flex:0 0 auto;cursor:pointer;
+/* Bewusst **inline-block statt flex**: in einem Inline-Kontext ist die
+   Grundlinie des Schalters die seiner Beschriftung, und die Kopfzeile richtet
+   an der Grundlinie aus — „NVFR zulassen" steht damit von selbst untenbündig
+   mit „Startfenster". Der Kippschalter hängt als `vertical-align:middle`
+   daneben und sitzt so mittig auf der Textzeile. Mit `display:flex` käme die
+   Grundlinie aus dem Kasten des Schalters und die Zeile stünde schief. */
+.sw{display:inline-block;flex:0 0 auto;cursor:pointer;white-space:nowrap;
   font-family:var(--mono);font-size:10px;color:var(--text-dim);}
 .sw input{position:absolute;opacity:0;width:0;height:0;}
-.sw-track{width:30px;height:17px;border-radius:9px;background:var(--panel-2);
+.sw-lbl{margin-left:7px;}
+.sw-track{display:inline-block;vertical-align:middle;
+  width:30px;height:17px;border-radius:9px;background:var(--panel-2);
   border:1px solid var(--line);position:relative;transition:background .15s,border-color .15s;}
 .sw-knob{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;
   background:var(--text-dim);transition:transform .15s,background .15s;}
@@ -843,7 +859,7 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
      Seitenrand weiterfliessen, statt als Block auf die nächste Seite zu springen. */
   .report-cols{display:block;column-count:3;column-gap:4mm;}
   .report-col{display:block;}
-  .report-p{font-size:5.9pt;line-height:1.18;text-align:justify;hyphens:auto;}
+  .report-p{font-size:6.2pt;line-height:1.22;text-align:justify;hyphens:auto;}
   .report-p + .report-p,.report-p + pre.report,pre.report + .report-p,
   .report-tbl + .report-p{margin-top:0.8mm;}
   .report-cols pre.report{font-size:6pt;line-height:1.2;padding:1mm;}
@@ -863,8 +879,8 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .wp-table,.fc-table{font-size:6.6pt;}
   /* Der Ballonbericht ist die längste Tabelle des Ausdrucks — er entscheidet
      darüber, ob es bei zwei Seiten bleibt. */
-  .bw-table{font-size:5.8pt;}
-  .bw-table td,.bw-table th{padding:0.3mm 1mm;}
+  .bw-table{font-size:6.4pt;}
+  .bw-table td,.bw-table th{padding:0.4mm 1.2mm;}
   .bw-table td.bar{height:2.2mm;min-width:2mm;}
   #cardBalloon .section-title{font-size:7pt;margin:1.5mm 0 0.5mm;}
   .wp-table td,.wp-table th{padding:0.45mm 1.8mm;}
@@ -874,10 +890,10 @@ body.shooting .menu,body.shooting .map-btns,body.shooting .search-results{displa
   .stat-strip,.ens{display:none !important;}
   .metar-row{padding:0.8mm 2.5mm;} .metar-name{font-size:7pt;}
   .metar-top{margin-bottom:0.8mm;}
-  .metar-plain .pl{font-size:6pt;line-height:1.18;}
+  .metar-plain .pl{font-size:6.3pt;line-height:1.22;}
   .metar-plain.taf .pl + .pl{padding-left:2mm;text-indent:-2mm;margin-top:0.3mm;}
   .metar-plain{margin:0 0 0.8mm;} .metar-plain.taf{margin:1mm 0 0.8mm;padding-top:0.8mm;}
-  .metar-row pre.raw{padding:0.5mm 1.2mm;font-size:6pt;line-height:1.2;}
+  .metar-row pre.raw{padding:0.6mm 1.2mm;font-size:6.4pt;line-height:1.25;}
 
   .note{font-size:7pt;}
   footer{margin:3mm 0 0;font-size:6.5pt;padding-top:2mm;}

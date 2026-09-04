@@ -150,9 +150,14 @@
       metar:   () => { METAR.reload(); return loadPointData(true, ['metar']); },
       model:   () => loadPointData(true, ['model', 'ens']),
       wind:    () => loadPointData(true, ['model']),
-      ai:      () => askAi(),
+      /* Ohne Schlüssel führt der Aufruf nur zu einer Fehlermeldung, und mit
+         Schlüssel kostet er Geld — beides gehört nicht hinter einen Klick auf
+         eine Zeitangabe. Der Knopf in der Kopfzeile bleibt der Weg dorthin. */
+      ai:      () => (AI.available() ? askAi() : Promise.resolve()),
     };
-    for (const [key, fn] of Object.entries(CARD_RELOAD)) cardReload(`${key}Age`, fn);
+    for (const [key, fn] of Object.entries(CARD_RELOAD)) {
+      if (key !== 'ai') cardReload(`${key}Age`, fn);
+    }
     for (const btn of document.querySelectorAll('.card-refresh')) {
       const fn = CARD_RELOAD[btn.dataset.card];
       if (!fn) continue;
@@ -1528,6 +1533,11 @@
     const slot = U.el('div');
     slot.appendChild(note('Bericht wird geladen…'));
     body.appendChild(slot);
+    /* Bis der Bericht da ist, weiss niemand, ob es einen zweiten Tag gibt —
+       also steht „morgen" so lange gesperrt da statt einladend offen. Die
+       **Auswahl** darf das nicht anfassen: renderBalloon läuft bei jedem
+       Zeitschritt, und ein Sprung zurück auf „heute" wäre nicht zu bedienen. */
+    lockBalloonDaySwitch();
 
     const wantId = String(b.id);
     DWD.loadBalloon(wantId).then(det => {
@@ -1575,6 +1585,16 @@
     return days;
   }
 
+  /** Solange geladen wird: sperren, aber die getroffene Wahl stehenlassen. */
+  function lockBalloonDaySwitch() {
+    const box = U.$('balloonDay');
+    if (!box) return;
+    for (const btn of box.querySelectorAll('button[data-day]')) {
+      btn.disabled = +btn.dataset.day > 0;
+      btn.title = 'Bericht wird geladen …';
+    }
+  }
+
   /** Der heute/morgen-Umschalter — nur aktiv, wenn es den zweiten Tag gibt. */
   function setBalloonDaySwitch(days) {
     const box = U.$('balloonDay');
@@ -1584,6 +1604,7 @@
     for (const btn of box.querySelectorAll('button[data-day]')) {
       const d = +btn.dataset.day;
       btn.disabled = d > 0 && !has2;
+      btn.setAttribute('aria-pressed', d === state.balloonDay ? 'true' : 'false');
       btn.classList.toggle('on', d === state.balloonDay);
       btn.title = btn.disabled
         ? 'Der DWD veröffentlicht für dieses Gebiet nur den laufenden Tag.'
@@ -2058,6 +2079,13 @@
     /* Der Knopf steht in der Kopfzeile, nicht im Text: er ist das einzige, was
        hier Geld kostet, und muss ohne Scrollen erreichbar sein — auch dann,
        wenn die Karte schon 24 Zeilen trägt. */
+    /* Beide Bedienelemente der Karte hängen am selben Zustand: ohne Schlüssel
+       gibt es nichts anzufordern, also steht auch nichts da. */
+    const icon = document.querySelector('.card-refresh[data-card="ai"]');
+    if (icon) {
+      icon.classList.toggle('hidden', !AI.available() || !state.om);
+      icon.disabled = state.aiBusy;
+    }
     btn.className = 'btn small hidden' + (state.aiBusy ? '' : ' primary');
     btn.disabled = state.aiBusy;
     btn.textContent = state.aiBusy ? 'Claude denkt …'
@@ -2191,7 +2219,11 @@
       `${j.hourly.time[x.from].slice(5, 16).replace('T', ' ')} bis ` +
       `${j.hourly.time[x.to].slice(11, 16)} (${x.to - x.from + 1} h)`);
 
-    const L = OM.flyLimits(state.fly);
+    /* Dieselben Schwellen, mit denen die Fenster oben gerechnet wurden — den
+       NVFR-Schalter eingeschlossen. Ohne ihn bekäme Claude die Nachtregel
+       genannt, sähe aber Fenster mitten in der Nacht und müsste die App zu
+       Recht für widersprüchlich halten. */
+    const L = OM.flyLimits(Object.assign({}, state.fly, state.nvfr ? { needLight: 0 } : null));
     const u = U.unitLabel[state.unit];
     const cw = (v) => Math.round(v * U.MS_TO[state.unit]);
     const limits = `Bodenwind ${cw(L.wind[0])}/${cw(L.wind[1])} ${u}, ` +
@@ -2199,7 +2231,9 @@
       `Böigkeit ${cw(L.gustSpread[0])}/${cw(L.gustSpread[1])} ${u}, ` +
       `CAPE ${L.cape[0]}/${L.cape[1]} J/kg, Niederschlag ab ${L.precip} mm/h, ` +
       `Sicht unter ${L.visKm} km, Wolkenbasis unter ${L.baseFt} ft AGL` +
-      (L.needLight ? ', ausserhalb der bürgerlichen Dämmerung nein' : '');
+      (L.needLight
+        ? ', ausserhalb der bürgerlichen Dämmerung nein'
+        : ', Nachtfahrt ausdrücklich zugelassen (NVFR) — die Dämmerung bleibt ausser Betracht');
 
     return AI.brief({
       place: state.place, lat: state.lat, lon: state.lon, elev: state.elev,
@@ -2643,11 +2677,6 @@
       : '';
   }
 
-  /** ECET und BCMT für den gewählten Ort und einen Zeitpunkt, als Text. */
-  function twilightBounds(ms) {
-    const d = SUN.times(state.lat, state.lon, ms);
-    return { ecet: d.dusk, bcmt: d.dawn };
-  }
 
   /** Feine Striche alle zwei Stunden, kräftige alle sechs. */
   function paintTicks(j, span) {

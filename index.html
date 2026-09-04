@@ -171,11 +171,12 @@
     <section class="card wide" id="cardFly">
       <div class="card-head">
         <span class="section-title">Startfenster</span>
-        <label class="sw" id="nvfrSwitch" title="Hebt nur das Dämmerungskriterium auf">
-          <input type="checkbox" id="nvfrChk">
-          <span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span>
-          <span class="sw-lbl">NVFR zulassen</span>
-        </label>
+        <!-- Ohne Leerraum zwischen den Teilen: der Abstand kommt aus dem
+             Stylesheet, nicht aus einem Zeilenumbruch im Quelltext. -->
+        <label class="sw" id="nvfrSwitch" title="Hebt nur das Dämmerungskriterium auf"
+          ><input type="checkbox" id="nvfrChk"
+          ><span class="sw-track" aria-hidden="true"><span class="sw-knob"></span></span
+          ><span class="sw-lbl">NVFR zulassen</span></label>
         <span class="age" id="flyAge"></span>
       </div>
       <div class="card-body tight" id="flyBody">

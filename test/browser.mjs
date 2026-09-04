@@ -527,6 +527,48 @@ await page.waitForTimeout(300);
     !dis || /nur den laufenden Tag/.test(tip || '')
       ? ok(dis ? 'für „morgen" liegt nichts vor, und das steht dran' : '„morgen" ist verfügbar')
       : bad(`gesperrt ohne Begründung: ${tip}`);
+
+    if (!dis) {
+      const heute = await page.locator('#balloonBody').innerText();
+      await seg.nth(1).click();
+      await page.waitForTimeout(600);
+      const morgen = await page.locator('#balloonBody').innerText();
+      /* Kleinschreibung vergleichen: die Abschnittstitel stehen per CSS in
+         Grossbuchstaben, und innerText liefert das Gerenderte. */
+      const h2 = heute.toLowerCase(), m2 = morgen.toLowerCase();
+      m2 !== h2 && m2.includes('samstag') && !m2.includes('freitag')
+        ? ok('„morgen" zeigt wirklich den zweiten Tag')
+        : bad(`Umschalten ändert nichts: ${morgen.replace(/\n/g, ' | ').slice(0, 140)}`);
+      await seg.nth(1).evaluate(n => n.classList.contains('on'))
+        ? ok('und der Umschalter merkt sich das') : bad('Umschalter nicht markiert');
+      /* Der Zeitschieber zeichnet die Karten neu — die Tageswahl muss das
+         überleben, sonst springt sie bei jedem Schritt zurück auf heute. */
+      await page.locator('#timeSlider').fill('9');
+      await page.locator('#timeSlider').dispatchEvent('input');
+      await page.waitForTimeout(700);
+      await seg.nth(1).evaluate(n => n.classList.contains('on'))
+        ? ok('sie überlebt das Neuzeichnen durch den Zeitschieber')
+        : bad('die Tageswahl springt beim Zeitwechsel zurück');
+      await seg.nth(0).click();
+      await page.waitForTimeout(500);
+      await page.locator('#timeNow').click();
+      await page.waitForTimeout(400);
+    }
+  }
+
+  /* Der Titel bricht nicht mehr um — also darf er auch nirgends überlaufen.
+     Geprüft bei 900 px, wo METAR, Modell und KI nur die halbe Breite haben. */
+  {
+    await page.setViewportSize({ width: 900, height: 2400 });
+    await page.waitForTimeout(400);
+    const over = await page.locator('.card-head').evaluateAll(
+      ns => ns.filter(n => n.scrollWidth > n.clientWidth + 1)
+              .map(n => n.querySelector('.section-title').textContent.trim()));
+    over.length === 0
+      ? ok('keine Kartenkopfzeile läuft über (900 px)')
+      : bad(`Kopfzeilen laufen über: ${over.join(', ')}`);
+    await page.setViewportSize({ width: 1280, height: 2400 });
+    await page.waitForTimeout(400);
   }
 
   const cols = page.locator('#gaforBody .report-cols .report-col');
@@ -1087,10 +1129,17 @@ if (shotArg > 0) {
   apart ? ok('die Altersanzeige überlagert den METAR-Titel nicht')
         : bad(`Titel bis x=${Math.round(t.x + t.width)}/y=${Math.round(t.y + t.height)}, ` +
               `Anzeige bei x=${Math.round(a.x)}/y=${Math.round(a.y)}`);
-  const h = await page.locator('#cardMetar .section-title').evaluate(
-    n => getComputedStyle(n).whiteSpace);
-  h === 'nowrap' ? ok('und der Titel bricht nicht zeichenweise um')
-                 : bad(`white-space des Titels: ${h}`);
+  /* Der Titel steht auf einer Zeile — geprüft an der Höhe, nicht an einer
+     CSS-Eigenschaft: `nowrap` verhinderte zwar den Umbruch, tauschte ihn aber
+     gegen Überlauf ein. Massgebend ist, was man sieht. */
+  const lines = await page.locator('#cardMetar .section-title').evaluate(n => {
+    const cs = getComputedStyle(n);
+    let lh = parseFloat(cs.lineHeight);
+    if (!isFinite(lh)) lh = parseFloat(cs.fontSize) * 1.2;   // „normal"
+    return Math.max(1, Math.round(n.getBoundingClientRect().height / lh));
+  });
+  lines <= 1 ? ok('und der Titel steht auf einer Zeile')
+             : bad(`der Titel bricht auf ${lines} Zeilen um`);
 }
 
 /* Die TAF-Übersetzung darf nicht abbrechen: keine Auslassungspunkte am Ende,

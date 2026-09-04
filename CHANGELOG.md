@@ -64,6 +64,21 @@ denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
   ergaben einen Sägezahn; die Stützpunkte bleiben, wo sie sind, die Windfahnen sitzen
   weiterhin genau auf ihnen.
 * Die **Quellenzeile** klebte in den randlosen Karten am Rahmen statt am Textrand.
+* **Beim Nachprüfen gefunden und behoben** (vor der Veröffentlichung):
+  * Der Lagebericht an Claude nannte die Nachtregel auch dann, wenn **NVFR** eingeschaltet
+    war — die Analyse hätte die Startfenster zu Recht für widersprüchlich gehalten.
+  * Der Aktualisieren-Knopf der KI-Karte stand ohne Schlüssel da und hätte nur eine
+    Fehlermeldung erzeugt; ein Klick auf die Zeitangabe der KI-Karte hätte einen
+    kostenpflichtigen Abruf ausgelöst. Beides entfernt.
+  * Der Platzhalter des heute/morgen-Umschalters setzte die Tageswahl bei **jedem**
+    Neuzeichnen auf „heute" zurück — beim Bewegen des Zeitschiebers war „morgen" nicht zu
+    halten. Sperren und Auswählen sind jetzt getrennt.
+  * `white-space:nowrap` am Kartentitel verhinderte zwar die Buchstabensäule, tauschte sie
+    aber gegen **Überlauf** bei 900 px ein. Das Umbrechen der Kopfzeile allein genügt; die
+    Prüfung misst jetzt, was man sieht, statt eine CSS-Eigenschaft abzufragen.
+  * Eine tote Hilfsfunktion (`twilightBounds`) entfernt.
+  * Die Schriftgrade im Druck waren nur so klein, weil ich zwei Seiten erzwingen wollte —
+    zurück auf lesbare Werte, jetzt, wo drei erlaubt sind.
 * Der **Ausdruck umfasst jetzt bis zu drei Seiten** statt zwei. Mit vollständiger
   TAF-Übersetzung und einem echten Ballonbericht ist das ehrlicher als ein Ausdruck, dem man
   das Zusammenquetschen ansieht; die Prüfung hält bei drei hart dagegen. Nebenbei fiel eine
