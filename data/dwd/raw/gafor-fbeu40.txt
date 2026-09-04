@@ -6,27 +6,27 @@ GAFOR Bereich LBZ Hamburg 04.09.2026
 
 Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-00  Deutsche Bucht  D1 ISOL SHRA  O ISOL SHRA  O ISOL SHRA
+00  Deutsche Bucht  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
 
-01  Ostfriesland  D1 ISOL SHRA  D1 ISOL SHRA  O ISOL SHRA
+01  Ostfriesland  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
 
-02  Nordfriesland-Dithmarschen  D1 ISOL SHRA  D1 ISOL SHRA  O ISOL SHRA
+02  Nordfriesland-Dithmarschen  O ISOL SHRA  O ISOL SHRA  O ISOL SHRA
 
-03  Schleswig-Holsteinische Geest  M5 OCNL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+03  Schleswig-Holsteinische Geest  M5 OCNL SHRA  D1 ISOL SHRA  O ISOL SHRA
 
-04  Schleswig-Holsteinisches Hügelland  M5 OCNL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+04  Schleswig-Holsteinisches Hügelland  M5 OCNL SHRA  D1 ISOL SHRA  O ISOL SHRA
 
-05  Nordwestliches Niedersachsen  D1 OCNL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+05  Nordwestliches Niedersachsen  D1 OCNL SHRA  O ISOL SHRA  O ISOL SHRA
 
 06  Lüneburger Heide  D1 OCNL SHRA  D1 ISOL SHRA  O ISOL SHRA
 
 07  Westliches Niedersachsen  D1 OCNL SHRA  O  O
 
-08  Hannover und Braunschweig  D1 OCNL SHRA  D1 ISOL SHRA  O
+08  Hannover und Braunschweig  D1 OCNL SHRA  M2 ISOL SHRA  O
 
-09  Teutoburger Wald  M5 OCNL SHRA  D1  O
+09  Teutoburger Wald  M5 OCNL SHRA  D1  D1
 
-10  Weser-Leine-Bergland  M5 OCNL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
+10  Weser-Leine-Bergland  M5 OCNL SHRA  M5 ISOL SHRA  M2 ISOL SHRA
 
 GAFOR-Einstufung LBZ Berlin
 
@@ -44,31 +44,31 @@ Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
 15  Altmark  D1 ISOL SHRA  D1  O
 
-16  Fläming  D1 ISOL SHRA  D1 ISOL SHRA  O
+16  Fläming  D1 ISOL SHRA  M2 ISOL SHRA  O
 
-17  Havelland  D1 ISOL SHRA  D1 ISOL SHRA  O
+17  Havelland  D1 ISOL SHRA  M2 ISOL SHRA  O
 
 18  Barnim und Oderbruch  D1 ISOL SHRA  D1 ISOL SHRA  O
 
-19  Dahme-Spree-Gebiet und Gubener Waldland  O ISOL SHRA  D1 ISOL SHRA  O ISOL SHRA
+19  Dahme-Spree-Gebiet und Gubener Waldland  O ISOL SHRA  D1 ISOL TSRA  O ISOL SHRA
 
-20  Magdeburger Börde und Nördliches Harzvorland  O ISOL SHRA  D1 ISOL SHRA  O
+20  Magdeburger Börde und Nördliches Harzvorland  O ISOL SHRA  M2 ISOL SHRA  O
 
-21  Harz  D1 ISOL SHRA  M2 ISOL SHRA  D1 ISOL SHRA
+21  Harz  D1 ISOL SHRA  M2 ISOL SHRA  M2 ISOL SHRA
 
-22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  O ISOL SHRA  D1 ISOL SHRA  O ISOL SHRA
+22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  O ISOL SHRA  D1 ISOL TSRA  O ISOL SHRA
 
-23  Niederlausitzer Heiden  O ISOL SHRA  O ISOL SHRA  D1 ISOL SHRA
+23  Niederlausitzer Heiden  O ISOL SHRA  O ISOL TSRA  D1 ISOL TSRA
 
 24  Thüringer Becken  O ISOL SHRA  D1 ISOL SHRA  D1 ISOL SHRA
 
-25  Mittelsächsisches Hügelland  O  O ISOL SHRA  D1 ISOL SHRA
+25  Mittelsächsisches Hügelland  O  O ISOL TSRA  D1 ISOL SHRA
 
-26  Oberlausitz und Lausitzer Gebirge  O  O ISOL SHRA  D1 ISOL SHRA
+26  Oberlausitz und Lausitzer Gebirge  O  O ISOL TSRA  D1 ISOL TSRA
 
 27  Thüringer Wald  O  O ISOL SHRA  M2 ISOL SHRA
 
-28  Erzgebirge  O  O ISOL SHRA  D1 ISOL SHRA
+28  Erzgebirge  O  O ISOL SHRA  M2 ISOL SHRA
 
 GAFOR-Einstufung RWZ Essen
 
@@ -82,9 +82,9 @@ Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
 33  Ruhrgebiet und Ostwestfalen  M2 OCNL RA  D1 ISOL RA  O
 
-34  Niederrheinische Bucht  D1 ISOL RA  D1 ISOL RA  O
+34  Niederrheinische Bucht  D1 ISOL RA  M2 OCNL RA  D1
 
-35  Bergisches Land  M2 OCNL RA  X ISOL RA  D1
+35  Bergisches Land  M2 OCNL RA  X ISOL RA  M2
 
 36  Sauerland  M2 ISOL TSRA  X ISOL RA  M2 ISOL RA
 
