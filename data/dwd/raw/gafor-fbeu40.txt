@@ -4,29 +4,29 @@ GAFOR-Einstufung LBZ Hamburg
 
 GAFOR Bereich LBZ Hamburg 12.09.2026
 
-Gebiet  Name  09-11 UTC  11-13 UTC  13-15 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-00  Deutsche Bucht  O  O  O ISOL RA
+00  Deutsche Bucht  D1 ISOL RA  D1 ISOL RA  D1 ISOL RA
 
-01  Ostfriesland  O  O  O
+01  Ostfriesland  O ISOL RA  D1 ISOL RA  D1 ISOL RA
 
-02  Nordfriesland-Dithmarschen  O  O  O
+02  Nordfriesland-Dithmarschen  O  D1 ISOL RA  D1 ISOL RA
 
-03  Schleswig-Holsteinische Geest  O  O  O
+03  Schleswig-Holsteinische Geest  O  O ISOL RA  O ISOL RA
 
-04  Schleswig-Holsteinisches Hügelland  D1  O  O
+04  Schleswig-Holsteinisches Hügelland  C  O ISOL RA  O ISOL RA
 
-05  Nordwestliches Niedersachsen  D1 ISOL FG  O  O
+05  Nordwestliches Niedersachsen  C  O ISOL RA  O ISOL RA
 
-06  Lüneburger Heide  D1  O  O
+06  Lüneburger Heide  C  C  O ISOL RA
 
-07  Westliches Niedersachsen  M2 ISOL FG  O  O
+07  Westliches Niedersachsen  C  O  O ISOL RA
 
-08  Hannover und Braunschweig  M2  O  O
+08  Hannover und Braunschweig  C  C  O ISOL RA
 
-09  Teutoburger Wald  M2  O  O
+09  Teutoburger Wald  C  C  O ISOL RA
 
-10  Weser-Leine-Bergland  M2  O  O
+10  Weser-Leine-Bergland  C  C  O
 
 GAFOR-Einstufung LBZ Berlin
 
@@ -74,31 +74,31 @@ GAFOR-Einstufung RWZ Essen
 
 GAFOR Bereich RWZ Essen 12.09.2026
 
-Gebiet  Name  09-11 UTC  11-13 UTC  13-15 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
-31  Niederrheinisches Tiefland  M5  O  O
+31  Niederrheinisches Tiefland  O  O  O ISOL RA
 
-32  Münsterland  M5  O  O
+32  Münsterland  O  C  O ISOL RA
 
-33  Ruhrgebiet und Ostwestfalen  M2  O  O
+33  Ruhrgebiet und Ostwestfalen  O  C  O ISOL RA
 
-34  Niederrheinische Bucht  D1  O  O
+34  Niederrheinische Bucht  O  C  C
 
-35  Bergisches Land  M2  O  O
+35  Bergisches Land  O  C  C
 
-36  Sauerland  M2  D1  O
+36  Sauerland  O  C  C
 
-37  Eifel  O  O  O
+37  Eifel  O  C  C
 
-38  Neuwieder Becken  O  O  O
+38  Neuwieder Becken  O  C  C
 
-39  Westerwald  M2  D1  O
+39  Westerwald  O  C  C
 
 GAFOR-Einstufung FWZ Frankfurt
 
 GAFOR Bereich FWZ Frankfurt 12.09.2026
 
-Gebiet  Name  12-14 UTC  14-16 UTC  16-18 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
 41  Hunsrück  O  O  O
 
@@ -128,7 +128,7 @@ GAFOR-Einstufung LBZ Muenchen
 
 GAFOR Bereich LBZ Muenchen 12.09.2026
 
-Gebiet  Name  09-11 UTC  11-13 UTC  13-15 UTC
+Gebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC
 
 54  Mainfranken und Nördliches Unterfranken  O  O  O
 
@@ -140,7 +140,7 @@ Gebiet  Name  09-11 UTC  11-13 UTC  13-15 UTC
 
 58  Frankenwald und Fichtelgebirge  O  O  O
 
-62  Schwäbische Alb  O  O  O
+62  Schwäbische Alb  C  C  C
 
 63  Fränkische Alb  O  O  O
 
@@ -150,19 +150,19 @@ Gebiet  Name  09-11 UTC  11-13 UTC  13-15 UTC
 
 72  Schwäbische Hochebene  C  C  C
 
-73  Westliche Donauniederung  O  O  O
+73  Westliche Donauniederung  C  O  O ISOL FG
 
-74  Südbayerisches Hügelland  O  O  O
+74  Südbayerisches Hügelland  C  C  C
 
-75  Östliche Donau- und Naabniederung  O  O  O
+75  Östliche Donau- und Naabniederung  C  C  O ISOL FG
 
 76  Bayerischer Wald  O  O  O
 
-81  Westliches Alpenvorland  O  O  O
+81  Westliches Alpenvorland  C  C  C
 
-82  Östliches Alpenvorland  O  O  O
+82  Östliches Alpenvorland  C  C  C
 
-83  Allgäuer Alpen  O  O  O
+83  Allgäuer Alpen  C  C  C
 
 84  Östliche Bayerische Alpen  O  O  O
 
