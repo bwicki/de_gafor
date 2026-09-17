@@ -5,6 +5,82 @@ Funktionen, PATCH bei Korrekturen. Die Version steht in `js/version.js`; `sw.js`
 denselben Wert tragen, sonst behalten installierte Clients die alte Shell —
 `node test/run.mjs` prüft das.
 
+## 1.21.0 — 2026-09-17
+
+**Etappe 0 des internationalen Ausbaus: Deutschland wird zum ersten Landespaket.**
+Für den Anwender ändert sich nichts — genau das war die Aufgabe. Im Code ändert sich
+alles Deutsche: es steht nicht mehr darin.
+
+**Landespakete**
+
+* Ein Land ist ab jetzt eine **Beschreibungsdatei**: `data/countries/<cc>/meta.json`.
+  Darin stehen Startausschnitt und Umgrenzung, die Fähigkeiten, die Geometriepfade, das
+  bevorzugte Modell, der Rechteinhaber samt Nutzungsvorbehalt, die Quellenzeile und der
+  Satz für Orte ausserhalb der Abdeckung.
+* `data/countries/index.json` ist das **Verzeichnis**: welche Länder es gibt, welches
+  freigeschaltet ist, und — die einzige Stelle — welche Fähigkeiten überhaupt vorkommen.
+* Sieben Pakete liegen bereits da: **DE** freigeschaltet, **AT · IT · CH · PL · FR · BE**
+  vorbereitet. Jedes vorbereitete Paket nennt den Grund, warum es noch wartet. Damit ist
+  die Länderliste zugleich der Stand der Ausbauarbeit, und er steht in einer Datendatei
+  statt in einem Textdokument.
+
+**Fähigkeitsgesteuerte Karten**
+
+* Jede Karte meldet in `index.html` mit `data-needs` an, was sie braucht. Liefert das
+  Landespaket es nicht, **erscheint sie gar nicht** — nicht ausgegraut, nicht mit
+  „noch nicht verfügbar". Das ist der Unterschied zwischen einer App, die in Italien
+  „unfertig" aussieht, und einer, die dort einfach schlanker ist.
+* Betroffen sind Gebietsüberschrift, GAFOR-Stufen, Gebietsschalter und Legende
+  (`areas` / `areaCodes`), der Flugwetterbericht (`areaReport`) und der
+  Ballonwetterbericht (`balloonReport`). Startfenster, Höhenwind, METAR/TAF, Modell und
+  Kurzanalyse gibt es überall — sie hängen an Open-Meteo und der NOAA, nicht am Land.
+
+**Bezugsmodule**
+
+* `scripts/providers/<cc>.mjs` holt die Berichte eines Landes; `scripts/fetch.mjs`
+  ruft es auf: `node scripts/fetch.mjs de`. Der Workflow läuft darüber.
+* Das **Zwischenformat** ist im Kopf von `js/country.js` und in
+  `scripts/providers/README.md` festgeschrieben. Die Karten sehen nie wieder einen
+  DWD-Text, sondern nur noch `kind`, `issued`, `periods`, `codes`, `text`.
+* Deutschland behält seinen Abruf **unverändert**. `scripts/fetch-dwd.mjs` wurde nicht
+  umgebaut, nur um einen Steckverbinder ergänzt: er läuft seit Monaten und ist die Eichung
+  für alles, was folgt. Er wird angefasst, wenn ein zweites Land zeigt, welche
+  Gemeinsamkeit sich wirklich herausziehen lässt — nicht vorher.
+
+**Landeswahl**
+
+* Menüeintrag **Land wechseln…** mit der vollständigen Liste. Solange nur ein Land
+  freigeschaltet ist, bleibt er verborgen: eine Frage ohne Antwortmöglichkeit ist keine
+  Frage. Die Wahl merkt sich das Gerät, ein Link darf sie mit `;c=at` mitbringen.
+
+**Was aus dem Code verschwunden ist**
+
+* Der feste Startpunkt 51,10 / 10,40 · die vier Geometriepfade · „covers only Germany" ·
+  die Quellenzeile in der Fusszeile · die DWD-Sätze in *Über / Datenquellen* · der
+  unmittelbare Aufruf von `DWD.` in `js/app.js`. `node test/run.mjs` prüft, dass
+  keines davon zurückkommt.
+* `MAPVIEW.germany()` heisst jetzt `MAPVIEW.home(bbox)`; der Knopf `zoomDeBtn` heisst
+  `zoomHomeBtn` und trägt die Beschriftung aus dem Paket.
+
+**Prüfungen**
+
+* Neuer Abschnitt *Landespakete* in `test/run.mjs`: Verzeichnis und alle sieben Pakete
+  auf Vollständigkeit, Fähigkeiten gegen das Vokabular, Geometriedateien und
+  Bezugsmodul der freigeschalteten Länder, `data-needs` gegen dasselbe Vokabular — und
+  die Gegenprobe, dass in `js/app.js` nichts Deutsches zurückgekehrt ist.
+* Neuer Abschnitt in `test/browser.mjs`: derselbe Lauf mit einem Paket ohne
+  Ballonbericht (Karte weg, Flugwetterbericht bleibt) und mit einem Paket nach Art der
+  Schweiz — ohne Gebiete, ohne Berichte, ohne Bezugsmodul. Höhenwind, METAR/TAF und
+  Modell tragen dort allein, und es gibt keinen JavaScript-Fehler.
+* 240 Browserprüfungen (vorher 232), Offlineprüfungen entsprechend erweitert.
+
+**Betrieb**
+
+* Neuer Abschnitt *Sicherungspunkte und Rückkehr* im README. Ab dieser Version trägt jede
+  Veröffentlichung eine Marke (`v1.20.0`, `v1.21.0`), und der Weg zurück ist ein
+  Vorwärtscommit — ohne `force`-Push, ohne verbogene Historie, mit `data/dwd/` und
+  `CHANGELOG.md` auf dem aktuellen Stand.
+
 ## 1.20.0 — 2026-08-28
 
 **Flugwetterbericht**

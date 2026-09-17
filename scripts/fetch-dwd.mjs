@@ -953,4 +953,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { splitCycles, stationTable, collectTgftp, splitSections, areasFrom, periodsFrom, headline, stripChrome };
+/* main wird zusaetzlich ausgefuehrt: scripts/providers/de.mjs ruft es als
+   Bezugsmodul auf, ohne dass diese Datei etwas davon merkt. */
+export { main, splitCycles, stationTable, collectTgftp, splitSections, areasFrom, periodsFrom, headline, stripChrome };

@@ -1,0 +1,62 @@
+{
+  "_": "GaforCast — das Verzeichnis der Landespakete. Diese Datei ist die einzige Stelle, an der steht, welche Länder es gibt und welche Fähigkeiten überhaupt vorkommen können. Ein neues Land braucht einen Eintrag hier und eine meta.json daneben.",
+  "version": 1,
+  "default": "de",
+
+  "capabilities": {
+    "areas":         { "label": "Gebiete",
+                       "note": "Gebietseinteilung mit Nummern und Grenzen — Deutschland 68, Italien 13" },
+    "areaCodes":     { "label": "Stufen",
+                       "note": "Stufen je Zeitraum als Code O/D/M/X" },
+    "areaReport":    { "label": "Flugwetterbericht",
+                       "note": "amtlicher Bericht im Volltext" },
+    "overview":      { "label": "Übersicht",
+                       "note": "Flugwetterübersicht in Prosa, die Grosswetterlage" },
+    "balloonReport": { "label": "Ballonbericht",
+                       "note": "eigener Ballonwetterbericht oder ein Ballonabschnitt im Bericht" }
+  },
+
+  "countries": [
+    {
+      "code": "de", "name": "Deutschland", "nameEn": "Germany",
+      "state": "live", "stage": 0,
+      "meta": "data/countries/de/meta.json"
+    },
+    {
+      "code": "at", "name": "Österreich", "nameEn": "Austria",
+      "state": "planned", "stage": 1,
+      "meta": "data/countries/at/meta.json",
+      "note": "Quelle bewiesen: fünf Bulletins FXOS41–45 im Volltext, mit eigenem Ballonabschnitt."
+    },
+    {
+      "code": "it", "name": "Italien", "nameEn": "Italy",
+      "state": "planned", "stage": 2,
+      "meta": "data/countries/it/meta.json",
+      "note": "Quelle bewiesen: GAFOR FBIY61 im Klartext, 13 Gebiete, Skala wie in Deutschland."
+    },
+    {
+      "code": "ch", "name": "Schweiz", "nameEn": "Switzerland",
+      "state": "planned", "stage": 3,
+      "meta": "data/countries/ch/meta.json",
+      "note": "Kein frei abrufbarer amtlicher Bericht — nur Modell, METAR/TAF und Einfügefeld."
+    },
+    {
+      "code": "pl", "name": "Polen", "nameEn": "Poland",
+      "state": "planned", "stage": 4,
+      "meta": "data/countries/pl/meta.json",
+      "note": "GAMET statt GAFOR; der Schnittstellenpfad ist noch nicht gefunden."
+    },
+    {
+      "code": "fr", "name": "Frankreich", "nameEn": "France",
+      "state": "planned", "stage": 6,
+      "meta": "data/countries/fr/meta.json",
+      "note": "Berichte nur nach Anmeldung — kein zentraler Abruf möglich."
+    },
+    {
+      "code": "be", "name": "Belgien", "nameEn": "Belgium",
+      "state": "planned", "stage": 6,
+      "meta": "data/countries/be/meta.json",
+      "note": "Berichte nur nach Anmeldung — kein zentraler Abruf möglich."
+    }
+  ]
+}

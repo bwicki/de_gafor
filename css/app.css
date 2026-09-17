@@ -61,6 +61,21 @@ body.guest .map-wrap{cursor:default;}
   color:var(--text-dim);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;}
 .modal-close:hover{color:var(--amber);}
 .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+
+/* ---------- Landeswahl ---------- */
+.ctry-list{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+.ctry{display:flex;align-items:baseline;gap:10px;width:100%;text-align:left;
+  padding:9px 11px;border:1px solid var(--line);border-radius:8px;
+  background:var(--panel-2);color:var(--text);font:inherit;cursor:pointer;}
+.ctry:hover{border-color:var(--amber);}
+.ctry .n{font-size:14px;color:var(--text-strong);}
+.ctry .s{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--amber);white-space:nowrap;}
+.ctry .why{flex-basis:100%;font-size:11px;line-height:1.45;color:var(--text-dim);}
+.ctry.on{border-color:var(--amber);}
+.ctry.off{cursor:default;opacity:.62;}
+.ctry.off:hover{border-color:var(--line);}
+.ctry.off .s{color:var(--text-dim);}
 .set-h{margin:20px 0 6px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;
   text-transform:uppercase;color:var(--amber);font-weight:600;
   border-top:1px solid var(--line-soft);padding-top:14px;}

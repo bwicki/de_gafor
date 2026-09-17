@@ -141,6 +141,119 @@ head('Symbole');
     : bad(`Manifest-Symbole: ${JSON.stringify(man.icons.map(i => i.src))}`);
 }
 
+// ---------------------------------------------------------------- 1e. Landespakete
+/* Ab 1.21.0 ist ein Land eine Beschreibungsdatei. Diese Prüfungen halten die
+   Zusage fest, dass ein zweites Land nichts weiter braucht: Verzeichniseintrag,
+   meta.json, Bezugsmodul — und dass dort nichts steht, was die App nicht kennt. */
+head('Landespakete');
+{
+  const idx = JSON.parse(await readFile('data/countries/index.json', 'utf8'));
+  const CAPS = Object.keys(idx.capabilities || {});
+  CAPS.length
+    ? ok(`${CAPS.length} Fähigkeiten im Verzeichnis: ${CAPS.join(', ')}`)
+    : bad('data/countries/index.json nennt keine Fähigkeiten');
+  CAPS.every(k => (idx.capabilities[k] || {}).label && (idx.capabilities[k] || {}).note)
+    ? ok('jede Fähigkeit hat Kurzform und Erklärung')
+    : bad('eine Fähigkeit hat kein label oder keine note');
+
+  const list = idx.countries || [];
+  const codes = list.map(c => c.code);
+  new Set(codes).size === codes.length ? ok(`${codes.length} Länder, Codes eindeutig`)
+                                       : bad(`doppelte Codes: ${codes.join(', ')}`);
+  codes.every(c => /^[a-z]{2}$/.test(c)) ? ok('alle Codes zweistellig und klein')
+                                         : bad(`Codeform: ${codes.join(', ')}`);
+
+  const live = list.filter(c => c.state === 'live');
+  live.length ? ok(`freigeschaltet: ${live.map(c => c.code).join(', ')}`)
+              : bad('kein einziges Land ist freigeschaltet');
+  live.some(c => c.code === idx.default)
+    ? ok(`Vorgabe "${idx.default}" ist freigeschaltet`)
+    : bad(`Vorgabe "${idx.default}" ist nicht freigeschaltet`);
+  list.filter(c => c.state !== 'live').every(c => c.note)
+    ? ok('jedes noch nicht freigeschaltete Land sagt, woran es liegt')
+    : bad('ein vorbereitetes Land nennt keinen Grund');
+
+  const KINDS = ['areas', 'routes', 'fir', 'none'];
+  for (const c of list) {
+    let meta;
+    try { meta = JSON.parse(await readFile(c.meta, 'utf8')); }
+    catch (e) { bad(`${c.code}: ${c.meta} — ${e.message}`); continue; }
+
+    const probs = [];
+    if (meta.code !== c.code) probs.push(`code "${meta.code}" statt "${c.code}"`);
+    if (meta.name !== c.name) probs.push(`Name "${meta.name}" weicht vom Verzeichnis ab`);
+    if (!meta.lang) probs.push('lang fehlt');
+    const h = meta.home || {};
+    if (!(isFinite(h.lat) && isFinite(h.lon) && isFinite(h.zoom))) probs.push('home unvollständig');
+    const b = meta.bbox;
+    if (!Array.isArray(b) || b.length !== 4 || !b.every(n => isFinite(n))) probs.push('bbox unbrauchbar');
+    else if (!(h.lon > b[0] && h.lon < b[2] && h.lat > b[1] && h.lat < b[3]))
+      probs.push('home liegt nicht in bbox');
+    const caps = meta.capabilities || {};
+    const unknown = Object.keys(caps).filter(k => !CAPS.includes(k));
+    if (unknown.length) probs.push(`unbekannte Fähigkeit(en): ${unknown.join(', ')}`);
+    const missingCap = CAPS.filter(k => !(k in caps));
+    if (missingCap.length) probs.push(`Fähigkeit(en) nicht beantwortet: ${missingCap.join(', ')}`);
+    if (!Object.values(caps).every(v => typeof v === 'boolean')) probs.push('Fähigkeiten sind nicht ja/nein');
+    if (!KINDS.includes((meta.geometry || {}).kind)) probs.push(`geometry.kind: ${(meta.geometry || {}).kind}`);
+    if (caps.areas && (meta.geometry || {}).kind !== 'areas')
+      probs.push('kann Gebiete, führt aber keine Gebietsgeometrie');
+    if (caps.areaCodes && !meta.scale) probs.push('Stufen ohne Skala');
+    if (!(meta.models || {}).primary) probs.push('kein Modell im Paket');
+    if (!(meta.licence || {}).holder) probs.push('kein Rechteinhaber');
+    if (!meta.outside) probs.push('kein Text für Orte ausserhalb');
+
+    probs.length ? bad(`${c.code}: ${probs.join(' · ')}`)
+                 : ok(`${c.code} — ${meta.name}: Paket vollständig`);
+  }
+
+  // Freigeschaltete Länder brauchen zusätzlich Geometrie und Bezugsmodul
+  for (const c of live) {
+    const meta = JSON.parse(await readFile(c.meta, 'utf8'));
+    const files = Object.entries(meta.geometry || {})
+      .filter(([k, v]) => ['areas', 'meta', 'regions', 'land'].includes(k) && v);
+    const gone = [];
+    for (const [, f] of files) { try { await readFile(f); } catch { gone.push(f); } }
+    gone.length ? bad(`${c.code}: Geometriedatei fehlt — ${gone.join(', ')}`)
+                : ok(`${c.code}: ${files.length} Geometriedatei(en) vorhanden`);
+
+    if (meta.reports && meta.reports.provider) {
+      try {
+        const mod = (await import(`../scripts/providers/${c.code}.mjs`)).default;
+        const need = ['code', 'name', 'out', 'run'].filter(k => mod[k] == null);
+        need.length ? bad(`Bezugsmodul ${c.code}: es fehlt ${need.join(', ')}`)
+                    : ok(`Bezugsmodul ${c.code} → ${mod.out}`);
+        mod.code === c.code ? ok(`Bezugsmodul ${c.code} nennt sich richtig`)
+                            : bad(`Bezugsmodul heisst "${mod.code}", erwartet "${c.code}"`);
+      } catch (e) { bad(`scripts/providers/${c.code}.mjs: ${e.message}`); }
+    }
+  }
+
+  // Die Karten dürfen nur Fähigkeiten verlangen, die es gibt
+  const html = await readFile('index.html', 'utf8');
+  const needs = [...html.matchAll(/data-needs="([^"]+)"/g)]
+    .flatMap(m => m[1].split(/\s+/)).filter(Boolean);
+  const strange = [...new Set(needs)].filter(n => !CAPS.includes(n));
+  needs.length ? ok(`${needs.length} Karten und Bedienelemente sind fähigkeitsgesteuert`)
+               : bad('keine einzige Karte fragt nach einer Fähigkeit');
+  strange.length ? bad(`data-needs kennt die App nicht: ${strange.join(', ')}`)
+                 : ok('jedes data-needs steht im Verzeichnis');
+  /\[hidden\]\s*\{\s*display:\s*none/.test(await readFile('css/base.css', 'utf8'))
+    ? ok('ausgeblendete Karten sind auch wirklich weg (CSS-Regel vorhanden)')
+    : bad('css/base.css blendet [hidden] nicht aus — verborgene Karten blieben sichtbar');
+
+  // Nichts Deutsches mehr fest im Anwendungscode
+  const appSrc = await readFile('js/app.js', 'utf8');
+  const leftovers = [
+    ['covers only Germany', /covers only Germany/],
+    ['Startpunkt fest verdrahtet', /lat:\s*51\.10,\s*lon:\s*10\.40/],
+    ['Geometriepfad fest verdrahtet', /data\/gafor-areas\.geojson/],
+    ['DWD unmittelbar aufgerufen', /\bDWD\.(load|generated|gaforFor|balloonFor|overviewFor|raw|errors)\b/],
+  ].filter(([, re]) => re.test(appSrc)).map(([w]) => w);
+  leftovers.length ? bad(`js/app.js enthält noch: ${leftovers.join(', ')}`)
+                   : ok('js/app.js kennt kein einzelnes Land mehr');
+}
+
 // ---------------------------------------------------------------- 2. geometry
 head('GAFOR-Gebiete');
 const fc = JSON.parse(await readFile('data/gafor-areas.geojson', 'utf8'));

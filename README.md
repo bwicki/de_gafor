@@ -6,6 +6,10 @@ darunter stehen sofort das **Startfenster**, die **GAFOR-Stufen** mit der
 Plätze, ein **Höhenwindprofil mit Stüve-Diagramm** und eine **Modellprognose** für genau
 diesen Punkt.
 
+Seit 1.21.0 ist Deutschland das erste **Landespaket** — die App ist auf weitere Länder
+vorbereitet, ohne dass dafür eine Zeile Anwendungscode dazukommt. Siehe
+[Länder und Landespakete](#länder-und-landespakete).
+
 Läuft als PWA auf Handy, iPad und Desktop, gehostet auf GitHub Pages, ohne eigenen Server.
 Gestaltung, Farbtokens und Bedienidiom kommen von [StueveCast](https://github.com/bwicki/stueve_cast),
 damit beide Werkzeuge als eine Familie erkennbar sind.
@@ -572,6 +576,109 @@ nicht, bleibt die vorherige Datei stehen, statt leer zu werden.
 
 ---
 
+# Länder und Landespakete
+
+Seit 1.21.0 steht in keiner `.js`-Datei mehr, dass diese App für Deutschland gebaut ist.
+Deutschland ist das erste **Landespaket** — und das einzige freigeschaltete.
+
+## Was ein Landespaket ist
+
+Eine Datei: `data/countries/<cc>/meta.json`. Sie beantwortet alles, was die App über ein
+Land wissen muss.
+
+| Feld | wofür |
+| --- | --- |
+| `home`, `bbox` | Startausschnitt und der Knopf ⤢ |
+| `capabilities` | welche Karten es gibt (siehe unten) |
+| `geometry` | `kind` und die Pfade zu den GeoJSON-Dateien |
+| `scale` | Codeskala der Gebietsstufen, heute nur `gafor-odmx` |
+| `reports` | welches Bezugsmodul, wo dessen Bestand liegt, in welcher Sprache |
+| `models` | das bevorzugte Open-Meteo-Modell des Landes |
+| `licence` | Rechteinhaber und Nutzungsvorbehalt — er steht wörtlich in *Über* |
+| `official` | die amtliche Stelle, die im Zweifel gilt |
+| `sources` | die Quellenzeile im Fuss |
+| `outside` | der Satz für Orte ausserhalb der Abdeckung |
+
+`data/countries/index.json` führt die Länder auf und legt daneben das **Vokabular der
+Fähigkeiten** fest. Es ist die einzige Stelle, an der ein Fähigkeitsname definiert wird;
+`test/run.mjs` prüft, dass weder ein Paket noch ein `data-needs` in `index.html` einen
+Namen verwendet, den es dort nicht gibt.
+
+## Die fünf Fähigkeiten
+
+| Fähigkeit | was daran hängt |
+| --- | --- |
+| `areas` | Gebietsüberschrift, Gebietsschalter ▦, Bereichslegende |
+| `areaCodes` | der Kasten *GAFOR-Stufen* und das Farbband im Bericht |
+| `areaReport` | die Karte *Flugwetterbericht* |
+| `overview` | die Flugwetterübersicht innerhalb dieser Karte |
+| `balloonReport` | die Karte *Ballonwetterbericht* |
+
+Fehlt eine Fähigkeit, **verschwindet** das Zugehörige. Nicht ausgegraut, nicht mit einem
+Hinweis „für dieses Land nicht verfügbar": weg. Eine App, die in jedem zweiten Land aus
+leeren Kästen besteht, sieht unfertig aus; eine, die dort schlanker ist, sieht richtig aus.
+
+Startfenster, Höhenwind, Stüve-Diagramm, METAR/TAF, Modellprognose und Kurzanalyse haben
+keine Fähigkeit — sie hängen an Open-Meteo und der NOAA und gibt es überall.
+
+## Bezugsmodule
+
+Kein Wetterdienst schickt CORS-Kopfzeilen; eine statische Seite kann deren Seiten also
+nicht selbst lesen. Ein **Bezugsmodul** holt die Berichte eines Landes in der
+GitHub-Action und legt sie als JSON im Repo ab:
+
+```
+node scripts/fetch.mjs de          # Deutschland holen
+node scripts/fetch.mjs de --dry    # nur prüfen, ob das Modul auflösbar ist
+```
+
+Alle Module liefern dasselbe **Zwischenformat** — `kind`, `id`, `issued`, `validFrom/To`,
+`periods`, `codes`, `areas`, `text`, `source`. Es steht im Kopf von `js/country.js` und in
+`scripts/providers/README.md`. Die Karten sehen deshalb nie einen DWD-, Austro-Control-
+oder meteoam-Text, sondern immer nur diese Form.
+
+Der Rohtext wandert ungekürzt mit. Alles, was daraus wird — Abschnitte, Tabellen,
+Gebietslisten —, entsteht erst im Browser, damit ein Parserfehler nie die Quelle
+verfälscht, sondern nur die Darstellung.
+
+## Stand der Länder
+
+| Land | Etappe | Befund |
+| --- | --- | --- |
+| **Deutschland** | 0 | freigeschaltet — GAFOR, Übersicht, Ballonbericht, 68 Gebiete |
+| **Österreich** | 1 | fünf Bulletins FXOS41–45 im Volltext, mit eigenem Ballonabschnitt; keine Gebietseinteilung |
+| **Italien** | 2 | GAFOR `FBIY61` im Klartext, 13 Gebiete, Skala O/D/M/X wie in Deutschland, Text in Luftfahrt-Englisch |
+| **Schweiz** | 3 | kein frei abrufbarer amtlicher Bericht — Modell ICON-CH1, METAR/TAF, Einfügefeld |
+| **Polen** | 4 | GAMET statt GAFOR; Schnittstellenpfad noch nicht gefunden |
+| **Frankreich** | 6 | nur nach Anmeldung |
+| **Belgien** | 6 | nur nach Anmeldung |
+
+Etappe 5 ist die Übersetzungsschicht. Sie ist nach hinten gerutscht: Österreich und die
+Schweiz sind deutschsprachig, und Italien schreibt sein GAFOR in Englisch. Erst Polen
+macht sie nötig.
+
+## Ein Land freischalten
+
+1. `data/countries/<cc>/meta.json` schreiben
+2. `scripts/providers/<cc>.mjs` schreiben — siehe `scripts/providers/README.md`
+3. im Verzeichnis `state` von `planned` auf `live` setzen
+
+Mehr nicht. Insbesondere keine Zeile in `js/app.js`. Sobald ein zweites Land freigeschaltet
+ist, erscheint im Menü der Eintrag **Land wechseln…**; solange es nur eines gibt, bleibt er
+verborgen, weil eine Frage ohne Antwortmöglichkeit keine Frage ist.
+
+Ein Link darf die Wahl mitbringen: `…/#49.1,9.75,9;c=at`.
+
+## Was das Konzept nicht hergibt
+
+Ein Land, dessen Berichte hinter einer persönlichen Anmeldung liegen, bekommt **kein**
+Bezugsmodul — auch nicht mit einem geliehenen Konto. Ein persönlicher Zugang, der eine
+öffentlich erreichbare Seite füllt, ist genau die Weitergabe, die die Anmeldung verhindern
+soll. Frankreich und Belgien bleiben deshalb beim Einfügefeld, bis es einen lizenzierten
+Weg gibt.
+
+---
+
 # Die Gebietsgrenzen
 
 `data/gafor-areas.geojson` ist eine FeatureCollection; jedes Feature ist ein GAFOR-Gebiet:
@@ -699,8 +806,9 @@ git add -A && git commit -m "Ordnerstruktur wiederherstellen" && git push
 
 Vor dem Push kontrollieren, dass es diese Pfade wirklich gibt — fehlt einer, ist die
 Struktur noch flach: `index.html`, `sw.js`, `manifest.webmanifest`, `js/app.js`,
-`css/app.css`, `data/gafor-areas.geojson`, `scripts/fetch-dwd.mjs`,
-`.github/workflows/fetch-dwd.yml`. Danach im Actions-Tab **Run workflow** einmal von Hand,
+`css/app.css`, `data/gafor-areas.geojson`, `data/countries/index.json`,
+`data/countries/de/meta.json`, `js/country.js`, `scripts/fetch.mjs`,
+`scripts/providers/de.mjs`, `scripts/fetch-dwd.mjs`, `.github/workflows/fetch-dwd.yml`. Danach im Actions-Tab **Run workflow** einmal von Hand,
 damit `data/dwd/` wieder entsteht.
 
 Im Wurzelverzeichnis gehören nur: `index.html`, `sw.js`, `manifest.webmanifest`, `README.md`,
@@ -769,6 +877,44 @@ Beim Release drei Dinge anfassen:
 Versionswechsel behalten installierte Clients die alte Shell — das ist der häufigste Fehler
 bei PWAs und deshalb der einzige Test, der hier hart fehlschlägt.
 
+## Sicherungspunkte und Rückkehr
+
+Jede Veröffentlichung bekommt eine Marke:
+
+```
+git tag -a v1.21.0 -m "Landespakete, Etappe 0"
+git push origin --tags
+```
+
+Die Marken sind der Grund, warum Experimente unbedenklich sind: zu jedem früheren Stand
+führt ein Weg zurück, der weder die Historie verbiegt noch einen `force`-Push braucht.
+
+**Experimente gehören auf einen Zweig.** GitHub Pages veröffentlicht `main`; solange eine
+Etappe auf `etappe-1-at` liegt, ist die laufende Seite unberührt. Und selbst wenn eine
+Etappe in `main` liegt, ist sie unsichtbar, solange ihr Land in
+`data/countries/index.json` auf `"state": "planned"` steht — dafür ist das Feld da.
+
+**Der Weg zurück** holt den Arbeitsbaum exakt auf die Marke, lässt aber zwei Dinge aus dem
+aktuellen Stand stehen: `data/dwd/` (die geholten Berichte sind Messwerte, kein Code) und
+`CHANGELOG.md` (was zurückgenommen wird, soll nachlesbar bleiben):
+
+```
+git read-tree -u --reset v1.20.0
+git checkout HEAD -- data/dwd CHANGELOG.md
+# js/version.js und sw.js auf eine NEUE, höhere Nummer setzen — siehe unten
+git commit -a -m "Zurück auf den Stand von v1.20.0 (als Version 1.21.1)"
+git push
+```
+
+Die Nummer läuft dabei **vorwärts**, nicht zurück. Der Cache-Name des Service Workers
+hängt an der Version; eine rückwärts laufende Nummer ist für installierte Geräte
+mehrdeutig und macht den CHANGELOG unwahr. Inhalt von 1.20.0 unter der Nummer 1.21.1 ist
+eindeutig — und der Eintrag im CHANGELOG sagt, dass es ein Rückschritt war.
+
+Der Arbeitsbaum fällt dabei wirklich auf die Marke zurück: Dateien, die es damals noch
+nicht gab, verschwinden. Ein blosses `git checkout v1.20.0 -- .` lässt sie stehen und
+erzeugt einen Mischstand, den es nie gegeben hat.
+
 ---
 
 # Aufbau
@@ -780,6 +926,7 @@ css/base.css                Farbtokens und Bausteine (hell/dunkel), aus dem S2-/
 css/app.css                 Layout: Handy einspaltig, ab 900 px zweispaltig
 js/version.js               Version, Build-Datum, Cache-Name — die einzige Stelle dafür
 js/util.js                  Helfer: Geometrie (point-in-polygon), Distanz, Peilung, Formatierung, Storage
+js/country.js               Landespakete: Verzeichnis, aktives Paket, Fähigkeiten, Bezugsmodule, Zwischenformat
 js/gafor.js                 Gebietsgeometrie laden, Punkt → Gebiet, Code-Legende C/O/D/M/X
 js/geo.js                   Ortssuche (Open-Meteo), Koordinateneingabe, ICAO, Reverse-Geocoding
 js/dwd.js                   liest data/dwd/index.json und wählt Bulletin und Ballonbericht aus
@@ -795,6 +942,8 @@ js/vendor/html2canvas.min.js  Seitenbild als PNG (MIT, Lizenz daneben)
 js/vendor/leaflet/          Leaflet samt Bildern, mitgeliefert statt vom CDN — die App läuft offline
 icons/                      Symbolsatz, erzeugt aus scripts/build-icons.mjs
 img/wicki-logo.png          Logo in der Kopfzeile
+data/countries/index.json   Verzeichnis der Länder und das Fähigkeitsvokabular
+data/countries/<cc>/meta.json  ein Landespaket: Fähigkeiten, Geometrie, Modell, Lizenz, Quellen
 data/gafor-areas.geojson    die Gebietsgrenzen  ← siehe „Die Gebietsgrenzen"
 data/gafor-regions.geojson  Umrisse der fünf Bereiche (aus den Gebieten verschmolzen)
 data/gafor-meta.json        die 68 Gebiete: Nummer, Bezeichnung, Bezugshöhe, Bereich
@@ -802,7 +951,9 @@ data/germany.geojson        Landesgrenze, vereinfacht — nur zur Darstellung
 data/dwd/index.json         von der Action erzeugt: Bulletins als JSON
 data/dwd/balloon/NN.json    der Ballonbericht je Gebiet, als Tabellenstruktur mit Farben
 data/dwd/raw/*.txt          derselbe Text unparsed, damit der Parser nachgebessert werden kann
-scripts/fetch-dwd.mjs       der Fetcher (Node 20, ohne Abhängigkeiten)
+scripts/fetch.mjs           startet den Abruf eines Landes: node scripts/fetch.mjs de
+scripts/providers/de.mjs    Bezugsmodul Deutschland — siehe scripts/providers/README.md
+scripts/fetch-dwd.mjs       der DWD-Fetcher (Node 20, ohne Abhängigkeiten)
 scripts/build-icons.mjs     erzeugt den ganzen Symbolsatz aus einer Geometrie
 scripts/digitize/           Digitalisierung der Gebietskarte (OpenCV), Zuschnitt auf Deutschland
 tools/digitize.html         Karte von Hand nachziehen und korrigieren, exportiert GeoJSON
@@ -824,9 +975,12 @@ sw.js                       Offline: Shell cache-first, Daten network-first mit 
 node test/run.mjs
 ```
 
-Rund 185 Prüfungen ohne Netz und ohne Abhängigkeiten: Syntax aller Module, Version und
+Rund 200 Prüfungen ohne Netz und ohne Abhängigkeiten: Syntax aller Module, Version und
 Cache-Name, das Farbschema (Vorgabe hell, und `index.html` trägt denselben Wert), den
-Symbolsatz, Struktur und Plausibilität der Gebietsgeometrie (Nummern eindeutig, Ringe
+Symbolsatz, die **Landespakete** (Verzeichnis, alle sieben Pakete, Fähigkeiten gegen das
+Vokabular, Geometriedateien und Bezugsmodul der freigeschalteten Länder — und die
+Gegenprobe, dass in `js/app.js` nichts Deutsches zurückgekehrt ist),
+Struktur und Plausibilität der Gebietsgeometrie (Nummern eindeutig, Ringe
 geschlossen, Koordinaten innerhalb Deutschlands), den DWD-Parser gegen echte Beispieltexte,
 die METAR/TAF-Auswahl samt Bundeslandtabelle, den Gastzettel (Ablauf, Prüfsumme,
 umgeschriebener Ort), den Sonnenstand gegen bekannte Werte, die Startfensterampel mit ihren
@@ -839,7 +993,7 @@ node test/browser.mjs [--dark] [--shot bild.png]
 ```
 
 Startet einen lokalen Server, mockt Open-Meteo, die NOAA, Nominatim, Anthropic und die
-Kartenkacheln und spielt die App headless durch — rund 230 Prüfungen: Sperre und
+Kartenkacheln und spielt die App headless durch — rund 240 Prüfungen: Sperre und
 Zwei-Stunden-Ablauf, Rendern aller Karten, Kopfbereich und Spaltenaufteilung, GAFOR-Zeitband
 mit Definitionen, Startfenster samt Schwellenänderung in den Einstellungen, gemeinsamer
 Zeitschieber mit Modellhorizont, Modellvergleich im Stüve, METAR-Kopfzeile, die beiden
@@ -853,6 +1007,12 @@ Aktualisieren-Knöpfe, der NVFR-Schalter (Nachtstunden vorher/nachher), Knoten s
 der Begründung, die vollständige TAF-Übersetzung, dass die Altersanzeige den METAR-Titel
 nicht überlagert, die Minutengenauigkeit des Nachtbalkens, die geglättete Windkurve als
 Bézierpfad und der heute/morgen-Umschalter.
+
+Seit 1.21.0 kommt der Abschnitt *Landespakete* dazu: derselbe Durchlauf mit einem Paket
+ohne Ballonbericht (die Karte verschwindet, der Flugwetterbericht bleibt) und mit einem
+Paket nach Art der Schweiz — ohne Gebiete, ohne Berichte, ohne Bezugsmodul. Höhenwind,
+METAR/TAF und Modell tragen dort allein, die Fusszeile nennt das richtige Land, und es
+gibt keinen JavaScript-Fehler.
 
 Mit `--shot` fallen Bildschirmfotos der ganzen Seite und einzelner Karten an. `--dark`
 hinterlegt die Wahl *dunkel* im `localStorage` und läuft alles im dunklen Farbsatz durch —

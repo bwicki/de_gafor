@@ -227,13 +227,19 @@ const MAPVIEW = (() => {
     markSelfMove();
     map.setView([lat, lon], zoom || map.getZoom(), { animate: true });
   }
-  function germany() {
+  /**
+   * Das ganze Land ins Bild. `bbox` kommt als [west, sued, ost, nord] aus dem
+   * Landespaket; ohne Angabe bleibt es beim deutschen Ausschnitt, damit ein
+   * Aufruf ohne Paket nicht im Nirgendwo landet.
+   */
+  function home(bbox) {
     if (!map) return;
     markSelfMove();
-    map.fitBounds([[47.2, 5.8], [55.1, 15.1]], { padding: [8, 8] });
+    const b = (bbox && bbox.length === 4) ? bbox : [5.8, 47.2, 15.1, 55.1];
+    map.fitBounds([[b[1], b[0]], [b[3], b[2]]], { padding: [8, 8] });
   }
   const get = () => map;
 
   return { init, setAreas, setRegions, setLand, setMask, setMaskTheme, setFavourites,
-           highlight, setLevel, regionColor, center, germany, get };
+           highlight, setLevel, regionColor, center, home, germany: home, get };
 })();

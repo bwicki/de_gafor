@@ -1,0 +1,56 @@
+{
+  "_": "GaforCast — Landespaket Frankreich. Vorbereitet, noch nicht freigeschaltet. aviation.meteo.fr leitet auf eine Anmeldung um; ein zentraler Abruf für eine öffentliche Seite wäre genau das, was die Anmeldung verhindern soll. Frankreich bekommt deshalb Modell, METAR/TAF und ein Einfügefeld.",
+  "code": "fr",
+  "name": "Frankreich",
+  "nameEn": "France",
+  "lang": "fr",
+
+  "home": { "lat": 46.60, "lon": 2.40, "zoom": 6 },
+  "bbox": [-5.2, 41.3, 9.6, 51.1],
+  "zoomLabel": "Ganz Frankreich",
+  "outside": "For the time being, this APP covers only France",
+
+  "capabilities": {
+    "areas": false,
+    "areaCodes": false,
+    "areaReport": false,
+    "overview": false,
+    "balloonReport": false
+  },
+
+  "scale": null,
+
+  "geometry": {
+    "kind": "none",
+    "areas": null, "meta": null, "regions": null, "land": null
+  },
+
+  "reports": {
+    "provider": null,
+    "index": null,
+    "lang": "fr",
+    "translate": true,
+    "paste": true,
+    "pasteNote": "Die Berichte von Météo-France stehen nur nach Anmeldung zur Verfügung. Einen selbst abgerufenen Bericht hier einfügen — er bleibt auf diesem Gerät."
+  },
+
+  "models": {
+    "primary": "meteofrance_arome_france_hd",
+    "ensemble": "icon_d2",
+    "note": "AROME von Météo-France, 1,5 km"
+  },
+
+  "licence": {
+    "holder": "Météo-France",
+    "share": false,
+    "note": "Zugang nur mit persönlicher Anmeldung. Ein persönliches Konto darf nicht dazu dienen, Inhalte auf einer öffentlichen Seite bereitzustellen.",
+    "url": "https://meteofrance.com"
+  },
+
+  "official": {
+    "label": "Météo-France Aéronautique",
+    "url": "https://aviation.meteo.fr"
+  },
+
+  "sources": []
+}

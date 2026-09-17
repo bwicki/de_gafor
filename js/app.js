@@ -4,7 +4,10 @@
 
 
   const state = {
-    lat: 51.10, lon: 10.40,
+    /* Vorbesetzung ohne Aussage: boot() setzt beides aus dem Landespaket,
+       noch bevor die Karte aufgeht. Null waere hier gefaehrlicher — jede
+       Rechnerei damit ergaebe stillschweigend den Golf von Guinea. */
+    lat: 0, lon: 0,
     place: null,
     placePrev: null,          // letzter bekannter Name, bis der neue eintrifft
     elev: null,
@@ -43,6 +46,22 @@
      einen Server mit echter Anmeldung. */
   const GATE_PW = '1234';
 
+  /* Das Bezugsmodul des aktiven Landes. boot() holt es aus dem Landespaket;
+     bis dahin steht das leere Modul da, damit keine Karte auf null läuft. */
+  let RPT = CTRY.NONE;
+
+  /** Wer die Berichte herausgibt — für die Sätze, die den Namen brauchen. */
+  const holder = () => CTRY.licence().holder || CTRY.name();
+
+  /** Was das aktive Landespaket kann, in Worten — für „Über / Datenquellen". */
+  const capList = () => {
+    const words = CTRY.capWords();
+    const on = Object.entries(CTRY.caps()).filter(([, v]) => v).map(([k]) => k);
+    return on.length
+      ? on.map(k => (words[k] && words[k].label) || k).join(', ')
+      : 'nur Modell und METAR/TAF';
+  };
+
   // ------------------------------------------------------------------ boot
   document.addEventListener('DOMContentLoaded', boot);
 
@@ -54,7 +73,15 @@
        Farbschema auf. */
     applyTheme(U.load('theme', 'light'));
 
-    /* Zuerst der Link: er kann einen Gastzettel tragen, und den muss die
+    /* Vor allem anderen das Land: Startausschnitt, Geometrie, Berichte,
+       Modellvorgabe und die Hälfte der Beschriftungen hängen daran. Ohne
+       Landespaket gäbe es keine Vorgabe, auf die sich startPosition() stützen
+       könnte. */
+    await CTRY.init();
+    RPT = CTRY.reports();
+    applyCountry();
+
+    /* Dann der Link: er kann einen Gastzettel tragen, und den muss die
        Sperre kennen, bevor sie sich meldet. */
     const start = startPosition();
     state.lat = start.lat; state.lon = start.lon;
@@ -73,7 +100,7 @@
     renderPlace();
     footer();
 
-    await GAFOR.init();
+    await GAFOR.init(CTRY.geometry());
     MAPVIEW.setMaskTheme(document.documentElement.dataset.theme !== 'light');
     MAPVIEW.setMask(GAFOR.landCollection() || GAFOR.collection());
     MAPVIEW.setLand(GAFOR.landCollection());
@@ -81,14 +108,15 @@
     MAPVIEW.setAreas(GAFOR.collection());
     renderLegend();
     paintFavourites();
-    if (!GAFOR.count()) {
-      U.$('mapHint').textContent = 'Gebietsgrenzen fehlen — data/gafor-areas.geojson ist leer';
+    if (CTRY.has('areas') && !GAFOR.count()) {
+      U.$('mapHint').textContent =
+        `Gebietsgrenzen fehlen — ${CTRY.geometry().areas || 'die Geometriedatei'} ist leer`;
     }
     resolveArea();
     if (!state.place) namePlace(state.lat, state.lon);
 
-    try { await DWD.load(); state.lastLoad.dwd = Date.now(); }
-    catch (e) { console.warn('DWD index not available:', e.message); }
+    try { await RPT.load(); state.lastLoad.dwd = Date.now(); }
+    catch (e) { console.warn('Berichtsbestand nicht verfügbar:', e.message); }
     renderReports();
     loadPointData(true);
     startAutoRefresh();
@@ -98,14 +126,50 @@
     }
 
     // Kein automatischer Sprung auf den Standort mehr: die App öffnet bewusst
-    // mit ganz Deutschland im Bild. Der Knopf ◎ holt den Standort auf Wunsch.
+    // mit dem ganzen Land im Bild. Der Knopf ◎ holt den Standort auf Wunsch.
   }
 
 
-  /* Mitte Deutschlands, ungefähr bei Niederdorla. Zoom 6 zeigt das Land ganz —
-     damit sieht man beim Öffnen die Gebiete und die abgegraute Umgebung, statt
-     in einem Ausschnitt zu landen, in dem nichts davon vorkommt. */
-  const HOME = { lat: 51.10, lon: 10.40, zoom: 6 };
+  /* ----------------------------------------------------------- Landespaket
+   * Alles, was früher „Deutschland" hiess, kommt jetzt von hier. Ein zweites
+   * Land braucht keine Zeile Code in dieser Datei — nur eine meta.json.
+   */
+
+  /* Der Startausschnitt des Landes. Für Deutschland ist das die Mitte bei
+     Niederdorla mit Zoom 6: das Land ganz im Bild, mit den Gebieten und der
+     abgegrauten Umgebung, statt in einem Ausschnitt, in dem nichts davon
+     vorkommt. */
+  const HOME = () => CTRY.home();
+
+  /**
+   * Die Oberfläche an das Landespaket anpassen: Beschriftungen, Titel und —
+   * das Wichtigste — welche Karten es überhaupt gibt. Jede Karte trägt in
+   * index.html ein `data-needs`; fehlt die Fähigkeit im Paket, verschwindet
+   * sie ganz. Nicht ausgegraut, nicht mit „noch nicht verfügbar": weg.
+   */
+  function applyCountry() {
+    document.documentElement.dataset.country = CTRY.code();
+    for (const node of document.querySelectorAll('[data-needs]')) {
+      const need = node.dataset.needs.split(/\s+/).filter(Boolean);
+      node.hidden = !need.every(c => CTRY.has(c));
+    }
+    const cfg = CTRY.reportCfg();
+    setTitle('cardGafor', cfg.areaTitle || `Flugwetterbericht ${CTRY.name()}`);
+    setTitle('cardBalloon', cfg.balloonTitle || 'Ballonwetterbericht');
+    const zoomBtn = U.$('zoomHomeBtn');
+    if (zoomBtn) { zoomBtn.title = CTRY.zoomLabel(); zoomBtn.setAttribute('aria-label', CTRY.zoomLabel()); }
+    const cSel = U.$('mCountryBtn');
+    if (cSel) cSel.textContent = `Land: ${CTRY.name()} — wechseln…`;
+    /* Nur anbieten, was es auch gibt: mit einem einzigen freigeschalteten
+       Land wäre eine Länderwahl eine Frage ohne Antwortmöglichkeit. */
+    if (cSel) cSel.hidden = CTRY.live().length < 2;
+  }
+
+  function setTitle(cardId, text) {
+    const card = U.$(cardId);
+    const t = card && card.querySelector('.section-title');
+    if (t) t.textContent = text;
+  }
 
   function startPosition() {
     const h = (location.hash || '').replace(/^#/, '');
@@ -118,7 +182,7 @@
     }
     const m = coords.match(/^(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)(?:,(\d+))?$/);
     if (m) return { lat: +m[1], lon: +m[2], zoom: m[3] ? +m[3] : 9 };
-    return { ...HOME };
+    return { ...HOME() };
   }
 
   // ------------------------------------------------------------------ UI wiring
@@ -186,6 +250,7 @@
       state.balloonDay = +b.dataset.day;
       renderReports();
     };
+    U.$('mCountryBtn').onclick = () => { menu.classList.add('hidden'); showCountries(); };
     U.$('mAboutBtn').onclick = () => { menu.classList.add('hidden'); showAbout(); };
 
     // Drucken und Teilen
@@ -206,6 +271,8 @@
     U.$('appVersion').onclick = showAbout;
     U.$('aboutClose').onclick = hideAbout;
     U.$('aboutOk').onclick = hideAbout;
+    U.$('countryClose').onclick = hideCountries;
+    U.$('countryOk').onclick = hideCountries;
     U.$('aboutOverlay').onclick = (e) => { if (e.target === U.$('aboutOverlay')) hideAbout(); };
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { hideAbout(); hideSettings(); }
@@ -219,7 +286,7 @@
       U.$('areasBtn').textContent = lv === 2 ? '▦' : lv === 1 ? '◱' : '▢';
       flash(['Grenzen aus', 'nur Bereiche und Landesgrenze', 'Gebiete, Bereiche und Landesgrenze'][lv]);
     };
-    U.$('zoomDeBtn').onclick = () => MAPVIEW.germany();
+    U.$('zoomHomeBtn').onclick = () => MAPVIEW.home(CTRY.bbox());
     U.$('gpsBtn').onclick = useGPS;
 
     // favourites
@@ -454,7 +521,7 @@
   async function reloadDwd() {
     const b = U.$('reloadBtn');
     b.classList.add('spinning');
-    try { await DWD.load(true); state.lastLoad.dwd = Date.now(); }
+    try { await RPT.load(true); state.lastLoad.dwd = Date.now(); }
     catch { /* die Karten zeigen es selbst */ }
     renderReports();
     b.classList.remove('spinning');
@@ -466,7 +533,7 @@
     if (b.classList.contains('spinning')) return;
     b.classList.add('spinning');
     METAR.reload();                       // die Repo-Kopie neu ziehen, nicht die alte nehmen
-    try { await DWD.load(true); state.lastLoad.dwd = Date.now(); }
+    try { await RPT.load(true); state.lastLoad.dwd = Date.now(); }
     catch { /* die Karten zeigen es selbst */ }
     renderReports();
     try { await loadPointData(true); } catch { /* dito */ }
@@ -505,7 +572,7 @@
 
     if (due('dwd')) {
       state.lastLoad.dwd = now;                 // vor dem Abruf setzen: kein Doppellauf
-      try { await DWD.load(true); renderReports(); } catch { /* still */ }
+      try { await RPT.load(true); renderReports(); } catch { /* still */ }
     }
     if (due('metar')) {
       state.lastLoad.metar = now;
@@ -751,8 +818,9 @@
   }
 
   /* Die Meldung für Orte ausserhalb der Abdeckung — bewusst wörtlich und an
-     jeder Stelle dieselbe, damit klar ist, dass es keine Störung ist. */
-  const OUTSIDE = 'For the time being, this APP covers only Germany';
+     jeder Stelle dieselbe, damit klar ist, dass es keine Störung ist. Der Satz
+     steht im Landespaket, weil er den Landesnamen trägt. */
+  const OUTSIDE = () => CTRY.outside();
 
   function resolveArea() {
     const a = GAFOR.lookup(state.lat, state.lon);
@@ -762,7 +830,7 @@
     MAPVIEW.highlight(a ? a.id : null);
     markLegend(a ? a.region : null);
     if (changed) renderReports(); else renderAreaHead();
-    if (!a && had && GAFOR.count()) flash(OUTSIDE);
+    if (!a && had && GAFOR.count()) flash(OUTSIDE());
   }
 
   function renderAreaHead() {
@@ -773,11 +841,11 @@
       num.textContent = '—';
       if (!GAFOR.count()) {
         name.textContent = 'Keine Gebietsdaten geladen';
-        sub.textContent = 'data/gafor-areas.geojson enthält keine Polygone.';
+        sub.textContent = `${CTRY.geometry().areas || 'Die Geometriedatei'} enthält keine Polygone.`;
       } else {
-        name.textContent = OUTSIDE;
+        name.textContent = OUTSIDE();
         name.classList.add('outside');
-        sub.textContent = 'Der gewählte Ort liegt ausserhalb der GAFOR-Gebiete.';
+        sub.textContent = `Der gewählte Ort liegt ausserhalb der Gebiete von ${CTRY.name()}.`;
       }
       return;
     }
@@ -790,7 +858,7 @@
     if (a.method === 'nearest') bits.push(`nächstes Gebietszentrum, ${a.distKm.toFixed(0)} km`);
     sub.textContent = bits.join(' · ');
 
-    const cur = currentPeriod(DWD.gaforFor(a));
+    const cur = currentPeriod(RPT.gaforFor(a));
     if (cur) {
       const badge = U.el('span', `badge ${cur.ci.key}`, cur.ci.code);
       badge.title = cur.ci.desc;
@@ -864,9 +932,9 @@
     age.textContent = ''; age.className = 'age';
     tAge.textContent = ''; tAge.className = 'age';
     const a = state.area;
-    const b = a ? DWD.gaforFor(a) : null;
+    const b = a ? RPT.gaforFor(a) : null;
 
-    if (!DWD.raw()) {
+    if (!RPT.raw()) {
       const msg = 'Die Berichtsdatei <strong>data/dwd/index.json</strong> fehlt oder ist leer. ' +
         'Sie wird vom Workflow <em>DWD-Berichte holen</em> erzeugt — im Actions-Tab einmal starten. ' +
         'Wird das ZIP über ein bestehendes Repo gelegt, darf diese Datei nicht mit überschrieben werden.';
@@ -875,12 +943,12 @@
       return;
     }
     if (!a) {
-      body.appendChild(note(`<strong>${OUTSIDE}</strong>`));
-      tiles.appendChild(note(OUTSIDE));
+      body.appendChild(note(`<strong>${OUTSIDE()}</strong>`));
+      tiles.appendChild(note(OUTSIDE()));
       return;
     }
     if (!b) {
-      const ov = DWD.overviewFor(a);
+      const ov = RPT.overviewFor(a);
       tAge.textContent = ov && ov.bereich ? `Bereich ${ov.bereich}` : '';
       tiles.appendChild(note(`Für Gebiet ${a.id} liegt derzeit keine GAFOR-Codetabelle vor` +
         (ov ? ' — die Flugwetterübersicht des Bereichs steht unten.' : '.')));
@@ -909,7 +977,7 @@
     }
 
     // der Fliesstext des Bereichs, zu dem dieses Gebiet gehört
-    const ov = DWD.overviewFor(a);
+    const ov = RPT.overviewFor(a);
     if (ov) renderOverview(body, age, ov);
     else if (b.source) body.appendChild(sourceLine(b.title || 'DWD', b.source));
   }
@@ -1024,7 +1092,7 @@
 
   /** Alter der Repo-Kopie in Minuten, oder null wenn unbekannt. */
   function copyAgeMin() {
-    const g = DWD.generated();
+    const g = RPT.generated();
     const t = g ? Date.parse(g) : NaN;
     return isFinite(t) ? (Date.now() - t) / 60000 : null;
   }
@@ -1037,7 +1105,7 @@
 
   /** Satz zur stehengebliebenen Kopie — nennt Ursache und Abhilfe. */
   function copyStuckHtml() {
-    const g = DWD.generated();
+    const g = RPT.generated();
     return ` Die Kopie im Repo stammt von <strong>${U.fmtLocalTime(new Date(g))}</strong> ` +
       `und wird seit ${U.ago(g)} nicht mehr erneuert — nicht der DWD steht still, sondern ` +
       `der Workflow <em>DWD-Berichte holen</em>. ` +
@@ -1095,23 +1163,24 @@
     staleBusy = true; staleNote = '';
     renderGafor();                       // Knopf zeigt sofort „lädt…"
     flash('Berichte werden geladen …');
-    const before = DWD.generated();
+    const before = RPT.generated();
     try { await reloadAll(); } catch { /* die Karten zeigen es selbst */ }
     staleBusy = false;
-    const after = DWD.generated();
+    const after = RPT.generated();
     if (after && after !== before) {
       staleNote = '';
       flash('Neue Berichte geladen');
     } else if (copyStuck()) {
-      /* Wichtige Unterscheidung: unverändert heisst hier NICHT, dass der DWD
-         nichts Neues hat — die Kopie selbst wird nicht mehr erneuert. Alles
-         andere zu behaupten schickt den Nutzer auf die falsche Fährte. */
+      /* Wichtige Unterscheidung: unverändert heisst hier NICHT, dass der
+         Wetterdienst nichts Neues hat — die Kopie selbst wird nicht mehr
+         erneuert. Alles andere zu behaupten schickt den Nutzer auf die
+         falsche Fährte. */
       staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — die Kopie im Repo ist ` +
-        `dieselbe geblieben. Sie stammt von ${U.fmtLocalTime(new Date(DWD.generated()))}; ` +
-        'neu laden holt nur diese Kopie, nicht den DWD.';
+        `dieselbe geblieben. Sie stammt von ${U.fmtLocalTime(new Date(RPT.generated()))}; ` +
+        `neu laden holt nur diese Kopie, nicht ${holder()}.`;
       flash('Kopie unverändert — der Workflow läuft nicht');
     } else {
-      staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — der DWD-Stand ist unverändert.`;
+      staleNote = `Um ${U.fmtLocalTime(new Date())} neu geholt — der Stand bei ${holder()} ist unverändert.`;
       flash('Stand unverändert');
     }
     renderReports();
@@ -1493,14 +1562,14 @@
     const body = U.clear(U.$('balloonBody'));
     const age = U.$('balloonAge');
     const a = state.area;
-    const b = DWD.balloonFor(a);
+    const b = RPT.balloonFor(a);
 
-    if (!DWD.raw()) { age.textContent = ''; body.appendChild(note('Noch nicht geladen.')); return; }
-    if (!a) { age.textContent = ''; body.appendChild(note(`<strong>${OUTSIDE}</strong>`)); return; }
+    if (!RPT.raw()) { age.textContent = ''; body.appendChild(note('Noch nicht geladen.')); return; }
+    if (!a) { age.textContent = ''; body.appendChild(note(`<strong>${OUTSIDE()}</strong>`)); return; }
 
     if (!b) {
       age.textContent = '';
-      const n = DWD.balloonAreas().length;
+      const n = RPT.balloonAreas().length;
       body.appendChild(note(n
         ? `Für Gebiet ${a.id} liegt kein Ballonwetterbericht vor. ` +
           `<span class="dim">(${n} Gebiete abrufbar — über der offenen See gibt es keinen.)</span>`
@@ -1540,7 +1609,7 @@
     lockBalloonDaySwitch();
 
     const wantId = String(b.id);
-    DWD.loadBalloon(wantId).then(det => {
+    RPT.loadBalloon(wantId).then(det => {
       if (!state.area || String(state.area.id) !== wantId) return;
       U.clear(slot);
       if (!det) { slot.appendChild(note('Der ausführliche Bericht ist nicht abrufbar.')); return; }
@@ -2192,7 +2261,7 @@
       if (lv.length) profiles.push({ t: j.hourly.time[i].slice(5, 16).replace('T', ' '), levels: lv });
     }
 
-    const b = state.area ? DWD.gaforFor(state.area) : null;
+    const b = state.area ? RPT.gaforFor(state.area) : null;
     const gafor = b && b.codes ? b.periods.map((p, k) => {
       const ci = GAFOR.codeInfo(b.codes[k] || '');
       const rem = (b.detail && b.detail.remarks && b.detail.remarks[k]) || '';
@@ -2200,7 +2269,7 @@
              (rem ? ` — ${rem}` : '');
     }).join('\n') : '';
 
-    const ov = state.area ? DWD.overviewFor(state.area) : null;
+    const ov = state.area ? RPT.overviewFor(state.area) : null;
     const overview = (state.aiDwd && ov && ov.text) ? ov.text.slice(0, 4000) : '';
 
     const t = SUN.times(state.lat, state.lon, Date.now());
@@ -2993,20 +3062,35 @@
     return d;
   }
 
+  /**
+   * Die Fusszeile nennt die Quellen des aktiven Landes und die amtliche
+   * Stelle, die im Zweifel gilt. Beides steht im Landespaket — ein Land ohne
+   * eigene Berichte nennt hier folgerichtig nur METAR/TAF und das Modell.
+   */
   function footer() {
+    const link = (t, u) => (u
+      ? `<a href="${u}" target="_blank" rel="noopener">${t}</a>` : t);
+    const bits = [];
+    for (const s of CTRY.sources()) {
+      bits.push(`${s.what ? s.what + ': ' : ''}${link(s.label, s.url)}`);
+    }
+    bits.push(`METAR/TAF: ${link('NOAA AWC', 'https://aviationweather.gov')}`);
+    bits.push(`Modell: ${link('Open-Meteo', 'https://open-meteo.com')}`);
+    bits.push('Karte © OpenStreetMap');
+
+    const off = CTRY.official();
+    const last = off
+      ? `Für den Flug gilt allein die offizielle Beratung von ${link(off.label, off.url)}.`
+      : 'Für den Flug gilt allein die offizielle Beratung des zuständigen Wetterdienstes.';
+
     U.$('footerText').innerHTML =
-      `${APP.name} ${APP.version} · GAFOR, Flugwetterübersicht und Ballonwetterbericht: ` +
-      `<a href="https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/luftsportberichte_node.html" target="_blank" rel="noopener">DWD Luftsportberichte</a> · ` +
-      `METAR/TAF: <a href="https://aviationweather.gov" target="_blank" rel="noopener">NOAA AWC</a> · ` +
-      `Modell: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> · ` +
-      `Karte © OpenStreetMap<br>` +
-      `<strong>Keine amtliche Flugwetterberatung.</strong> Für den Flug gilt allein die offizielle Beratung ` +
-      `des DWD (flugwetter.de / pc_met).`;
+      `${APP.name} ${APP.version} · ${CTRY.name()} · ${bits.join(' · ')}<br>` +
+      `<strong>Keine amtliche Flugwetterberatung.</strong> ${last}`;
   }
 
   function showAbout() {
-    const g = DWD.generated();
-    const raw = DWD.raw() || {};
+    const g = RPT.generated();
+    const raw = RPT.raw() || {};
     const fc = GAFOR.collection() || {};
     const box = U.clear(U.$('aboutBody'));
     U.$('aboutTitle').textContent = `${APP.name} ${APP.version}`;
@@ -3019,37 +3103,44 @@
       dl.appendChild(d);
     };
     row('Version', `${APP.version} <span class="dim">vom ${APP.date}</span>`);
+    row('Land', `${CTRY.name()} <span class="dim">· ${capList()}</span>`);
+    if (CTRY.models().note) row('Modell im Paket', CTRY.models().note);
     row('Gebietsdaten', `${GAFOR.count()} Gebiete` +
       (fc.updated ? ` <span class="dim">· Stand ${fc.updated}</span>` : ''));
     const nG = Object.keys(raw.gafor || {}).length;
     const nO = Object.keys(raw.overview || {}).length;
     const nB = Object.keys(raw.balloon || {}).length;
-    row('DWD-Berichte', g
+    row(`Berichte ${holder()}`, g
       ? `${nG} Codetabelle(n), ${nO} Übersicht(en), ${nB} Ballonbericht(e)<br>` +
         `<span class="dim">geholt ${new Date(g).toLocaleString('de-DE')} (${U.ago(g)})</span>`
       : 'noch nicht geladen', !g);
-    const errs = DWD.errors();
-    if (errs.length) row('Abrufprobleme', `${errs.length} — siehe data/dwd/index.json`, true);
+    const errs = RPT.errors();
+    if (errs.length) {
+      row('Abrufprobleme', `${errs.length} — siehe ${CTRY.reportCfg().index || 'den Bestand'}`, true);
+    }
     row('Repository', `<a href="${APP.repo}" target="_blank" rel="noopener">bwicki/de_gafor</a>`);
     box.appendChild(dl);
 
+    const src = CTRY.sources().map(x => `${x.label}${x.what ? ` (${x.what})` : ''}`);
     box.appendChild(note(
-      '<strong>Datenquellen:</strong> DWD Luftsportberichte (GAFOR, Flugwetterübersicht, ' +
-      'Ballonsport) · NOAA Aviation Weather Center (METAR/TAF) · Open-Meteo — ICON für ' +
-      'Punktprognose und Höhenwind, ICON-D2-EPS für die Streubreite · ' +
-      'OpenStreetMap (Karte und Ortsnamen).'));
+      '<strong>Datenquellen:</strong> ' +
+      (src.length ? src.join(' · ') + ' · ' : '') +
+      'NOAA Aviation Weather Center (METAR/TAF) · Open-Meteo für Punktprognose und ' +
+      'Höhenwind, ICON-D2-EPS für die Streubreite · OpenStreetMap (Karte und Ortsnamen).'));
     const dCode = note(
       '<strong>GAFOR-Codes.</strong> Der Buchstabe ist die Einstufung, die Ziffer die ' +
       'Kombination aus Bodensicht und Wolkenuntergrenze. Die Untergrenze zählt über der ' +
       '<em>Bezugshöhe des Gebiets</em> und erst ab 5/8 Bedeckung. Die Tabelle steht in der ' +
       'GAFOR-Karte unter „Was bedeuten C, O, D1 … M8 und X?"; verbindlich ist die ' +
-      'GAFOR-Legende des DWD.');
+      `GAFOR-Legende von ${holder()}.`);
     dCode.style.marginTop = '8px';
-    box.appendChild(dCode);
+    if (CTRY.has('areaCodes')) box.appendChild(dCode);
+    const lic = CTRY.licence();
     const dLic = note(
-      '<strong>Nur zur individuellen Flugvorbereitung.</strong> Die Flugwetterprodukte des ' +
-      'DWD dürfen nicht weitergegeben oder weiterverarbeitet werden. Diese Installation ist ' +
-      'privat; die Kennwortabfrage ist ein Hinweis darauf, kein Zugangsschutz.');
+      '<strong>Nur zur individuellen Flugvorbereitung.</strong> ' +
+      (lic.note || `Die Flugwetterprodukte von ${holder()} dürfen nicht weitergegeben ` +
+                   'oder weiterverarbeitet werden.') +
+      (lic.url ? ` <a href="${lic.url}" target="_blank" rel="noopener">Nutzungsbedingungen</a>` : ''));
     dLic.style.marginTop = '8px';
     box.appendChild(dLic);
     const d3 = note(
@@ -3059,12 +3150,14 @@
       'und schwachem Wind: hoch bei Spread ≤ 0,6 K, Feuchte ≥ 97 % und Wind unter 2 m/s, ' +
       'mässig bei ≤ 1,5 K / ≥ 93 % / unter 3,5 m/s, gering bei ≤ 2,5 K / ≥ 88 % / unter 5 m/s; ' +
       'Modellsicht unter 1 km setzt es auf hoch, kräftige Einstrahlung nimmt eine Stufe weg. ' +
-      'Beides sind Schätzungen aus dem Modell und keine DWD-Aussage.');
+      `Beides sind Schätzungen aus dem Modell und keine Aussage von ${holder()}.`);
     d3.style.marginTop = '8px';
     box.appendChild(d3);
-    const d2 = note('<strong>Keine amtliche Flugwetterberatung.</strong> Die Gebietsgrenzen sind ' +
-      'aus der DFS-Karte digitalisiert und auf etwa ±2 km genau. Für den Flug gilt allein die ' +
-      'offizielle Beratung des DWD.');
+    const off = CTRY.official();
+    const d2 = note('<strong>Keine amtliche Flugwetterberatung.</strong> ' +
+      (CTRY.has('areas')
+        ? 'Die Gebietsgrenzen sind digitalisiert und auf etwa ±2 km genau. ' : '') +
+      `Für den Flug gilt allein die offizielle Beratung von ${off ? off.label : holder()}.`);
     d2.style.marginTop = '8px';
     box.appendChild(d2);
 
@@ -3072,6 +3165,32 @@
   }
 
   const hideAbout = () => U.$('aboutOverlay').classList.add('hidden');
+
+  /* ------------------------------------------------------------- Landeswahl
+   * Zeigt jedes Land aus data/countries/index.json: die freigeschalteten zum
+   * Anklicken, die vorbereiteten mit dem Grund, warum sie es noch nicht sind.
+   * Die Liste ist damit zugleich der Stand der Ausbauarbeit — und sie steht in
+   * einer Datendatei, nicht hier.
+   */
+  function showCountries() {
+    const box = U.clear(U.$('countryList'));
+    for (const c of CTRY.all()) {
+      const live = c.state === 'live';
+      const here = c.code === CTRY.code();
+      const b = U.el('button', `ctry${here ? ' on' : ''}${live ? '' : ' off'}`);
+      b.type = 'button';
+      b.appendChild(U.el('span', 'n', c.name));
+      b.appendChild(U.el('span', 's',
+        here ? 'aktiv' : live ? 'bereit' : `Etappe ${c.stage ?? '?'}`));
+      if (!live && c.note) b.appendChild(U.el('span', 'why', c.note));
+      if (live && !here) b.onclick = () => CTRY.select(c.code);
+      else b.disabled = !live;
+      box.appendChild(b);
+    }
+    U.$('countryOverlay').classList.remove('hidden');
+  }
+
+  const hideCountries = () => U.$('countryOverlay').classList.add('hidden');
 
   /** Service-Worker-Cache verwerfen und neu laden — für "hängt auf alter Version". */
   async function updateApp() {

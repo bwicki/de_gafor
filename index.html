@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GaforCast — GAFOR-Gebiet, Flugwetter und Ballonwetter</title>
+<title>GaforCast — Gebiet, Flugwetter und Ballonwetter</title>
 <meta name="description" content="Ort auf der Karte oder per Suche wählen und sofort das zuständige GAFOR-Gebiet mit aktueller Flugwettermeldung und Ballonwetterbericht sehen.">
 <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0b1017" media="(prefers-color-scheme: dark)">
@@ -61,6 +61,7 @@
     </div>
 
     <div class="menu hidden" id="menu">
+      <button id="mCountryBtn" hidden>Land wechseln…</button>
       <button id="mThemeBtn">Hell / dunkel umschalten</button>
       <button id="mSettingsBtn">Einstellungen…</button>
       <div class="sep"></div>
@@ -99,8 +100,10 @@
         <button class="btn icon" id="savePlaceBtn" title="Ort merken">☆</button>
       </div>
 
-      <!-- ---------- GAFOR area headline ---------- -->
-      <div class="area-head">
+      <!-- ---------- GAFOR area headline ----------
+           data-needs: erscheint nur, wenn das Landespaket eine
+           Gebietseinteilung mitbringt. -->
+      <div class="area-head" data-needs="areas">
         <div class="area-num" id="areaNum">—</div>
         <div class="area-txt">
           <div class="area-name" id="areaName">Gebiet wird bestimmt…</div>
@@ -110,7 +113,7 @@
       </div>
 
       <!-- ---------- GAFOR-Stufen der nächsten Zeiträume ---------- -->
-      <section class="tile-box" id="tileBox">
+      <section class="tile-box" id="tileBox" data-needs="areaCodes">
         <div class="tb-head">
           <span class="section-title">GAFOR-Stufen</span>
           <span class="age" id="tileAge"></span>
@@ -135,13 +138,13 @@
           </svg>
         </div>
         <div class="map-btns">
-          <button class="btn icon" id="areasBtn" title="GAFOR-Gebiete ein-/ausblenden">▦</button>
-          <button class="btn icon" id="zoomDeBtn" title="Ganz Deutschland">⤢</button>
+          <button class="btn icon" id="areasBtn" data-needs="areas" title="Gebiete ein-/ausblenden">▦</button>
+          <button class="btn icon" id="zoomHomeBtn" title="Ganzes Land">⤢</button>
         </div>
         <div class="map-hint" id="mapHint">Karte verschieben — Fadenkreuz = Ort</div>
         <!-- Die Bereichslegende liegt in der Karte, unten links — dort, wo sie
              hingehört, statt darunter eine eigene Zeile zu beanspruchen. -->
-        <div class="legend" id="regionLegend"></div>
+        <div class="legend" id="regionLegend" data-needs="areas"></div>
       </div>
     </div>
 
@@ -185,7 +188,7 @@
     </section>
 
     <!-- GAFOR -->
-    <section class="card wide" id="cardGafor">
+    <section class="card wide" id="cardGafor" data-needs="areaReport">
       <div class="card-head">
         <span class="section-title">Flugwetterbericht DWD</span>
         <span class="age" id="gaforAge"></span>
@@ -197,7 +200,7 @@
     </section>
 
     <!-- Ballon -->
-    <section class="card wide" id="cardBalloon">
+    <section class="card wide" id="cardBalloon" data-needs="balloonReport">
       <div class="card-head">
         <span class="section-title">Ballonwetterbericht DWD</span>
         <span class="seg" id="balloonDay" role="group" aria-label="Tag wählen">
@@ -463,6 +466,22 @@
     </div>
   </div>
 
+  <!-- Landeswahl. Steht bewusst nicht als Startabfrage im Weg: solange nur ein
+       Land freigeschaltet ist, wäre das eine Frage ohne Antwortmöglichkeit.
+       Sobald das zweite dazukommt, zeigt js/app.js den Eintrag im Menü. -->
+  <div class="modal hidden" id="countryOverlay">
+    <div class="modal-box">
+      <button class="modal-close" id="countryClose" aria-label="Schliessen">×</button>
+      <h2>Land wählen</h2>
+      <div class="note">Die App zeigt die amtlichen Berichte je eines Landes. Beim Wechsel
+        lädt sie neu; gespeicherte Orte und Einstellungen bleiben.</div>
+      <div class="ctry-list" id="countryList"></div>
+      <div class="modal-actions">
+        <button class="btn primary" id="countryOk">Schliessen</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal hidden" id="aboutOverlay">
     <div class="modal-box">
       <button class="modal-close" id="aboutClose" aria-label="Schliessen">×</button>
@@ -481,6 +500,7 @@
 <script src="js/vendor/html2canvas.min.js" defer></script>
 <script src="js/version.js"></script>
 <script src="js/util.js"></script>
+<script src="js/country.js"></script>
 <script src="js/gafor.js"></script>
 <script src="js/geo.js"></script>
 <script src="js/dwd.js"></script>

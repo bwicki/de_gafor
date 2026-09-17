@@ -1,0 +1,61 @@
+{
+  "_": "GaforCast — Landespaket Polen. Vorbereitet, noch nicht freigeschaltet. Polen hat kein GAFOR: das amtliche Produkt für den Tiefflug ist das GAMET. Die Schnittstelle aviation-api.imgw.pl existiert, der Pfad ist noch nicht gefunden. Polnischer Bericht — hier wird die Übersetzungsspalte zum ersten Mal gebraucht.",
+  "code": "pl",
+  "name": "Polen",
+  "nameEn": "Poland",
+  "lang": "pl",
+
+  "home": { "lat": 52.10, "lon": 19.40, "zoom": 6 },
+  "bbox": [14.1, 49.0, 24.2, 54.9],
+  "zoomLabel": "Ganz Polen",
+  "outside": "For the time being, this APP covers only Poland",
+
+  "capabilities": {
+    "areas": false,
+    "areaCodes": false,
+    "areaReport": true,
+    "overview": false,
+    "balloonReport": false
+  },
+
+  "scale": null,
+
+  "geometry": {
+    "kind": "fir",
+    "areas": null, "meta": null, "regions": null, "land": null
+  },
+
+  "reports": {
+    "provider": "imgw",
+    "index": "data/imgw/index.json",
+    "lang": "pl",
+    "translate": true,
+    "areaTitle": "GAMET IMGW",
+    "balloonTitle": null,
+    "page": "https://awiacja.imgw.pl/prognozy-lotnicze/gamet",
+    "open": "Der Schnittstellenpfad hinter aviation-api.imgw.pl ist noch nicht bekannt."
+  },
+
+  "models": {
+    "primary": "icon_eu",
+    "ensemble": "icon_d2",
+    "note": "Kein nationales Modell bei Open-Meteo — ICON-EU, 7 km"
+  },
+
+  "licence": {
+    "holder": "IMGW-PIB",
+    "share": false,
+    "note": "Frei abrufbar. Weitergabe nicht vorgesehen; Nutzung nur zur eigenen Flugvorbereitung.",
+    "url": "https://awiacja.imgw.pl"
+  },
+
+  "official": {
+    "label": "IMGW Osłona Lotnictwa",
+    "url": "https://awiacja.imgw.pl"
+  },
+
+  "sources": [
+    { "label": "IMGW — GAMET", "what": "amtliche Gebietsprognose für den Tiefflug",
+      "url": "https://awiacja.imgw.pl/prognozy-lotnicze/gamet" }
+  ]
+}

@@ -21,9 +21,14 @@ const DWD = (() => {
   let data = null;
   let loadedAt = 0;
 
+  /* Wo die Datei liegt, sagt das Landespaket (data/countries/de/meta.json).
+     Der Pfad steht hier nur noch als Rückfall, falls das Paket fehlt. */
+  const indexUrl = () =>
+    (typeof CTRY !== 'undefined' && CTRY.reportCfg().index) || 'data/dwd/index.json';
+
   async function load(force) {
     if (data && !force && Date.now() - loadedAt < 60000) return data;
-    data = await U.getJSON('data/dwd/index.json?t=' + Math.floor(Date.now() / 60000));
+    data = await U.getJSON(indexUrl() + '?t=' + Math.floor(Date.now() / 60000));
     loadedAt = Date.now();
     return data;
   }
@@ -85,3 +90,8 @@ const DWD = (() => {
   return { load, generated, errors, gaforFor, overviewFor, balloonFor, loadBalloon,
            balloonAreas, balloon, raw: () => data };
 })();
+
+/* Als Bezugsmodul „dwd" anmelden — data/countries/de/meta.json verweist unter
+   reports.provider darauf. Ab hier fragt die App nur noch CTRY.reports(), nie
+   mehr DWD unmittelbar. */
+if (typeof CTRY !== 'undefined') CTRY.provide('dwd', DWD);

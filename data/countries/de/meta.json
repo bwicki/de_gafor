@@ -1,0 +1,63 @@
+{
+  "_": "GaforCast — Landespaket Deutschland. Beschreibt, was es hier gibt, wo die Geometrie liegt, welches Modell zuerst gefragt wird und unter welchen Bedingungen die Berichte stehen. Die App liest nur diese Datei; Code für Deutschland steht nirgends mehr.",
+  "code": "de",
+  "name": "Deutschland",
+  "nameEn": "Germany",
+  "lang": "de",
+
+  "home": { "lat": 51.10, "lon": 10.40, "zoom": 6 },
+  "bbox": [5.5, 47.2, 15.2, 55.2],
+  "zoomLabel": "Ganz Deutschland",
+  "outside": "For the time being, this APP covers only Germany",
+
+  "capabilities": {
+    "areas": true,
+    "areaCodes": true,
+    "areaReport": true,
+    "overview": true,
+    "balloonReport": true
+  },
+
+  "scale": "gafor-odmx",
+
+  "geometry": {
+    "kind": "areas",
+    "areas": "data/gafor-areas.geojson",
+    "meta": "data/gafor-meta.json",
+    "regions": "data/gafor-regions.geojson",
+    "land": "data/germany.geojson",
+    "snapKm": 10
+  },
+
+  "reports": {
+    "provider": "dwd",
+    "index": "data/dwd/index.json",
+    "lang": "de",
+    "translate": false,
+    "areaTitle": "Flugwetterbericht DWD",
+    "balloonTitle": "Ballonwetterbericht DWD"
+  },
+
+  "models": {
+    "primary": "icon_d2",
+    "ensemble": "icon_d2",
+    "note": "ICON-D2, 2 km — das feinste Modell über Deutschland"
+  },
+
+  "licence": {
+    "holder": "Deutscher Wetterdienst",
+    "share": false,
+    "note": "Die Luftsportberichte des DWD dürfen nicht weitergegeben oder weiterverarbeitet werden. Diese Installation ist privat; die Kennwortabfrage ist ein Hinweis darauf, kein Zugangsschutz.",
+    "url": "https://www.dwd.de/DE/service/copyright/copyright_node.html"
+  },
+
+  "official": {
+    "label": "DWD (flugwetter.de / pc_met)",
+    "url": "https://www.flugwetter.de"
+  },
+
+  "sources": [
+    { "label": "DWD Luftsportberichte", "what": "GAFOR, Flugwetterübersicht und Ballonwetterbericht",
+      "url": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/luftsportberichte_node.html" }
+  ]
+}

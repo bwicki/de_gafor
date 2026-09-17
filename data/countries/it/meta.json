@@ -1,0 +1,70 @@
+{
+  "_": "GaforCast — Landespaket Italien. Vorbereitet, noch nicht freigeschaltet: die Quelle ist geprüft (Quellenprüfung Fassung 7, 17.09.2026). Italien führt ein GAFOR mit 13 Gebieten und derselben Skala O/D/M/X wie Deutschland. Der Bericht ist in Luftfahrt-Englisch geschrieben, nicht auf Italienisch — deshalb keine Übersetzungsspalte, sondern nur ein Ausschreiben der Kürzel.",
+  "code": "it",
+  "name": "Italien",
+  "nameEn": "Italy",
+  "lang": "it",
+
+  "home": { "lat": 42.50, "lon": 12.50, "zoom": 6 },
+  "bbox": [6.5, 35.4, 18.6, 47.2],
+  "zoomLabel": "Ganz Italien",
+  "outside": "For the time being, this APP covers only Italy",
+
+  "capabilities": {
+    "areas": true,
+    "areaCodes": true,
+    "areaReport": true,
+    "overview": false,
+    "balloonReport": false
+  },
+
+  "scale": "gafor-odmx",
+
+  "geometry": {
+    "kind": "areas",
+    "areas": "data/countries/it/areas.geojson",
+    "meta": "data/countries/it/areas-meta.json",
+    "regions": null,
+    "land": null,
+    "snapKm": 10,
+    "count": 13,
+    "subAreas": ["N", "S"]
+  },
+
+  "reports": {
+    "provider": "meteoam",
+    "index": "data/meteoam/index.json",
+    "lang": "en",
+    "translate": false,
+    "expandAbbreviations": true,
+    "areaTitle": "GAFOR Aeronautica Militare",
+    "balloonTitle": null,
+    "bulletins": ["FBIY61"],
+    "channel": "8f518df69fcf4a51962113b025440251",
+    "endpoint": "https://cm.meteoam.it/content/published/api/v1.1/items",
+    "namePrefix": "MESSAGGI/GAFOR/"
+  },
+
+  "models": {
+    "primary": "italia_meteo_arpae_icon_2i",
+    "ensemble": "icon_d2",
+    "note": "ICON-2I von ItaliaMeteo/Arpae, 2,2 km"
+  },
+
+  "licence": {
+    "holder": "Aeronautica Militare — Servizio Meteorologico",
+    "share": false,
+    "note": "Frei abrufbar. Weitergabe nicht vorgesehen; Nutzung nur zur eigenen Flugvorbereitung.",
+    "url": "https://www.meteoam.it"
+  },
+
+  "official": {
+    "label": "Servizio Meteorologico dell'Aeronautica Militare",
+    "url": "https://www.meteoam.it"
+  },
+
+  "sources": [
+    { "label": "meteoam.it — GAFOR", "what": "GAFOR FBIY61 im Klartext",
+      "url": "https://www.meteoam.it" }
+  ]
+}

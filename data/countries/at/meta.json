@@ -1,0 +1,72 @@
+{
+  "_": "GaforCast — Landespaket Österreich. Vorbereitet, noch nicht freigeschaltet: die Quelle ist geprüft (Quellenprüfung Fassung 4, 17.09.2026), das Bezugsmodul fehlt noch. Österreich kennt keine Gebietseinteilung wie das deutsche GAFOR — der Bericht gilt für die ganze FIR, dafür mit einem eigenen Abschnitt für Ballonfahrten.",
+  "code": "at",
+  "name": "Österreich",
+  "nameEn": "Austria",
+  "lang": "de",
+
+  "home": { "lat": 47.60, "lon": 13.80, "zoom": 7 },
+  "bbox": [9.5, 46.3, 17.2, 49.1],
+  "zoomLabel": "Ganz Österreich",
+  "outside": "For the time being, this APP covers only Austria",
+
+  "capabilities": {
+    "areas": false,
+    "areaCodes": false,
+    "areaReport": true,
+    "overview": true,
+    "balloonReport": true
+  },
+
+  "scale": null,
+
+  "geometry": {
+    "kind": "fir",
+    "areas": null,
+    "meta": null,
+    "regions": null,
+    "land": null
+  },
+
+  "reports": {
+    "provider": "acg",
+    "index": "data/acg/index.json",
+    "lang": "de",
+    "translate": false,
+    "areaTitle": "Flugwetterbericht Austro Control",
+    "balloonTitle": "Hinweise Ballonfahrten",
+    "bulletins": ["FXOS41", "FXOS42", "FXOS43", "FXOS44", "FXOS45"],
+    "sections": [
+      "WETTERLAGE",
+      "WETTERABLAUF FLUGWETTER",
+      "HINWEISE ZUR NULLGRADGRENZE",
+      "HINWEISE WINDSYSTEME UND TURBULENZ",
+      "HINWEISE THERMISCHER FLUGSPORT UND WINDSEGELFLUG",
+      "HINWEISE BALLONFAHRTEN",
+      "PROGNOSESICHERHEIT"
+    ]
+  },
+
+  "models": {
+    "primary": "geosphere_arome_austria",
+    "ensemble": "icon_d2",
+    "note": "AROME der GeoSphere Austria, 2,5 km"
+  },
+
+  "licence": {
+    "holder": "Austro Control GmbH",
+    "share": false,
+    "note": "Frei abrufbar, aber nicht zur Weitergabe. Nutzung nur zur eigenen Flugvorbereitung.",
+    "url": "https://www.austrocontrol.at"
+  },
+
+  "official": {
+    "label": "Austro Control Flugwetterdienst",
+    "url": "https://www.austrocontrol.at/flugwetter"
+  },
+
+  "sources": [
+    { "label": "Austro Control Flugwetter", "what": "Flugwetterberichte FXOS41–45 mit Ballonabschnitt",
+      "url": "https://www.austrocontrol.at/flugwetter" }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "_": "GaforCast — Landespaket Belgien. Vorbereitet, noch nicht freigeschaltet. Der Abruf der Briefingseite beantwortet schon das Skript mit HTTP 403; die Berichte stehen hinter einer Anmeldung. Belgien bekommt deshalb Modell, METAR/TAF und ein Einfügefeld.",
+  "code": "be",
+  "name": "Belgien",
+  "nameEn": "Belgium",
+  "lang": "nl",
+
+  "home": { "lat": 50.60, "lon": 4.60, "zoom": 8 },
+  "bbox": [2.5, 49.4, 6.5, 51.6],
+  "zoomLabel": "Ganz Belgien",
+  "outside": "For the time being, this APP covers only Belgium",
+
+  "capabilities": {
+    "areas": false,
+    "areaCodes": false,
+    "areaReport": false,
+    "overview": false,
+    "balloonReport": false
+  },
+
+  "scale": null,
+
+  "geometry": {
+    "kind": "none",
+    "areas": null, "meta": null, "regions": null, "land": null
+  },
+
+  "reports": {
+    "provider": null,
+    "index": null,
+    "lang": "nl",
+    "translate": true,
+    "paste": true,
+    "pasteNote": "Die Briefingseite antwortet ohne Anmeldung mit 403. Einen selbst abgerufenen Bericht hier einfügen — er bleibt auf diesem Gerät."
+  },
+
+  "models": {
+    "primary": "knmi_harmonie_arome_europe",
+    "ensemble": "icon_d2",
+    "note": "HARMONIE-AROME des KNMI, 2 km"
+  },
+
+  "licence": {
+    "holder": "skeyes / KMI-IRM",
+    "share": false,
+    "note": "Zugang nur mit persönlicher Anmeldung. Ein persönliches Konto darf nicht dazu dienen, Inhalte auf einer öffentlichen Seite bereitzustellen.",
+    "url": "https://www.meteo.be"
+  },
+
+  "official": {
+    "label": "skeyes Briefing",
+    "url": "https://www.skeyes.be"
+  },
+
+  "sources": []
+}

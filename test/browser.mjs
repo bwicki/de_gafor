@@ -1540,6 +1540,86 @@ await page.waitForTimeout(2500);
   await page.waitForTimeout(400);
 }
 
+// ---- Landespakete: die Karten richten sich nach den Fähigkeiten -------------
+/* Der Beweis, dass ein zweites Land wirklich nur eine Beschreibungsdatei
+   braucht: dasselbe Fenster, dieselbe App, nur ein anderes meta.json — und die
+   Karten, für die es keine Daten gibt, sind nicht etwa leer, sondern weg. */
+console.log('\nLandespakete');
+{
+  const baseMeta = JSON.parse(await readFile('data/countries/de/meta.json', 'utf8'));
+
+  /** Ein Durchlauf mit angepassten Fähigkeiten; liefert die Sichtbarkeiten. */
+  const withCaps = async (caps, extra) => {
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 2200 } });
+    const cp = await ctx.newPage();
+    const cerr = [];
+    cp.on('pageerror', e => cerr.push(String(e)));
+    await cp.route('**/*', async (route) => {
+      const url = route.request().url();
+      if (url.includes('data/countries/de/meta.json')) {
+        return route.fulfill({ json: Object.assign({}, baseMeta, extra || {},
+          { capabilities: Object.assign({}, baseMeta.capabilities, caps) }) });
+      }
+      return routeAll(route);
+    });
+    await cp.goto(base + '#49.1000,9.7500,9', { waitUntil: 'domcontentloaded' });
+    await cp.waitForTimeout(300);
+    if (await cp.locator('#gate').count()) {
+      await cp.fill('#gatePw', '1234');
+      await cp.locator('#gateForm button[type=submit]').click();
+    }
+    await cp.waitForTimeout(1200);
+    const vis = async (sel) => (await cp.locator(sel).count()) > 0 && await cp.locator(sel).isVisible();
+    const out = {
+      gafor: await vis('#cardGafor'), balloon: await vis('#cardBalloon'),
+      head: await vis('.area-head'), tiles: await vis('#tileBox'),
+      areasBtn: await vis('#areasBtn'),
+      wind: await vis('#cardWind'), metar: await vis('#cardMetar'), model: await vis('#cardModel'),
+      country: await cp.evaluate(() => document.documentElement.dataset.country),
+      foot: await cp.locator('#footerText').textContent(),
+      err: cerr,
+    };
+    await ctx.close();
+    return out;
+  };
+
+  const full = await withCaps({});
+  full.country === 'de' ? ok('das aktive Land steht am Dokument (de)')
+                        : bad(`data-country = ${full.country}`);
+  full.gafor && full.balloon && full.head && full.tiles && full.areasBtn
+    ? ok('Deutschland zeigt Gebiet, Stufen, Flugwetter- und Ballonbericht')
+    : bad(`Deutschland unvollständig: ${JSON.stringify(full)}`);
+  /\bDWD\b/.test(full.foot || '')
+    ? ok('die Fusszeile nennt die Quelle aus dem Landespaket')
+    : bad(`Fusszeile ohne Quelle: ${(full.foot || '').slice(0, 90)}`);
+
+  const noBalloon = await withCaps({ balloonReport: false });
+  !noBalloon.balloon && noBalloon.gafor
+    ? ok('ohne balloonReport verschwindet die Ballonkarte, der Flugwetterbericht bleibt')
+    : bad(`Ballonkarte sichtbar: ${noBalloon.balloon}, Flugwetter: ${noBalloon.gafor}`);
+
+  /* Ein Land nach Art der Schweiz: kein amtlicher Bericht, keine Gebiete.
+     Übrig bleiben Startfenster, Höhenwind, METAR/TAF und das Modell. */
+  const bare = await withCaps(
+    { areas: false, areaCodes: false, areaReport: false, overview: false, balloonReport: false },
+    { name: 'Testland', outside: 'For the time being, this APP covers only Testland',
+      sources: [], official: null,
+      /* Kein Bezugsmodul und keine Geometrie — genau die Lage der Schweiz. */
+      reports: { provider: null, index: null, lang: 'de' },
+      geometry: { kind: 'none', areas: null, meta: null, regions: null, land: null } });
+  !bare.gafor && !bare.balloon && !bare.head && !bare.tiles && !bare.areasBtn
+    ? ok('ein Land ohne amtliche Berichte zeigt weder Gebiet noch Berichtskarten')
+    : bad(`zu viel sichtbar: ${JSON.stringify(bare)}`);
+  bare.wind && bare.metar && bare.model
+    ? ok('Höhenwind, METAR/TAF und Modell tragen auch allein')
+    : bad(`zu wenig sichtbar: wind=${bare.wind} metar=${bare.metar} model=${bare.model}`);
+  /Testland/.test(bare.foot || '')
+    ? ok('die Fusszeile nennt das Land aus dem Paket')
+    : bad(`Fusszeile: ${(bare.foot || '').slice(0, 90)}`);
+  bare.err.length ? bad(`JS-Fehler im schlanken Land: ${bare.err.slice(0, 2).join(' | ')}`)
+                  : ok('keine JS-Fehler, obwohl das Bezugsmodul fehlt');
+}
+
 // ---- Gastzugang über einen geteilten Link ----------------------------------
 {
   // Link im laufenden Fenster erzeugen
@@ -1656,7 +1736,7 @@ if (shotArg > 0) {
   await page.setViewportSize({ width: 430, height: 3200 });
   await page.waitForTimeout(300);
   // ganz Deutschland, damit die Maske ausserhalb der Gebiete zu sehen ist
-  await page.locator('#zoomDeBtn').click();
+  await page.locator('#zoomHomeBtn').click();
   await page.waitForTimeout(1200);
   await page.locator('.map-wrap').screenshot({ path: path.replace('.png', '-map.png') });
   await page.locator('#cardWind').screenshot({ path: path.replace('.png', '-wind.png') });

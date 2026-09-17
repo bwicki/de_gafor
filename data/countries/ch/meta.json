@@ -1,0 +1,56 @@
+{
+  "_": "GaforCast — Landespaket Schweiz. Vorbereitet, noch nicht freigeschaltet. Die Quellenprüfung vom 17.09.2026 hat keinen frei abrufbaren amtlichen Flugwetterbericht gefunden: skybriefing ist eine Produktliste hinter Anmeldung, meteoschweiz.ch/aviatik eine Beschreibungsseite. Ein Ballonwetterbericht existiert, der Bezugsweg ist tot. Die Schweiz bekommt deshalb vorerst Modell, METAR/TAF und ein Einfügefeld für einen selbst beschafften Bericht.",
+  "code": "ch",
+  "name": "Schweiz",
+  "nameEn": "Switzerland",
+  "lang": "de",
+
+  "home": { "lat": 46.80, "lon": 8.20, "zoom": 8 },
+  "bbox": [5.9, 45.8, 10.6, 47.9],
+  "zoomLabel": "Ganze Schweiz",
+  "outside": "For the time being, this APP covers only Switzerland",
+
+  "capabilities": {
+    "areas": false,
+    "areaCodes": false,
+    "areaReport": false,
+    "overview": false,
+    "balloonReport": false
+  },
+
+  "scale": null,
+
+  "geometry": {
+    "kind": "none",
+    "areas": null, "meta": null, "regions": null, "land": null
+  },
+
+  "reports": {
+    "provider": null,
+    "index": null,
+    "lang": "de",
+    "translate": false,
+    "paste": true,
+    "pasteNote": "Kein amtlicher Bericht frei abrufbar. Einen selbst beschafften Bericht hier einfügen — er bleibt auf diesem Gerät."
+  },
+
+  "models": {
+    "primary": "meteoswiss_icon_ch1",
+    "ensemble": "icon_d2",
+    "note": "ICON-CH1 der MeteoSchweiz, 1 km — das feinste Modell im ganzen Angebot"
+  },
+
+  "licence": {
+    "holder": "MeteoSchweiz",
+    "share": false,
+    "note": "Berichte sind gebührenpflichtig oder nur nach Anmeldung erhältlich. Eingefügter Text bleibt auf dem Gerät und wird nicht weitergegeben.",
+    "url": "https://www.meteoschweiz.admin.ch"
+  },
+
+  "official": {
+    "label": "skybriefing (Skyguide)",
+    "url": "https://www.skybriefing.com"
+  },
+
+  "sources": []
+}

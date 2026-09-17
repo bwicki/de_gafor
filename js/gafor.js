@@ -80,19 +80,43 @@ const GAFOR = (() => {
   let meta = null;          // data/gafor-meta.json
   let byIdMeta = new Map();
   let ready = null;         // the load promise
+  let snapKm = 10;          // Toleranz, siehe SNAP_KM weiter unten
 
-  async function init(geoUrl, metaUrl) {
+  const EMPTY = { type: 'FeatureCollection', features: [] };
+
+  /**
+   * Die Geometrie eines Landes laden. `geo` kommt aus dem Landespaket:
+   *   { kind: 'areas' | 'fir' | 'routes' | 'none',
+   *     areas, meta, regions, land,   — Pfade, jeder darf fehlen
+   *     snapKm }
+   * Ohne Angabe bleibt es bei den deutschen Dateien, damit ein Aufruf ohne
+   * Landespaket (etwa in einem Prüfskript) weiterhin etwas zu sehen bekommt.
+   */
+  async function init(geo) {
     if (ready) return ready;
+    const cfg = Object.assign({
+      kind: 'areas',
+      areas: 'data/gafor-areas.geojson',
+      meta: 'data/gafor-meta.json',
+      regions: 'data/gafor-regions.geojson',
+      land: 'data/germany.geojson',
+    }, geo || {});
+    if (cfg.snapKm != null) snapKm = cfg.snapKm;
+
     ready = (async () => {
+      /* Ein Land ohne Gebietseinteilung lädt gar nichts. Die Karte zeigt dann
+         nur den Grundriss, und die Gebietskarten erscheinen ohnehin nicht —
+         das entscheidet die Fähigkeit `areas` im Landespaket. */
+      const pull = (url, dflt) => (url
+        ? U.getJSON(url).catch(e => { console.warn('Geometrie fehlt:', url, e.message); return dflt; })
+        : Promise.resolve(dflt));
+
       const [g, m, reg, land] = await Promise.all([
-        U.getJSON(geoUrl || 'data/gafor-areas.geojson')
-          .catch(e => { console.warn('GAFOR-Geometrie fehlt:', e.message);
-                        return { type: 'FeatureCollection', features: [] }; }),
-        U.getJSON(metaUrl || 'data/gafor-meta.json')
-          .catch(e => { console.warn('GAFOR-Metadaten fehlen:', e.message);
-                        return { regions: {}, areas: [] }; }),
-        U.getJSON('data/gafor-regions.geojson').catch(() => null),
-        U.getJSON('data/germany.geojson').catch(() => null),
+        cfg.kind === 'areas' ? pull(cfg.areas, EMPTY) : Promise.resolve(EMPTY),
+        cfg.kind === 'areas' ? pull(cfg.meta, { regions: {}, areas: [] })
+                             : Promise.resolve({ regions: {}, areas: [] }),
+        pull(cfg.regions, null),
+        pull(cfg.land, null),
       ]);
       fc = g; meta = m; regionFc = reg; landFc = land;
 
@@ -130,9 +154,11 @@ const GAFOR = (() => {
   const areas = () => (fc ? fc.features : []);
   const count = () => areas().length;
 
-  /* Wie weit ausserhalb eines Polygons noch zugeordnet wird. Die Grenzen sind
-   * aus der DFS-Karte digitalisiert und auf etwa ±2 km genau; 10 km fangen das
-   * ab, ohne dass ein Ort im Nachbarland noch ein deutsches Gebiet bekommt. */
+  /* Wie weit ausserhalb eines Polygons noch zugeordnet wird. Die deutschen
+   * Grenzen sind aus der DFS-Karte digitalisiert und auf etwa ±2 km genau;
+   * 10 km fangen das ab, ohne dass ein Ort im Nachbarland noch ein deutsches
+   * Gebiet bekommt. Jedes Landespaket darf den Wert unter geometry.snapKm
+   * eigens setzen. */
   const SNAP_KM = 10;
 
   /**
@@ -171,12 +197,13 @@ const GAFOR = (() => {
       const d = edgeDistKm(lat, lon, f.geometry);
       if (d < bestD) { bestD = d; best = f; }
     }
-    if (best && bestD <= SNAP_KM) {
+    if (best && bestD <= snapKm) {
       return Object.assign({}, best.properties, { method: 'nearest', distKm: bestD });
     }
     return null;
   }
 
   return { init, lookup, areas, count, regions, CODE_ORDER, codeInfo, SNAP_KM,
+           snapKm: () => snapKm,
            collection: () => fc, regionCollection: () => regionFc, landCollection: () => landFc };
 })();

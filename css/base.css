@@ -146,4 +146,7 @@ input::placeholder{color:var(--text-dim);}
 .spin{display:inline-block;animation:spin 1s linear infinite;}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .hidden{display:none !important;}
+/* Karten, die das Landespaket nicht anbietet, werden mit dem hidden-Attribut
+   ausgeblendet. Ohne diese Regel gewinnt jedes display:flex der Karte. */
+[hidden]{display:none !important;}
 a{color:var(--amber);}
