@@ -1,63 +1,63 @@
 {
- "generated": "2026-09-19T00:40:55.061Z",
+ "generated": "2026-09-19T05:09:32.417Z",
  "gafor": {
   "EDZH": {
-   "title": "GAFOR Bereich LBZ Hamburg 18.09.2026",
+   "title": "GAFOR Bereich LBZ Hamburg 19.09.2026",
    "bereich": "LBZ Hamburg",
    "office": "EDZH",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_node.html",
-   "issued": "2026-09-18T15:00:00.000Z",
-   "fetched": "2026-09-19T00:40:23.461Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "fetched": "2026-09-19T05:09:01.355Z",
    "periods": [
-    "15-17",
-    "17-19",
-    "19-21"
+    "06-08",
+    "08-10",
+    "10-12"
    ],
    "areas": {
     "10": [
-     "O",
-     "O",
-     "O"
+     "D1",
+     "D1",
+     "D1"
     ],
     "00": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "M2"
     ],
     "01": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "M5"
     ],
     "02": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "M5"
     ],
     "03": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "M5"
     ],
     "04": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "M5"
     ],
     "05": [
-     "O",
-     "O",
-     "O"
+     "M5",
+     "M5",
+     "D1"
     ],
     "06": [
-     "O",
-     "O",
-     "O"
+     "D1",
+     "D1",
+     "D1"
     ],
     "07": [
-     "O",
-     "O",
-     "O"
+     "D1",
+     "D1",
+     "D1"
     ],
     "08": [
      "O",
@@ -65,137 +65,137 @@
      "O"
     ],
     "09": [
-     "O",
-     "O",
-     "O"
+     "D1",
+     "D1",
+     "D1"
     ]
    },
    "details": {
     "10": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "D1",
+      "D1",
+      "D1"
      ],
      "name": "Weser-Leine-Bergland",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL RADZ"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL RADZ"
     },
     "00": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "M2"
      ],
      "name": "Deutsche Bucht",
      "remarks": [
-      "",
-      "",
-      "ISOL RADZ"
+      "ISOL RADZ",
+      "ISOL DZRA",
+      "ISOL SHRA"
      ],
-     "remark": "ISOL RADZ"
+     "remark": "ISOL RADZ · ISOL DZRA · ISOL SHRA"
     },
     "01": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "M5"
      ],
      "name": "Ostfriesland",
      "remarks": [
-      "",
-      "",
-      "ISOL RADZ"
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL RADZ"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "02": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "M5"
      ],
      "name": "Nordfriesland-Dithmarschen",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      "ISOL RADZ"
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA · ISOL RADZ"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "03": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "M5"
      ],
      "name": "Schleswig-Holsteinische Geest",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "04": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "M5"
      ],
      "name": "Schleswig-Holsteinisches Hügelland",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "05": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "M5",
+      "M5",
+      "D1"
      ],
      "name": "Nordwestliches Niedersachsen",
      "remarks": [
-      "ISOL SHRA",
-      "",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "06": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "D1",
+      "D1",
+      "D1"
      ],
      "name": "Lüneburger Heide",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "07": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "D1",
+      "D1",
+      "D1"
      ],
      "name": "Westliches Niedersachsen",
      "remarks": [
-      "ISOL SHRA",
-      "",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "08": {
      "codes": [
@@ -205,454 +205,438 @@
      ],
      "name": "Hannover und Braunschweig",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL DZRA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL DZRA"
     },
     "09": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "D1",
+      "D1",
+      "D1"
      ],
      "name": "Teutoburger Wald",
      "remarks": [
-      "ISOL SHRA",
-      "",
-      ""
+      "ISOL RADZ",
+      "ISOL RADZ",
+      "ISOL RADZ"
      ],
-     "remark": "ISOL SHRA"
+     "remark": "ISOL RADZ · ISOL RADZ · ISOL RADZ"
     }
    },
-   "text": "GAFOR-Einstufung LBZ Hamburg\n\nGAFOR Bereich LBZ Hamburg 18.09.2026\n\nGebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC\n\n00  Deutsche Bucht  O  O  O ISOL RADZ\n\n01  Ostfriesland  O  O  O ISOL RADZ\n\n02  Nordfriesland-Dithmarschen  O ISOL SHRA  O ISOL SHRA  O ISOL RADZ\n\n03  Schleswig-Holsteinische Geest  O ISOL SHRA  O ISOL SHRA  O\n\n04  Schleswig-Holsteinisches Hügelland  O ISOL SHRA  O ISOL SHRA  O\n\n05  Nordwestliches Niedersachsen  O ISOL SHRA  O  O\n\n06  Lüneburger Heide  O ISOL SHRA  O ISOL SHRA  O\n\n07  Westliches Niedersachsen  O ISOL SHRA  O  O\n\n08  Hannover und Braunschweig  O ISOL SHRA  O ISOL SHRA  O\n\n09  Teutoburger Wald  O ISOL SHRA  O  O\n\n10  Weser-Leine-Bergland  O ISOL SHRA  O ISOL SHRA  O\n"
+   "text": "GAFOR-Einstufung LBZ Hamburg\n\nGAFOR Bereich LBZ Hamburg 19.09.2026\n\nGebiet  Name  06-08 UTC  08-10 UTC  10-12 UTC\n\n00  Deutsche Bucht  M5 ISOL RADZ  M5 ISOL DZRA  M2 ISOL SHRA\n\n01  Ostfriesland  M5 ISOL RADZ  M5 ISOL RADZ  M5 ISOL DZRA\n\n02  Nordfriesland-Dithmarschen  M5 ISOL RADZ  M5 ISOL RADZ  M5 ISOL DZRA\n\n03  Schleswig-Holsteinische Geest  M5 ISOL RADZ  M5 ISOL RADZ  M5 ISOL DZRA\n\n04  Schleswig-Holsteinisches Hügelland  M5 ISOL RADZ  M5 ISOL RADZ  M5 ISOL DZRA\n\n05  Nordwestliches Niedersachsen  M5 ISOL RADZ  M5 ISOL RADZ  D1 ISOL DZRA\n\n06  Lüneburger Heide  D1 ISOL RADZ  D1 ISOL RADZ  D1 ISOL DZRA\n\n07  Westliches Niedersachsen  D1 ISOL RADZ  D1 ISOL RADZ  D1 ISOL DZRA\n\n08  Hannover und Braunschweig  O ISOL RADZ  O ISOL RADZ  O ISOL DZRA\n\n09  Teutoburger Wald  D1 ISOL RADZ  D1 ISOL RADZ  D1 ISOL RADZ\n\n10  Weser-Leine-Bergland  D1 ISOL RADZ  D1 ISOL RADZ  D1 ISOL RADZ\n"
   },
   "EDZB": {
-   "title": "GAFOR Bereich LBZ Berlin 18.09.2026",
+   "title": "GAFOR Bereich LBZ Berlin 19.09.2026",
    "bereich": "LBZ Berlin",
    "office": "EDZB",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_node.html",
-   "issued": "2026-09-18T15:00:00.000Z",
-   "fetched": "2026-09-19T00:40:23.461Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "fetched": "2026-09-19T05:09:01.356Z",
    "periods": [
-    "15-17",
-    "17-19",
-    "19-21"
+    "06-08",
+    "08-10",
+    "10-12"
    ],
    "areas": {
     "11": [
-     "O",
-     "O",
+     "D1",
+     "D1",
      "O"
     ],
     "12": [
-     "O",
+     "C",
      "O",
      "O"
     ],
     "13": [
-     "O",
-     "O",
-     "C"
+     "D1",
+     "D1",
+     "O"
     ],
     "14": [
      "O",
      "O",
-     "C"
+     "O"
     ],
     "15": [
      "O",
      "O",
-     "C"
+     "O"
     ],
     "16": [
+     "C",
      "O",
-     "O",
-     "C"
+     "O"
     ],
     "17": [
+     "C",
      "O",
-     "O",
-     "C"
+     "O"
     ],
     "18": [
-     "O",
-     "O",
-     "C"
+     "C",
+     "C",
+     "O"
     ],
     "19": [
-     "O",
-     "O",
-     "C"
+     "C",
+     "C",
+     "O"
     ],
     "20": [
      "O",
      "O",
-     "C"
+     "O"
     ],
     "21": [
      "O",
-     "O",
-     "C"
+     "D1",
+     "D1"
     ],
     "22": [
+     "C",
      "O",
-     "O",
-     "C"
+     "O"
     ],
     "23": [
-     "O",
-     "O",
-     "C"
+     "C",
+     "C",
+     "O"
     ],
     "24": [
-     "O",
+     "C",
      "O",
      "C"
     ],
     "25": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "26": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "27": [
+     "C",
      "O",
-     "O",
-     "C"
+     "O"
     ],
     "28": [
-     "O",
-     "O",
-     "C"
+     "C",
+     "C",
+     "O"
     ]
    },
    "details": {
     "11": {
      "codes": [
-      "O",
-      "O",
+      "D1",
+      "D1",
       "O"
      ],
      "name": "Mecklenburgisches Tiefland",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "",
+      "",
+      "ISOL RA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RA"
     },
     "12": {
      "codes": [
-      "O",
+      "C",
       "O",
       "O"
      ],
      "name": "Vorpommern",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
-      ""
+      "",
+      "",
+      "ISOL RA"
      ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     "remark": "ISOL RA"
     },
     "13": {
      "codes": [
-      "O",
-      "O",
-      "C"
+      "D1",
+      "D1",
+      "O"
      ],
      "name": "Westliche Mecklenburgische Seenplatte und Prignitz",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "14": {
      "codes": [
       "O",
       "O",
-      "C"
+      "O"
      ],
      "name": "Östliche Mecklenburgische Seenplatte und Uckermark",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "15": {
      "codes": [
       "O",
       "O",
-      "C"
+      "O"
      ],
      "name": "Altmark",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "16": {
      "codes": [
+      "C",
       "O",
-      "O",
-      "C"
+      "O"
      ],
      "name": "Fläming",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "17": {
      "codes": [
+      "C",
       "O",
-      "O",
-      "C"
+      "O"
      ],
      "name": "Havelland",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "18": {
      "codes": [
-      "O",
-      "O",
-      "C"
+      "C",
+      "C",
+      "O"
      ],
      "name": "Barnim und Oderbruch",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "19": {
      "codes": [
-      "O",
-      "O",
-      "C"
+      "C",
+      "C",
+      "O"
      ],
      "name": "Dahme-Spree-Gebiet und Gubener Waldland",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
+      "",
+      "",
       ""
-     ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     ]
     },
     "20": {
      "codes": [
       "O",
       "O",
-      "C"
+      "O"
      ],
      "name": "Magdeburger Börde und Nördliches Harzvorland",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "21": {
      "codes": [
       "O",
-      "O",
-      "C"
+      "D1",
+      "D1"
      ],
      "name": "Harz",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "22": {
      "codes": [
+      "C",
       "O",
-      "O",
-      "C"
+      "O"
      ],
      "name": "Leipziger Tieflandsbucht und Elbe-Elster-Niederung",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "23": {
      "codes": [
-      "O",
-      "O",
-      "C"
+      "C",
+      "C",
+      "O"
      ],
      "name": "Niederlausitzer Heiden",
      "remarks": [
-      "ISOL SHRA",
-      "ISOL SHRA",
+      "",
+      "",
       ""
-     ],
-     "remark": "ISOL SHRA · ISOL SHRA"
+     ]
     },
     "24": {
      "codes": [
-      "O",
+      "C",
       "O",
       "C"
      ],
      "name": "Thüringer Becken",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "25": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Mittelsächsisches Hügelland",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "26": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Oberlausitz und Lausitzer Gebirge",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "27": {
      "codes": [
+      "C",
       "O",
-      "O",
-      "C"
+      "O"
      ],
      "name": "Thüringer Wald",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "28": {
      "codes": [
-      "O",
-      "O",
-      "C"
+      "C",
+      "C",
+      "O"
      ],
      "name": "Erzgebirge",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     }
    },
-   "text": "GAFOR-Einstufung LBZ Berlin\n\nGAFOR Bereich LBZ Berlin 18.09.2026\n\nGebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC\n\n11  Mecklenburgisches Tiefland  O ISOL SHRA  O ISOL SHRA  O\n\n12  Vorpommern  O ISOL SHRA  O ISOL SHRA  O\n\n13  Westliche Mecklenburgische Seenplatte und Prignitz  O ISOL SHRA  O  C\n\n14  Östliche Mecklenburgische Seenplatte und Uckermark  O ISOL SHRA  O  C\n\n15  Altmark  O ISOL SHRA  O  C\n\n16  Fläming  O ISOL SHRA  O  C\n\n17  Havelland  O ISOL SHRA  O  C\n\n18  Barnim und Oderbruch  O ISOL SHRA  O  C\n\n19  Dahme-Spree-Gebiet und Gubener Waldland  O ISOL SHRA  O ISOL SHRA  C\n\n20  Magdeburger Börde und Nördliches Harzvorland  O ISOL SHRA  O  C\n\n21  Harz  O ISOL SHRA  O  C\n\n22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  O ISOL SHRA  O  C\n\n23  Niederlausitzer Heiden  O ISOL SHRA  O ISOL SHRA  C\n\n24  Thüringer Becken  O ISOL SHRA  O  C\n\n25  Mittelsächsisches Hügelland  O ISOL SHRA  O  C\n\n26  Oberlausitz und Lausitzer Gebirge  O ISOL SHRA  O  C\n\n27  Thüringer Wald  O ISOL SHRA  O  C\n\n28  Erzgebirge  O ISOL SHRA  O  C\n"
+   "text": "GAFOR-Einstufung LBZ Berlin\n\nGAFOR Bereich LBZ Berlin 19.09.2026\n\nGebiet  Name  06-08 UTC  08-10 UTC  10-12 UTC\n\n11  Mecklenburgisches Tiefland  D1  D1  O ISOL RA\n\n12  Vorpommern  C  O  O ISOL RA\n\n13  Westliche Mecklenburgische Seenplatte und Prignitz  D1  D1  O\n\n14  Östliche Mecklenburgische Seenplatte und Uckermark  O  O  O\n\n15  Altmark  O  O  O\n\n16  Fläming  C  O  O\n\n17  Havelland  C  O  O\n\n18  Barnim und Oderbruch  C  C  O\n\n19  Dahme-Spree-Gebiet und Gubener Waldland  C  C  O\n\n20  Magdeburger Börde und Nördliches Harzvorland  O  O  O\n\n21  Harz  O  D1  D1\n\n22  Leipziger Tieflandsbucht und Elbe-Elster-Niederung  C  O  O\n\n23  Niederlausitzer Heiden  C  C  O\n\n24  Thüringer Becken  C  O  C\n\n25  Mittelsächsisches Hügelland  C  C  C\n\n26  Oberlausitz und Lausitzer Gebirge  C  C  C\n\n27  Thüringer Wald  C  O  O\n\n28  Erzgebirge  C  C  O\n"
   },
   "EDZE": {
-   "title": "GAFOR Bereich RWZ Essen 18.09.2026",
+   "title": "GAFOR Bereich RWZ Essen 19.09.2026",
    "bereich": "RWZ Essen",
    "office": "EDZE",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_node.html",
-   "issued": "2026-09-18T15:00:00.000Z",
-   "fetched": "2026-09-19T00:40:23.462Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "fetched": "2026-09-19T05:09:01.356Z",
    "periods": [
-    "15-17",
-    "17-19",
-    "19-21"
+    "06-08",
+    "08-10",
+    "10-12"
    ],
    "areas": {
     "31": [
      "O",
-     "C",
-     "C"
+     "O",
+     "O"
     ],
     "32": [
      "O",
-     "C",
-     "C"
+     "O",
+     "O"
     ],
     "33": [
      "O",
-     "C",
-     "C"
+     "O",
+     "O"
     ],
     "34": [
      "O",
-     "C",
+     "O",
      "C"
     ],
     "35": [
      "O",
-     "C",
-     "C"
+     "O",
+     "O"
     ],
     "36": [
      "O",
-     "C",
-     "C"
+     "O",
+     "O"
     ],
     "37": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "38": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "39": [
-     "O",
      "C",
-     "C"
+     "O",
+     "O"
     ]
    },
    "details": {
     "31": {
      "codes": [
       "O",
-      "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Niederrheinisches Tiefland",
      "remarks": [
@@ -664,8 +648,8 @@
     "32": {
      "codes": [
       "O",
-      "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Münsterland",
      "remarks": [
@@ -677,58 +661,62 @@
     "33": {
      "codes": [
       "O",
-      "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Ruhrgebiet und Ostwestfalen",
      "remarks": [
-      "",
+      "ISOL RADZ",
       "",
       ""
-     ]
+     ],
+     "remark": "ISOL RADZ"
     },
     "34": {
      "codes": [
       "O",
-      "C",
+      "O",
       "C"
      ],
      "name": "Niederrheinische Bucht",
      "remarks": [
-      "",
+      "ISOL RADZ",
       "",
       ""
-     ]
+     ],
+     "remark": "ISOL RADZ"
     },
     "35": {
      "codes": [
       "O",
-      "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Bergisches Land",
      "remarks": [
-      "",
+      "ISOL RADZ",
       "",
       ""
-     ]
+     ],
+     "remark": "ISOL RADZ"
     },
     "36": {
      "codes": [
       "O",
-      "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Sauerland",
      "remarks": [
-      "",
-      "",
+      "ISOL RADZ",
+      "ISOL RA",
       ""
-     ]
+     ],
+     "remark": "ISOL RADZ · ISOL RA"
     },
     "37": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -741,7 +729,7 @@
     },
     "38": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -754,100 +742,101 @@
     },
     "39": {
      "codes": [
-      "O",
       "C",
-      "C"
+      "O",
+      "O"
      ],
      "name": "Westerwald",
      "remarks": [
-      "",
+      "ISOL RADZ",
       "",
       ""
-     ]
+     ],
+     "remark": "ISOL RADZ"
     }
    },
-   "text": "GAFOR-Einstufung RWZ Essen\n\nGAFOR Bereich RWZ Essen 18.09.2026\n\nGebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC\n\n31  Niederrheinisches Tiefland  O  C  C\n\n32  Münsterland  O  C  C\n\n33  Ruhrgebiet und Ostwestfalen  O  C  C\n\n34  Niederrheinische Bucht  O  C  C\n\n35  Bergisches Land  O  C  C\n\n36  Sauerland  O  C  C\n\n37  Eifel  O  C  C\n\n38  Neuwieder Becken  O  C  C\n\n39  Westerwald  O  C  C\n"
+   "text": "GAFOR-Einstufung RWZ Essen\n\nGAFOR Bereich RWZ Essen 19.09.2026\n\nGebiet  Name  06-08 UTC  08-10 UTC  10-12 UTC\n\n31  Niederrheinisches Tiefland  O  O  O\n\n32  Münsterland  O  O  O\n\n33  Ruhrgebiet und Ostwestfalen  O ISOL RADZ  O  O\n\n34  Niederrheinische Bucht  O ISOL RADZ  O  C\n\n35  Bergisches Land  O ISOL RADZ  O  O\n\n36  Sauerland  O ISOL RADZ  O ISOL RA  O\n\n37  Eifel  C  C  C\n\n38  Neuwieder Becken  C  C  C\n\n39  Westerwald  C ISOL RADZ  O  O\n"
   },
   "EDZF": {
-   "title": "GAFOR Bereich FWZ Frankfurt 18.09.2026",
+   "title": "GAFOR Bereich FWZ Frankfurt 19.09.2026",
    "bereich": "FWZ Frankfurt",
    "office": "EDZF",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_node.html",
-   "issued": "2026-09-18T15:00:00.000Z",
-   "fetched": "2026-09-19T00:40:23.462Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "fetched": "2026-09-19T05:09:01.356Z",
    "periods": [
-    "15-17",
-    "17-19",
-    "19-21"
+    "06-08",
+    "08-10",
+    "10-12"
    ],
    "areas": {
     "41": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "42": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "43": [
      "O",
      "O",
-     "C"
+     "O"
     ],
     "44": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "45": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "46": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "47": [
+     "C",
      "O",
-     "O",
-     "C"
+     "O"
     ],
     "50": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "51": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "52": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "53": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "61": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ]
    },
    "details": {
     "41": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Hunsrück",
      "remarks": [
@@ -858,8 +847,8 @@
     },
     "42": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Taunus",
@@ -873,19 +862,20 @@
      "codes": [
       "O",
       "O",
-      "C"
+      "O"
      ],
      "name": "Nordhessisches Bergland und Vogelsberg",
      "remarks": [
-      "",
-      "",
+      "ISOL RA",
+      "ISOL RA",
       ""
-     ]
+     ],
+     "remark": "ISOL RA · ISOL RA"
     },
     "44": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Rheinpfalz und Saarland",
@@ -897,7 +887,7 @@
     },
     "45": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -910,7 +900,7 @@
     },
     "46": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -923,9 +913,9 @@
     },
     "47": {
      "codes": [
+      "C",
       "O",
-      "O",
-      "C"
+      "O"
      ],
      "name": "Rhön",
      "remarks": [
@@ -936,7 +926,7 @@
     },
     "50": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -949,7 +939,7 @@
     },
     "51": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -962,8 +952,8 @@
     },
     "52": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Kraichgau",
@@ -975,8 +965,8 @@
     },
     "53": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Oberer und mittlerer Neckarraum",
@@ -988,9 +978,9 @@
     },
     "61": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Schwarzwald",
      "remarks": [
@@ -1000,228 +990,220 @@
      ]
     }
    },
-   "text": "GAFOR-Einstufung FWZ Frankfurt\n\nGAFOR Bereich FWZ Frankfurt 18.09.2026\n\nGebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC\n\n41  Hunsrück  O  O  O\n\n42  Taunus  O  O  C\n\n43  Nordhessisches Bergland und Vogelsberg  O  O  C\n\n44  Rheinpfalz und Saarland  O  O  C\n\n45  Rhein-Main-Gebiet und Wetterau  O  C  C\n\n46  Odenwald und Spessart  O  C  C\n\n47  Rhön  O  O  C\n\n50  Südlicher Oberrheingraben  O  C  C\n\n51  Mittlerer Oberrheingraben  O  C  C\n\n52  Kraichgau  O  O  C\n\n53  Oberer und mittlerer Neckarraum  O  O  C\n\n61  Schwarzwald  O  O  O\n"
+   "text": "GAFOR-Einstufung FWZ Frankfurt\n\nGAFOR Bereich FWZ Frankfurt 19.09.2026\n\nGebiet  Name  06-08 UTC  08-10 UTC  10-12 UTC\n\n41  Hunsrück  C  C  C\n\n42  Taunus  C  C  C\n\n43  Nordhessisches Bergland und Vogelsberg  O ISOL RA  O ISOL RA  O\n\n44  Rheinpfalz und Saarland  C  C  C\n\n45  Rhein-Main-Gebiet und Wetterau  C  C  C\n\n46  Odenwald und Spessart  C  C  C\n\n47  Rhön  C  O  O\n\n50  Südlicher Oberrheingraben  C  C  C\n\n51  Mittlerer Oberrheingraben  C  C  C\n\n52  Kraichgau  C  C  C\n\n53  Oberer und mittlerer Neckarraum  C  C  C\n\n61  Schwarzwald  C  C  C\n"
   },
   "EDZM": {
-   "title": "GAFOR Bereich LBZ Muenchen 18.09.2026",
+   "title": "GAFOR Bereich LBZ Muenchen 19.09.2026",
    "bereich": "LBZ Muenchen",
    "office": "EDZM",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_node.html",
-   "issued": "2026-09-18T15:00:00.000Z",
-   "fetched": "2026-09-19T00:40:23.462Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "fetched": "2026-09-19T05:09:01.356Z",
    "periods": [
-    "15-17",
-    "17-19",
-    "19-21"
+    "06-08",
+    "08-10",
+    "10-12"
    ],
    "areas": {
     "54": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "55": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "56": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "57": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "58": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "62": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "63": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "64": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "71": [
-     "O",
+     "C",
      "C",
      "C"
     ],
     "72": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "73": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "74": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "75": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "76": [
-     "O",
-     "O",
-     "O"
+     "C",
+     "C",
+     "C"
     ],
     "81": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "82": [
-     "O",
-     "O",
+     "C",
+     "C",
      "C"
     ],
     "83": [
-     "M2",
-     "M2",
-     "D1"
+     "C",
+     "C",
+     "C"
     ],
     "84": [
-     "D1",
-     "D1",
-     "D1"
+     "C",
+     "C",
+     "C"
     ]
    },
    "details": {
     "54": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
      "name": "Mainfranken und Nördliches Unterfranken",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "55": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
      "name": "Kocher-Jagst-Gebiet und Frankenhöhe",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "56": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
      "name": "Mittelfranken",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "57": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Oberfranken",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "58": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Frankenwald und Fichtelgebirge",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "62": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Schwäbische Alb",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "63": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Fränkische Alb",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "64": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Oberpfälzer Wald",
      "remarks": [
-      "ISOL SHRA",
+      "",
       "",
       ""
-     ],
-     "remark": "ISOL SHRA"
+     ]
     },
     "71": {
      "codes": [
-      "O",
+      "C",
       "C",
       "C"
      ],
@@ -1234,9 +1216,9 @@
     },
     "72": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Schwäbische Hochebene",
      "remarks": [
@@ -1247,9 +1229,9 @@
     },
     "73": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Westliche Donauniederung",
      "remarks": [
@@ -1260,9 +1242,9 @@
     },
     "74": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Südbayerisches Hügelland",
      "remarks": [
@@ -1273,9 +1255,9 @@
     },
     "75": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Östliche Donau- und Naabniederung",
      "remarks": [
@@ -1286,9 +1268,9 @@
     },
     "76": {
      "codes": [
-      "O",
-      "O",
-      "O"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Bayerischer Wald",
      "remarks": [
@@ -1299,8 +1281,8 @@
     },
     "81": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Westliches Alpenvorland",
@@ -1312,8 +1294,8 @@
     },
     "82": {
      "codes": [
-      "O",
-      "O",
+      "C",
+      "C",
       "C"
      ],
      "name": "Östliches Alpenvorland",
@@ -1325,9 +1307,9 @@
     },
     "83": {
      "codes": [
-      "M2",
-      "M2",
-      "D1"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Allgäuer Alpen",
      "remarks": [
@@ -1338,9 +1320,9 @@
     },
     "84": {
      "codes": [
-      "D1",
-      "D1",
-      "D1"
+      "C",
+      "C",
+      "C"
      ],
      "name": "Östliche Bayerische Alpen",
      "remarks": [
@@ -1350,18 +1332,18 @@
      ]
     }
    },
-   "text": "GAFOR-Einstufung LBZ Muenchen\n\nGAFOR Bereich LBZ Muenchen 18.09.2026\n\nGebiet  Name  15-17 UTC  17-19 UTC  19-21 UTC\n\n54  Mainfranken und Nördliches Unterfranken  O ISOL SHRA  C  C\n\n55  Kocher-Jagst-Gebiet und Frankenhöhe  O ISOL SHRA  C  C\n\n56  Mittelfranken  O ISOL SHRA  C  C\n\n57  Oberfranken  O ISOL SHRA  O  O\n\n58  Frankenwald und Fichtelgebirge  O ISOL SHRA  O  O\n\n62  Schwäbische Alb  O ISOL SHRA  O  O\n\n63  Fränkische Alb  O ISOL SHRA  O  O\n\n64  Oberpfälzer Wald  O ISOL SHRA  O  O\n\n71  Bodenseeraum  O  C  C\n\n72  Schwäbische Hochebene  O  O  O\n\n73  Westliche Donauniederung  O  O  O\n\n74  Südbayerisches Hügelland  O  O  O\n\n75  Östliche Donau- und Naabniederung  O  O  O\n\n76  Bayerischer Wald  O  O  O\n\n81  Westliches Alpenvorland  O  O  C\n\n82  Östliches Alpenvorland  O  O  C\n\n83  Allgäuer Alpen  M2  M2  D1\n\n84  Östliche Bayerische Alpen  D1  D1  D1\n\nGAFOR Legende\n\nBitte beachten Sie unsere Nutzungsbedingungen für diese Produkte ...\n\n  Wichtig: Die auf dieser Internetseite bereitgestellten Flugwetterprodukte des DWD dürfen ausschließlich zur individuellen meteorologischen Flugvorbereitung genutzt werden. Die Weitergabe, die Weiterverarbeitung oder gar inhaltliche Änderung der Flugwetterinformationen sowie das Kopieren, Einbinden  oder Verlinken auf andere Internetserver ist nicht gestattet. Missbrauch und Verstöße gegen diese Regelung werden zur Anzeige gebracht!"
+   "text": "GAFOR-Einstufung LBZ Muenchen\n\nGAFOR Bereich LBZ Muenchen 19.09.2026\n\nGebiet  Name  06-08 UTC  08-10 UTC  10-12 UTC\n\n54  Mainfranken und Nördliches Unterfranken  C  C  C\n\n55  Kocher-Jagst-Gebiet und Frankenhöhe  C  C  C\n\n56  Mittelfranken  C  C  C\n\n57  Oberfranken  C  C  C\n\n58  Frankenwald und Fichtelgebirge  C  C  C\n\n62  Schwäbische Alb  C  C  C\n\n63  Fränkische Alb  C  C  C\n\n64  Oberpfälzer Wald  C  C  C\n\n71  Bodenseeraum  C  C  C\n\n72  Schwäbische Hochebene  C  C  C\n\n73  Westliche Donauniederung  C  C  C\n\n74  Südbayerisches Hügelland  C  C  C\n\n75  Östliche Donau- und Naabniederung  C  C  C\n\n76  Bayerischer Wald  C  C  C\n\n81  Westliches Alpenvorland  C  C  C\n\n82  Östliches Alpenvorland  C  C  C\n\n83  Allgäuer Alpen  C  C  C\n\n84  Östliche Bayerische Alpen  C  C  C\n\nGAFOR Legende\n\nBitte beachten Sie unsere Nutzungsbedingungen für diese Produkte ...\n\n  Wichtig: Die auf dieser Internetseite bereitgestellten Flugwetterprodukte des DWD dürfen ausschließlich zur individuellen meteorologischen Flugvorbereitung genutzt werden. Die Weitergabe, die Weiterverarbeitung oder gar inhaltliche Änderung der Flugwetterinformationen sowie das Kopieren, Einbinden  oder Verlinken auf andere Internetserver ist nicht gestattet. Missbrauch und Verstöße gegen diese Regelung werden zur Anzeige gebracht!"
   }
  },
  "overview": {
   "EDZB": {
-   "bulletin": "FBEU40 EDZB 181800",
+   "bulletin": "FBEU40 EDZB 190600",
    "bereich": "Ost",
    "office": "EDZB",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_edzb_node.html",
-   "issued": "2026-09-18T18:00:00.000Z",
-   "validFrom": "2026-09-18T18:00:00.000Z",
-   "validTo": "2026-09-19T15:00:00.000Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "validFrom": "2026-09-19T06:00:00.000Z",
+   "validTo": "2026-09-20T03:00:00.000Z",
    "areas": [
     "11",
     "12",
@@ -1382,18 +1364,18 @@
     "27",
     "28"
    ],
-   "fetched": "2026-09-19T00:40:23.703Z",
-   "text": "Wetterlage und -entwicklung:\nHinter einer nach Osten abgezogenen Okklusion fließt mit westlicher\nStrömung leicht labil geschichtete, mäßig warme Meeresluft ein. Am\nSamstag nähert sich von Nordwesten ein weiterer Frontausläufer.\n\nWettergeschehen:\nAnfangs SCT/BKN SC um FL080. In Mecklenburg-Vorpommern und in der\nNiederlausitz anfangs noch einzelne TCU mit leichten Regenschauern,\nUntergrenzen um 4000 FT AMSL, die bald in sich zusammenfallen.\n\nNach Sonnenuntergang SCT/BKN SC um FL080 oder klar. Nach Mitternacht\nvon NW Bewölkungsverdichtung oberhalb FL080. Gegen Morgen in\nNordwestmecklenburg aufkommender SC in 3000 bis 400 FT AMSL mit\nzeitweisem leichtem Regen, der sich am Vormittag über\nMecklenburg/Prignitz/Altmark ausbreitet. Am Nachmittag liegt der\nSchwerpunkt des Regens über Vorpommern und Nordostbrandenburg. In den\nübrigen Gebieten SCT/BKN SC mit Untergrenzen zwischen 4000 FT AMSL\nund FL060 und weitgehend niederschlagsfrei.\n\nSichtweite:\n30-60 km, in einzelnen Schauern kurzzeitig auf 5-15 km reduziert\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 11 - 19:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 250/15KT  14C | 210/15KT  14C |\n1000FT | 260/20KT  14C | 220/25KT  13C |\n1500FT | 270/20KT  13C | 230/30KT  11C |\n2000FT | 270/20KT  13C | 230/30KT  11C |\n3000FT | 260/20KT  09C | 260/30KT  11C |\n5000FT | 260/25KT  05C | 270/30KT  08C |\nFL100  | 280/20KT  00C | 260/30KT  01C |\n\nGAFOR-Gebiete 20 - 28:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 240/15KT  16C | 220/15KT  15C |\n1500FT | 260/15KT  15C | 230/20KT  14C |\n2000FT | 270/15KT  14C | 250/30KT  13C |\n3000FT | 270/15KT  11C | 260/30KT  11C |\n5000FT | 270/15KT  06C | 260/25KT  08C |\nFL100  | 280/20KT  01C | 270/20KT  01C |\n\nTurbulenz:\nnicht signifikant\n\nVereisung:\nab Mitternacht von Nordwesten zunehmend leicht bis mäßig in\nverdichtender Schichtbewölkung zwischen Nullgradgrenze und FL180\n\nNullgradgrenze:\nAnfangs in FL070-080, bis Mitternacht von SW auf FL105-115 anhebend\n\nInversionen:\nnachts Ausbildung einer flachen Bodeninversion unterhalb von 500-1000\nFT AGL, Samstagvormittag wieder auflösend\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nBerlin  04.12 | 04.46 | 17.12 | 17.45\nLeipzig  04.19 | 04.52 | 17.17 | 17.49\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nLuftfahrtberatungszentrale Berlin/Ns",
-   "fullText": "367\nFBEU40 EDZB 181800\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Ost\ngültig vom 18.09.2026, 18.00 UTC bis 19.09.2026, 15.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 11 bis 28\n\nWetterlage und -entwicklung:\nHinter einer nach Osten abgezogenen Okklusion fließt mit westlicher\nStrömung leicht labil geschichtete, mäßig warme Meeresluft ein. Am\nSamstag nähert sich von Nordwesten ein weiterer Frontausläufer.\n\nWettergeschehen:\nAnfangs SCT/BKN SC um FL080. In Mecklenburg-Vorpommern und in der\nNiederlausitz anfangs noch einzelne TCU mit leichten Regenschauern,\nUntergrenzen um 4000 FT AMSL, die bald in sich zusammenfallen.\n\nNach Sonnenuntergang SCT/BKN SC um FL080 oder klar. Nach Mitternacht\nvon NW Bewölkungsverdichtung oberhalb FL080. Gegen Morgen in\nNordwestmecklenburg aufkommender SC in 3000 bis 400 FT AMSL mit\nzeitweisem leichtem Regen, der sich am Vormittag über\nMecklenburg/Prignitz/Altmark ausbreitet. Am Nachmittag liegt der\nSchwerpunkt des Regens über Vorpommern und Nordostbrandenburg. In den\nübrigen Gebieten SCT/BKN SC mit Untergrenzen zwischen 4000 FT AMSL\nund FL060 und weitgehend niederschlagsfrei.\n\nSichtweite:\n30-60 km, in einzelnen Schauern kurzzeitig auf 5-15 km reduziert\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 11 - 19:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 250/15KT  14C | 210/15KT  14C |\n1000FT | 260/20KT  14C | 220/25KT  13C |\n1500FT | 270/20KT  13C | 230/30KT  11C |\n2000FT | 270/20KT  13C | 230/30KT  11C |\n3000FT | 260/20KT  09C | 260/30KT  11C |\n5000FT | 260/25KT  05C | 270/30KT  08C |\nFL100  | 280/20KT  00C | 260/30KT  01C |\n\nGAFOR-Gebiete 20 - 28:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 240/15KT  16C | 220/15KT  15C |\n1500FT | 260/15KT  15C | 230/20KT  14C |\n2000FT | 270/15KT  14C | 250/30KT  13C |\n3000FT | 270/15KT  11C | 260/30KT  11C |\n5000FT | 270/15KT  06C | 260/25KT  08C |\nFL100  | 280/20KT  01C | 270/20KT  01C |\n\nTurbulenz:\nnicht signifikant\n\nVereisung:\nab Mitternacht von Nordwesten zunehmend leicht bis mäßig in\nverdichtender Schichtbewölkung zwischen Nullgradgrenze und FL180\n\nNullgradgrenze:\nAnfangs in FL070-080, bis Mitternacht von SW auf FL105-115 anhebend\n\nInversionen:\nnachts Ausbildung einer flachen Bodeninversion unterhalb von 500-1000\nFT AGL, Samstagvormittag wieder auflösend\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nBerlin  04.12 | 04.46 | 17.12 | 17.45\nLeipzig  04.19 | 04.52 | 17.17 | 17.49\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nLuftfahrtberatungszentrale Berlin/Ns"
+   "fetched": "2026-09-19T05:09:01.607Z",
+   "text": "Wetterlage und -entwicklung:\nInnerhalb einer sich zunehmend verstärkenden südwestlichen bis\nwestlichen Strömung wird das Vorhersagegebiet hinter der vornehmlich\nüber der Nordhälfte ostwärts durchschwenkenden Warmfront eines\nTiefkomplexes südlich von Island mit wolkenreicher und mäßig warmer\nMeeresluft beeinflusst. In der Nacht zum Sonntag folgt ihr von\nNordwesten die Kaltfront nach, die sich unter Wellenbildung verstärkt\nund die eingeflossene Luftmasse labilisiert.\n\nWettergeschehen:\nIn der Nordwesthälfte bereits teils mehrschichtige und kompakte\nBewölkung aus AC/AS oberhalb FL060 bis FL100, darunter nördlich einer\nLinie Harz-Uckermark SCT/BKN SC in 3000 bis 4500 FT AMSL,\nnordwestlich der Linie Altmark-Rügen auf 1300 bis 2500 FT AMSL\nabsinkend und ostwärts ausbreitend. Dabei nördlich einer Linie\nMagdeburger Börde-Berlin zudem zeitweise etwas Regen, bis zum Abend\nmeist nach Polen abziehend und tiefe Untergrenzen auch im Norden\nwieder auf 3000 bis 4000 FT AMSL anhebend.\n\nIn der Südosthälfte hohe Bewölkung oberhalb FL170. Hier bis Mittag\nzwar Übergang der hohen Bewölkung in AC/AS mit Basis zwischen FL070\nund FL120 und darunter teils SCT/BKN CU/SC in 3500 bis 5000 FT AMSL,\naber meist niederschlagsfrei, abends/erste Nachthälfte zögerlich\naufbrechende SC-Decke.\n\nAnsonsten in der Nacht zum Sonntag im Bereich der Küste einzelne\naufkommende Schauer aus TCU/CB in 2000 bis 3500 FT AMSL mit Tops von\nFL110 auf FL160 anhebend.\nIm Bereich der sich verstärkenden Kaltfront etwa nördlich einer Linie\nHarz-Niederlausitz von Westen zunehmend kompakter werdender AS\noberhalb FL075 und nachfolgend einsetzender Regen, der sich ostwärts\nausbreitet und verstärkt. Mit dem Regen von Nordwesten her auf 1500\nbis 3000 FT AMSL absinkende Untergrenzen.\n\nSichtweite:\n30-60 km, im Regen Rückgang auf 8 bis 20 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 11 - 19:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/15KT  14C | 230/15KT  18C |\n1000FT | 220/20KT  12C | 230/25KT  16C |\n1500FT | 240/30KT  11C | 240/35KT  15C |\n2000FT | 250/30KT  11C | 250/35KT  15C |\n3000FT | 260/30KT  11C | 260/40KT  13C |\n5000FT | 260/30KT  08C | 270/30KT  10C |\nFL100  | 270/30KT  01C | 250/35KT  02C |\n\nGAFOR-Gebiete 20 - 28:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 220/15KT  15C | 230/15KT  18C |\n1500FT | 240/25KT  14C | 250/20KT  18C |\n2000FT | 250/30KT  13C | 260/25KT  17C |\n3000FT | 260/30KT  11C | 270/30KT  14C |\n5000FT | 260/25KT  08C | 270/30KT  09C |\nFL100  | 280/20KT  01C | 260/25KT  04C |\n\nTurbulenz:\nAn der Küste leicht bis mäßig unterhalb 3500 FT AMSL, zudem im Lee\ndes Harzes. Kommende Nacht im Bereich der Kaltfront teils mäßig\nzwischen FL080 und FL170, vereinzelt auch stark durch TCU/CB in\nMecklenburg-Vorpommern. Böen im Bereich der Küste 30 bis 35 KT aus\nSüdwest, sonst 18 bis 25 KT. In den Kammlagen der Mittelgebirge 25\nbis 30 KT, auf dem Brocken 40 bis 45 KT.\n\nVereisung:\nTeils mäßig in kompakter Schichtbewölkung zwischen Nullgradgrenze und\nFL180, kommende Nacht auch stark in TCU/CB\n\nNullgradgrenze:\nZwischen FL085 und FL105 im Bereich der Küste und FL115 bis FL125 in\nSachsen und Thüringen, dazwischen meist FL110 bis FL115\n\nInversionen:\nMorgens nach Süden flache Bodeninversion unterhalb von 0500-1000 FT\nAGL, vormittags wieder auflösend\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nBerlin  04.12 | 04.46 | 17.12 | 17.45\nLeipzig  04.19 | 04.52 | 17.17 | 17.49\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale Berlin/SC",
+   "fullText": "647\nFBEU40 EDZB 190600\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Ost\ngültig vom 19.09.2026, 06.00 UTC bis 20.09.2026, 03.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 11 bis 28\n\nWetterlage und -entwicklung:\nInnerhalb einer sich zunehmend verstärkenden südwestlichen bis\nwestlichen Strömung wird das Vorhersagegebiet hinter der vornehmlich\nüber der Nordhälfte ostwärts durchschwenkenden Warmfront eines\nTiefkomplexes südlich von Island mit wolkenreicher und mäßig warmer\nMeeresluft beeinflusst. In der Nacht zum Sonntag folgt ihr von\nNordwesten die Kaltfront nach, die sich unter Wellenbildung verstärkt\nund die eingeflossene Luftmasse labilisiert.\n\nWettergeschehen:\nIn der Nordwesthälfte bereits teils mehrschichtige und kompakte\nBewölkung aus AC/AS oberhalb FL060 bis FL100, darunter nördlich einer\nLinie Harz-Uckermark SCT/BKN SC in 3000 bis 4500 FT AMSL,\nnordwestlich der Linie Altmark-Rügen auf 1300 bis 2500 FT AMSL\nabsinkend und ostwärts ausbreitend. Dabei nördlich einer Linie\nMagdeburger Börde-Berlin zudem zeitweise etwas Regen, bis zum Abend\nmeist nach Polen abziehend und tiefe Untergrenzen auch im Norden\nwieder auf 3000 bis 4000 FT AMSL anhebend.\n\nIn der Südosthälfte hohe Bewölkung oberhalb FL170. Hier bis Mittag\nzwar Übergang der hohen Bewölkung in AC/AS mit Basis zwischen FL070\nund FL120 und darunter teils SCT/BKN CU/SC in 3500 bis 5000 FT AMSL,\naber meist niederschlagsfrei, abends/erste Nachthälfte zögerlich\naufbrechende SC-Decke.\n\nAnsonsten in der Nacht zum Sonntag im Bereich der Küste einzelne\naufkommende Schauer aus TCU/CB in 2000 bis 3500 FT AMSL mit Tops von\nFL110 auf FL160 anhebend.\nIm Bereich der sich verstärkenden Kaltfront etwa nördlich einer Linie\nHarz-Niederlausitz von Westen zunehmend kompakter werdender AS\noberhalb FL075 und nachfolgend einsetzender Regen, der sich ostwärts\nausbreitet und verstärkt. Mit dem Regen von Nordwesten her auf 1500\nbis 3000 FT AMSL absinkende Untergrenzen.\n\nSichtweite:\n30-60 km, im Regen Rückgang auf 8 bis 20 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 11 - 19:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/15KT  14C | 230/15KT  18C |\n1000FT | 220/20KT  12C | 230/25KT  16C |\n1500FT | 240/30KT  11C | 240/35KT  15C |\n2000FT | 250/30KT  11C | 250/35KT  15C |\n3000FT | 260/30KT  11C | 260/40KT  13C |\n5000FT | 260/30KT  08C | 270/30KT  10C |\nFL100  | 270/30KT  01C | 250/35KT  02C |\n\nGAFOR-Gebiete 20 - 28:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 220/15KT  15C | 230/15KT  18C |\n1500FT | 240/25KT  14C | 250/20KT  18C |\n2000FT | 250/30KT  13C | 260/25KT  17C |\n3000FT | 260/30KT  11C | 270/30KT  14C |\n5000FT | 260/25KT  08C | 270/30KT  09C |\nFL100  | 280/20KT  01C | 260/25KT  04C |\n\nTurbulenz:\nAn der Küste leicht bis mäßig unterhalb 3500 FT AMSL, zudem im Lee\ndes Harzes. Kommende Nacht im Bereich der Kaltfront teils mäßig\nzwischen FL080 und FL170, vereinzelt auch stark durch TCU/CB in\nMecklenburg-Vorpommern. Böen im Bereich der Küste 30 bis 35 KT aus\nSüdwest, sonst 18 bis 25 KT. In den Kammlagen der Mittelgebirge 25\nbis 30 KT, auf dem Brocken 40 bis 45 KT.\n\nVereisung:\nTeils mäßig in kompakter Schichtbewölkung zwischen Nullgradgrenze und\nFL180, kommende Nacht auch stark in TCU/CB\n\nNullgradgrenze:\nZwischen FL085 und FL105 im Bereich der Küste und FL115 bis FL125 in\nSachsen und Thüringen, dazwischen meist FL110 bis FL115\n\nInversionen:\nMorgens nach Süden flache Bodeninversion unterhalb von 0500-1000 FT\nAGL, vormittags wieder auflösend\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nBerlin  04.12 | 04.46 | 17.12 | 17.45\nLeipzig  04.19 | 04.52 | 17.17 | 17.49\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale Berlin/SC"
   },
   "EDZE": {
-   "bulletin": "FBEU40 EDZE 181800",
+   "bulletin": "FBEU40 EDZE 190600",
    "bereich": "West",
    "office": "EDZE",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_edze_node.html",
-   "issued": "2026-09-18T18:00:00.000Z",
-   "validFrom": "2026-09-18T18:00:00.000Z",
-   "validTo": "2026-09-19T15:00:00.000Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "validFrom": "2026-09-19T06:00:00.000Z",
+   "validTo": "2026-09-20T03:00:00.000Z",
    "areas": [
     "31",
     "32",
@@ -1405,18 +1387,18 @@
     "38",
     "39"
    ],
-   "fetched": "2026-09-19T00:40:23.919Z",
-   "text": "Wetterlage und -entwicklung:\nWestdeutschland liegt im gesamten Berichtszeitraum im Einflussbereich\neiner Tiefdruckzone über dem Nordatlantik. In der Nacht zum Samstag\nzieht eine nicht wetteraktive Warmfront durch. Es wird milde,\nwolkenreiche und stabil geschichtete Meeresluft herangeführt.\n\nWettergeschehen:\nTeils noch auflösender CU, im Süden meist FEW/SCT, sonst SCT/BKN LYR\nSC zwischen 4500 FT AMSL und FL085. Darüber von Nordwesten BKN CI\noberhalb von FL245, im weiteren Verlauf verdichtend und absinkend.\n\nBis zur zweiten Nachthälfte wechselnde tiefe Bewölkung aus SC-Feldern\nzwischen 3000 FT AMSL und FL060. Darüber Aufzug von BKN LYR AC/CI ab\nFL150, im Nordwesten ab FL100.\n\nIn der zweiten Nachthälfte im Nordwesten Bewölkungsverdichtung zu OVC\nSC/AS mit Untergrenzen zwischen 3000 und 4500 FT AMSL und Obergrenzen\nin F170 bis FL190, am Morgen auf die Nordwesthälfte ausbreitend.\nDaraus vereinzelt leichter Regen.\n\nAm Samstagvormittag auch in der Südhälfte langsam aufziehender BKN\nSC/AC/AS mit Untergrenzen zwischen 2500 und 3500 FT AMSL und\nObergrenzen bis FL150, gebietsweise auch stark ausgeschichtet. Im\näußersten Süden meist nur SCT/BKN AC/AS zwischen FL070 uns FL170.\nMeist niederschlagsfrei.\n\nAb dem Samstagmittag Ausschichtung der Bewölkung. Meist Übergang in\nSCT/BKN CU/SC, im Norden ab 3000 FT AMSL, im Süden ab 5000 FT AMSL,\nTops um FL070. Darüber mal mehr, mal weniger dichte AC-Felder\nzwischen FL100 und FL180 sowie BKN CI/CS oberhalb von FL245.\nIm Bergland und im Norden einzelne Böen um 25 KT möglich.\n\nSichtweite:\n30-60 km. In der Nacht zum Samstag Rückgang auf 20-40 km. Ab der\nzweiten Nachthälfte am Niederrhein und im Münsterland bei leichtem\nRegen vereinzelt um 10 km. Am Samstag Besserung auf 30-60 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 31 - 34:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 220/10KT  15C | 220/15KT  16C |\n1000FT | 240/20KT  15C | 220/20KT  15C |\n1500FT | 250/20KT  14C | 240/30KT  13C |\n2000FT | 250/20KT  13C | 240/30KT  13C |\n3000FT | 260/25KT  10C | 250/30KT  11C |\n5000FT | 260/25KT  06C | 260/25KT  09C |\nFL100  | 270/25KT  02C | 270/30KT  03C |\n\nGAFOR-Gebiete 35 - 39:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 230/05KT  15C | 210/10KT  15C |\n1500FT | 240/15KT  14C | 220/15KT  13C |\n2000FT | 250/20KT  13C | 220/15KT  12C |\n3000FT | 260/20KT  10C | 260/25KT  10C |\n5000FT | 260/25KT  06C | 260/25KT  09C |\nFL100  | 280/15KT  02C | 270/30KT  06C |\n\nTurbulenz:\nAb der zweiten Nachthälfte örtlich, im Tagesverlauf gebietsweise\nmäßig unterhalb 4000 FT AMSL.\n\nVereisung:\nVon der zweiten Nachthälfte bis in den Vormittag örtlich mäßig\nmöglich im dichten AC/AS zwischen FZLVL und FL180.\n\nNullgradgrenze:\nFL100-FL105. Im Laufe der Nacht zum Samstag von Westen auf\nFL105-FL115 steigend. Am Samstag tagsüber verbreitet FL110-120, im\nSüdwesten FL125.\n\nInversionen:\nIn der Nacht zum Samstag vorwiegend im Süden und Osten schwache\nBodeninversion unterhalb 1000 FT AGL. Am Samstagvormittag in der\nNordhälfte Bildung einer Absinkinversion zwischen FL070 und FL085, im\nweiteren Tagesverlauf auch auf die Südhälfte ausdehnend.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nDüsseldorf  04.41 | 05.14 | 17.38 | 18.11\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nRegionale Wetterberatungszentrale Essen/Wg",
-   "fullText": "034\nFBEU40 EDZE 181800\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich West\ngültig vom 18.09.2026, 18.00 UTC bis 19.09.2026, 15.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 31 bis 39\n\nWetterlage und -entwicklung:\nWestdeutschland liegt im gesamten Berichtszeitraum im Einflussbereich\neiner Tiefdruckzone über dem Nordatlantik. In der Nacht zum Samstag\nzieht eine nicht wetteraktive Warmfront durch. Es wird milde,\nwolkenreiche und stabil geschichtete Meeresluft herangeführt.\n\nWettergeschehen:\nTeils noch auflösender CU, im Süden meist FEW/SCT, sonst SCT/BKN LYR\nSC zwischen 4500 FT AMSL und FL085. Darüber von Nordwesten BKN CI\noberhalb von FL245, im weiteren Verlauf verdichtend und absinkend.\n\nBis zur zweiten Nachthälfte wechselnde tiefe Bewölkung aus SC-Feldern\nzwischen 3000 FT AMSL und FL060. Darüber Aufzug von BKN LYR AC/CI ab\nFL150, im Nordwesten ab FL100.\n\nIn der zweiten Nachthälfte im Nordwesten Bewölkungsverdichtung zu OVC\nSC/AS mit Untergrenzen zwischen 3000 und 4500 FT AMSL und Obergrenzen\nin F170 bis FL190, am Morgen auf die Nordwesthälfte ausbreitend.\nDaraus vereinzelt leichter Regen.\n\nAm Samstagvormittag auch in der Südhälfte langsam aufziehender BKN\nSC/AC/AS mit Untergrenzen zwischen 2500 und 3500 FT AMSL und\nObergrenzen bis FL150, gebietsweise auch stark ausgeschichtet. Im\näußersten Süden meist nur SCT/BKN AC/AS zwischen FL070 uns FL170.\nMeist niederschlagsfrei.\n\nAb dem Samstagmittag Ausschichtung der Bewölkung. Meist Übergang in\nSCT/BKN CU/SC, im Norden ab 3000 FT AMSL, im Süden ab 5000 FT AMSL,\nTops um FL070. Darüber mal mehr, mal weniger dichte AC-Felder\nzwischen FL100 und FL180 sowie BKN CI/CS oberhalb von FL245.\nIm Bergland und im Norden einzelne Böen um 25 KT möglich.\n\nSichtweite:\n30-60 km. In der Nacht zum Samstag Rückgang auf 20-40 km. Ab der\nzweiten Nachthälfte am Niederrhein und im Münsterland bei leichtem\nRegen vereinzelt um 10 km. Am Samstag Besserung auf 30-60 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 31 - 34:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 220/10KT  15C | 220/15KT  16C |\n1000FT | 240/20KT  15C | 220/20KT  15C |\n1500FT | 250/20KT  14C | 240/30KT  13C |\n2000FT | 250/20KT  13C | 240/30KT  13C |\n3000FT | 260/25KT  10C | 250/30KT  11C |\n5000FT | 260/25KT  06C | 260/25KT  09C |\nFL100  | 270/25KT  02C | 270/30KT  03C |\n\nGAFOR-Gebiete 35 - 39:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 230/05KT  15C | 210/10KT  15C |\n1500FT | 240/15KT  14C | 220/15KT  13C |\n2000FT | 250/20KT  13C | 220/15KT  12C |\n3000FT | 260/20KT  10C | 260/25KT  10C |\n5000FT | 260/25KT  06C | 260/25KT  09C |\nFL100  | 280/15KT  02C | 270/30KT  06C |\n\nTurbulenz:\nAb der zweiten Nachthälfte örtlich, im Tagesverlauf gebietsweise\nmäßig unterhalb 4000 FT AMSL.\n\nVereisung:\nVon der zweiten Nachthälfte bis in den Vormittag örtlich mäßig\nmöglich im dichten AC/AS zwischen FZLVL und FL180.\n\nNullgradgrenze:\nFL100-FL105. Im Laufe der Nacht zum Samstag von Westen auf\nFL105-FL115 steigend. Am Samstag tagsüber verbreitet FL110-120, im\nSüdwesten FL125.\n\nInversionen:\nIn der Nacht zum Samstag vorwiegend im Süden und Osten schwache\nBodeninversion unterhalb 1000 FT AGL. Am Samstagvormittag in der\nNordhälfte Bildung einer Absinkinversion zwischen FL070 und FL085, im\nweiteren Tagesverlauf auch auf die Südhälfte ausdehnend.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nDüsseldorf  04.41 | 05.14 | 17.38 | 18.11\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nRegionale Wetterberatungszentrale Essen/Wg"
+   "fetched": "2026-09-19T05:09:01.757Z",
+   "text": "Wetterlage und -entwicklung:\nWestdeutschland liegt im gesamten Berichtszeitraum im Einflussbereich\neiner Tiefdruckzone über dem Nordatlantik. Eine nicht wetteraktive\nWarmfront zieht südostwärts durch. Dabei wird milde, wolkenreiche und\nstabil geschichtete Meeresluft herangeführt. Eingangs der Nacht zum\nSonntag wird die zugehörige, schwach ausgeprägte Kaltfront\nwetterwirksam.\n\nWettergeschehen:\nIn der Nordhälfte von NRW BKN/OVC SC/AS mit Untergrenzen zwischen\n2500 und 3500 FT AMSL und Obergrenzen um FL150, am Vormittag langsam\nauch in die Südhälfte ausbreitend. Daraus vereinzelt leichter Regen.\nIm äußersten Nordwesten dabei am Morgen Untergrenzen des SC örtlich\nauch um 1500 FT AGL.\nIm äußersten Süden meist nur SCT/BKN AC/AS zwischen FL070 uns FL170.\nHier niederschlagsfrei.\n\nAb dem Mittag Ausschichtung der Bewölkung. Meist Übergang in SCT/BKN\nCU/SC, im Norden ab 3000 FT AMSL, im Süden ab 5000 FT AMSL, Tops um\nFL070. Darüber mal mehr, mal weniger dichte AC-Felder zwischen FL100\nund FL180 sowie BKN CI/CS oberhalb von FL245. Ganz im Süden meist nur\nSCT/BKN AC/CI ab FL170.\nIm Bergland und im Norden einzelne Böen um 25 KT, im Laufe des\nNachmittags abnehmender Wind.\n\nEingangs der Nacht im Nordwesten mit Annäherung der Kaltfront\nBewölkungsverdichtung zu BKN/OVC NS mit Untergrenzen zwischen 1500\nund 2500 FT AMSL, Obergrenzen oberhalb FL245. Daraus meist leichter,\nzeitweise auch mäßiger Regen. Im Niederschlag sinken die Untergrenzen\nzeitweise auf 1000 bis 1500 FT AMSL.\n\nIn der zweiten Nachthälfte breitet sich der NS mit dem Niederschlag\nlangsam weiter südwärts aus. Im Nordwesten schichtet die Bewölkung\nrückseitig der Front aus und es bildet sich BKN ST mit Untergrenzen\nzwischen 500 und 1000 FT AGL.\n\nSichtweite:\n20-40 km. Vor allem am Niederrhein und im Münsterland bei leichtem\nRegen vereinzelt um 10 km. Im Tagesverlauf Besserung auf 30-60 km. In\nder Nacht zum Sonntag Sichtrückgang auf 20 bis 40 km, im Niederschlag\nteilweise 10, später 5 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 31 - 34:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/15KT  16C | 200/15KT  18C |\n1000FT | 220/20KT  15C | 230/25KT  18C |\n1500FT | 240/30KT  13C | 250/30KT  17C |\n2000FT | 250/30KT  13C | 250/30KT  16C |\n3000FT | 260/30KT  12C | 260/35KT  13C |\n5000FT | 260/30KT  09C | 260/35KT  10C |\nFL100  | 270/30KT  04C | 270/35KT  03C |\n\nGAFOR-Gebiete 35 - 39:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 220/10KT  15C | 220/05KT  18C |\n1500FT | 220/15KT  13C | 240/20KT  17C |\n2000FT | 230/20KT  12C | 240/25KT  16C |\n3000FT | 260/25KT  10C | 260/25KT  13C |\n5000FT | 270/25KT  08C | 270/30KT  10C |\nFL100  | 270/25KT  05C | 270/30KT  04C |\n\nTurbulenz:\nZunächst örtlich, im Tagesverlauf gebietsweise mäßig unterhalb 4000\nFT AMSL. Im Bereich der Kaltfront zusätzlich mäßig, vereinzelt stark\nab FL100.\n\nVereisung:\nBis in den Vormittag örtlich mäßig möglich im dichten SC/AS zwischen\nFZLVL und FL150. Am Nachmittag nicht signifikant. Ab dem Abend im\nBereich der Front mäßig, vereinzelt stark zwischen FZLVL und FL180.\n\nNullgradgrenze:\nFL115-FL120. Tagsüber verbreitet FL120-FL125, im Süden um FL130. Im\nLaufe der Nacht zum Sonntag rückseitig der Kaltfront absinkend auf\nFL105-FL110.\n\nInversionen:\nVorwiegend im Süden und Osten schwache Bodeninversion unterhalb 1000\nFT AGL, am Vormittag auflösend. Am Vormittag in der Nordhälfte\nBildung einer Absinkinversion zwischen FL070 und FL085, im weiteren\nTagesverlauf auch auf die Südhälfte ausdehnend. In der Nacht zum\nSonntag absinkend, dann zwischen 5000 FT AMSL und FL070.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nDüsseldorf  04.41 | 05.14 | 17.38 | 18.11\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nRegionale Wetterberatungszentrale Essen/jb/Hu",
+   "fullText": "645\nFBEU40 EDZE 190600\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich West\ngültig vom 19.09.2026, 06.00 UTC bis 20.09.2026, 03.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 31 bis 39\n\nWetterlage und -entwicklung:\nWestdeutschland liegt im gesamten Berichtszeitraum im Einflussbereich\neiner Tiefdruckzone über dem Nordatlantik. Eine nicht wetteraktive\nWarmfront zieht südostwärts durch. Dabei wird milde, wolkenreiche und\nstabil geschichtete Meeresluft herangeführt. Eingangs der Nacht zum\nSonntag wird die zugehörige, schwach ausgeprägte Kaltfront\nwetterwirksam.\n\nWettergeschehen:\nIn der Nordhälfte von NRW BKN/OVC SC/AS mit Untergrenzen zwischen\n2500 und 3500 FT AMSL und Obergrenzen um FL150, am Vormittag langsam\nauch in die Südhälfte ausbreitend. Daraus vereinzelt leichter Regen.\nIm äußersten Nordwesten dabei am Morgen Untergrenzen des SC örtlich\nauch um 1500 FT AGL.\nIm äußersten Süden meist nur SCT/BKN AC/AS zwischen FL070 uns FL170.\nHier niederschlagsfrei.\n\nAb dem Mittag Ausschichtung der Bewölkung. Meist Übergang in SCT/BKN\nCU/SC, im Norden ab 3000 FT AMSL, im Süden ab 5000 FT AMSL, Tops um\nFL070. Darüber mal mehr, mal weniger dichte AC-Felder zwischen FL100\nund FL180 sowie BKN CI/CS oberhalb von FL245. Ganz im Süden meist nur\nSCT/BKN AC/CI ab FL170.\nIm Bergland und im Norden einzelne Böen um 25 KT, im Laufe des\nNachmittags abnehmender Wind.\n\nEingangs der Nacht im Nordwesten mit Annäherung der Kaltfront\nBewölkungsverdichtung zu BKN/OVC NS mit Untergrenzen zwischen 1500\nund 2500 FT AMSL, Obergrenzen oberhalb FL245. Daraus meist leichter,\nzeitweise auch mäßiger Regen. Im Niederschlag sinken die Untergrenzen\nzeitweise auf 1000 bis 1500 FT AMSL.\n\nIn der zweiten Nachthälfte breitet sich der NS mit dem Niederschlag\nlangsam weiter südwärts aus. Im Nordwesten schichtet die Bewölkung\nrückseitig der Front aus und es bildet sich BKN ST mit Untergrenzen\nzwischen 500 und 1000 FT AGL.\n\nSichtweite:\n20-40 km. Vor allem am Niederrhein und im Münsterland bei leichtem\nRegen vereinzelt um 10 km. Im Tagesverlauf Besserung auf 30-60 km. In\nder Nacht zum Sonntag Sichtrückgang auf 20 bis 40 km, im Niederschlag\nteilweise 10, später 5 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 31 - 34:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/15KT  16C | 200/15KT  18C |\n1000FT | 220/20KT  15C | 230/25KT  18C |\n1500FT | 240/30KT  13C | 250/30KT  17C |\n2000FT | 250/30KT  13C | 250/30KT  16C |\n3000FT | 260/30KT  12C | 260/35KT  13C |\n5000FT | 260/30KT  09C | 260/35KT  10C |\nFL100  | 270/30KT  04C | 270/35KT  03C |\n\nGAFOR-Gebiete 35 - 39:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 220/10KT  15C | 220/05KT  18C |\n1500FT | 220/15KT  13C | 240/20KT  17C |\n2000FT | 230/20KT  12C | 240/25KT  16C |\n3000FT | 260/25KT  10C | 260/25KT  13C |\n5000FT | 270/25KT  08C | 270/30KT  10C |\nFL100  | 270/25KT  05C | 270/30KT  04C |\n\nTurbulenz:\nZunächst örtlich, im Tagesverlauf gebietsweise mäßig unterhalb 4000\nFT AMSL. Im Bereich der Kaltfront zusätzlich mäßig, vereinzelt stark\nab FL100.\n\nVereisung:\nBis in den Vormittag örtlich mäßig möglich im dichten SC/AS zwischen\nFZLVL und FL150. Am Nachmittag nicht signifikant. Ab dem Abend im\nBereich der Front mäßig, vereinzelt stark zwischen FZLVL und FL180.\n\nNullgradgrenze:\nFL115-FL120. Tagsüber verbreitet FL120-FL125, im Süden um FL130. Im\nLaufe der Nacht zum Sonntag rückseitig der Kaltfront absinkend auf\nFL105-FL110.\n\nInversionen:\nVorwiegend im Süden und Osten schwache Bodeninversion unterhalb 1000\nFT AGL, am Vormittag auflösend. Am Vormittag in der Nordhälfte\nBildung einer Absinkinversion zwischen FL070 und FL085, im weiteren\nTagesverlauf auch auf die Südhälfte ausdehnend. In der Nacht zum\nSonntag absinkend, dann zwischen 5000 FT AMSL und FL070.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nDüsseldorf  04.41 | 05.14 | 17.38 | 18.11\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nRegionale Wetterberatungszentrale Essen/jb/Hu"
   },
   "EDZF": {
-   "bulletin": "FBEU40 EDZF 181800",
+   "bulletin": "FBEU40 EDZF 190600",
    "bereich": "Mitte",
    "office": "EDZF",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_edzf_node.html",
-   "issued": "2026-09-18T18:00:00.000Z",
-   "validFrom": "2026-09-18T18:00:00.000Z",
-   "validTo": "2026-09-19T15:00:00.000Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "validFrom": "2026-09-19T06:00:00.000Z",
+   "validTo": "2026-09-20T03:00:00.000Z",
    "areas": [
     "41",
     "42",
@@ -1431,18 +1413,18 @@
     "53",
     "61"
    ],
-   "fetched": "2026-09-19T00:40:24.138Z",
-   "text": "Wetterlage und -entwicklung:\nUnter einer westlichen bis nordwestlichen Strömung zeigt sich bei\nZwischenhocheinfluss eine trockene und stabil geschichtete Luftmasse.\nAb der zweiten Nachthälfte führt eine kaum wetteraktive Warmfront\neinen Schwall feuchtere Luft von Nordwesten heran. Sie verlagert sich\nbis zum Nachmittag südostwärts.\n\nWettergeschehen:\nAm Abend ist es oft wolkenfrei. Vor allem über dem nördlichen\nBergland zeigt sich noch SCT/BKN CU/SC zwischen 4500 FT AMSL und\nFL070. Diese lösen sich im Laufe der ersten Nachthälfte weitestgehend\nauf. Es ist niederschlagsfrei.\n\nIn der zweiten Nachthälfte zieht von Nordwesten mittelhoher BKN AC\nzwischen FL110-170 auf und breitet sich bis zum Vormittag auf Hessen,\nRheinland-Pfalz und das Saarland aus. Nur im äußersten Nordwesten\nsinkt die Basis auf 5000 FT AMSL und es fallen einzelne Regentropfen\naus.\n\nIm Laufe des Vormittages erreichen die AC noch den Norden von\nBaden-Württemberg. Über Hessen sowie dem Norden von Rheinland-Pfalz\nbilden sich SCT/BKN CU/SC mit Basis um 3500 FT AMSL die bis zum\nNachmittag auf 4500 FT AMSL ansteigen. Obergrenzen um FL070, oberhalb\nFL240 ziehen CI durch. Im Süden ist es oft wolkenfrei.\n\nSichtweite:\n30-70 km. Im leichten Niederschlag kaum reduziert.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 41 - 47:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 200/05KT  15C | 210/10KT  15C |\n1500FT | 240/10KT  14C | 210/15KT  13C |\n2000FT | 250/10KT  14C | 220/15KT  12C |\n3000FT | 260/15KT  10C | 250/25KT  11C |\n5000FT | 250/20KT  06C | 250/20KT  10C |\nFL100  | 290/15KT  02C | 270/20KT  04C |\n\nGAFOR-Gebiete 50 - 53, 61:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 250/05KT  18C | 220/05KT  16C |\n1500FT | 280/05KT  16C | 220/10KT  15C |\n2000FT | 290/10KT  15C | 220/10KT  15C |\n3000FT | 280/10KT  12C | 230/10KT  11C |\n5000FT | 260/10KT  07C | 260/10KT  07C |\nFL100  | 290/15KT  00C | 310/10KT  03C |\n\nTurbulenz:\nNicht signifikant.\n\nVereisung:\nIn der zweiten Nachthälfte bis Samstagvormittag in der frontalen\nBewölkung lokal mäßig zwischen FZLVL und FL170.\n\nNullgradgrenze:\nFL095-105, in der Nacht ansteigend. Am Vormittag zwischen FL115 im\nNorden und FL125 im Süden. Zum Nachmittag auf FL125-130 ansteigend.\n\nInversionen:\nIn der Nacht vor allem im Süden Ausbildung einer flachen\nBodeninversion die sich am Vormittag rasch auflöst.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nGießen  04.34 | 05.07 | 17.31 | 18.03\nKarlsruhe  04.36 | 05.08 | 17.31 | 18.03\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um 02.00\nUTC\n\nFlugwetterzentrale Frankfurt/CH",
-   "fullText": "503\nFBEU40 EDZF 181800\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Mitte\ngültig vom 18.09.2026, 18.00 UTC bis 19.09.2026, 15.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 41 bis 47, 50 bis 53, 61\n\nWetterlage und -entwicklung:\nUnter einer westlichen bis nordwestlichen Strömung zeigt sich bei\nZwischenhocheinfluss eine trockene und stabil geschichtete Luftmasse.\nAb der zweiten Nachthälfte führt eine kaum wetteraktive Warmfront\neinen Schwall feuchtere Luft von Nordwesten heran. Sie verlagert sich\nbis zum Nachmittag südostwärts.\n\nWettergeschehen:\nAm Abend ist es oft wolkenfrei. Vor allem über dem nördlichen\nBergland zeigt sich noch SCT/BKN CU/SC zwischen 4500 FT AMSL und\nFL070. Diese lösen sich im Laufe der ersten Nachthälfte weitestgehend\nauf. Es ist niederschlagsfrei.\n\nIn der zweiten Nachthälfte zieht von Nordwesten mittelhoher BKN AC\nzwischen FL110-170 auf und breitet sich bis zum Vormittag auf Hessen,\nRheinland-Pfalz und das Saarland aus. Nur im äußersten Nordwesten\nsinkt die Basis auf 5000 FT AMSL und es fallen einzelne Regentropfen\naus.\n\nIm Laufe des Vormittages erreichen die AC noch den Norden von\nBaden-Württemberg. Über Hessen sowie dem Norden von Rheinland-Pfalz\nbilden sich SCT/BKN CU/SC mit Basis um 3500 FT AMSL die bis zum\nNachmittag auf 4500 FT AMSL ansteigen. Obergrenzen um FL070, oberhalb\nFL240 ziehen CI durch. Im Süden ist es oft wolkenfrei.\n\nSichtweite:\n30-70 km. Im leichten Niederschlag kaum reduziert.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 41 - 47:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 200/05KT  15C | 210/10KT  15C |\n1500FT | 240/10KT  14C | 210/15KT  13C |\n2000FT | 250/10KT  14C | 220/15KT  12C |\n3000FT | 260/15KT  10C | 250/25KT  11C |\n5000FT | 250/20KT  06C | 250/20KT  10C |\nFL100  | 290/15KT  02C | 270/20KT  04C |\n\nGAFOR-Gebiete 50 - 53, 61:\nAMSL  |  21 UTC  |  09 UTC  |\n1000FT | 250/05KT  18C | 220/05KT  16C |\n1500FT | 280/05KT  16C | 220/10KT  15C |\n2000FT | 290/10KT  15C | 220/10KT  15C |\n3000FT | 280/10KT  12C | 230/10KT  11C |\n5000FT | 260/10KT  07C | 260/10KT  07C |\nFL100  | 290/15KT  00C | 310/10KT  03C |\n\nTurbulenz:\nNicht signifikant.\n\nVereisung:\nIn der zweiten Nachthälfte bis Samstagvormittag in der frontalen\nBewölkung lokal mäßig zwischen FZLVL und FL170.\n\nNullgradgrenze:\nFL095-105, in der Nacht ansteigend. Am Vormittag zwischen FL115 im\nNorden und FL125 im Süden. Zum Nachmittag auf FL125-130 ansteigend.\n\nInversionen:\nIn der Nacht vor allem im Süden Ausbildung einer flachen\nBodeninversion die sich am Vormittag rasch auflöst.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nGießen  04.34 | 05.07 | 17.31 | 18.03\nKarlsruhe  04.36 | 05.08 | 17.31 | 18.03\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um 02.00\nUTC\n\nFlugwetterzentrale Frankfurt/CH"
+   "fetched": "2026-09-19T05:09:01.980Z",
+   "text": "Wetterlage und -entwicklung:\nDer Tag beginnt unter Zwischenhocheinfluss mit einer recht trockenen\nund stabil geschichteten Luftmasse. Bereits ab den Morgenstunden\nzieht eine kaum wetteraktive Warmfront eines Tiefs über dem Nordmeer\nmit einem Schwall feuchterer Luft von Nordwesten heran und verlagert\nsich bis zum Nachmittag südostwärts über den Vorhersagebereich. In\nder Nacht auf Sonntag nähert sich dann von Nordwesten die Kaltfront\ndes Tiefs, greift aber zum Berichtsende nur auf den äußersten Norden\nund Nordwesten des Vorhersagebereiches über.\n\nWettergeschehen:\nAm Morgen zeigt sich im gesamten Bereich SCT/BKN CI oberhalb von\nFL220-240. Im Westen und Nordwesten ist bereits BKN AC/AS zwischen\nFL110-180 aufgezogen und breitet sich am Vormittag südostwärts über\nHessen, Rheinland-Pfalz, das Saarland und den Norden\nBaden-Württembergs aus. Im äußersten Nordwesten sinkt dabei die Basis\nteils auf 5000 FT AMSL - FL080 ab und es kann zeitweise etwas regnen.\n\nAb etwa der Mittagszeit zieht die mittelhohe Bewölkung ostwärts ab,\ndie Bewölkung geht in Hessen und dem Norden von Rheinland-Pfalz in\nSCT/BKN CU/SC mit Basis in 3500-4500 FT AMSL über. Die Obergrenzen\nliegen bei FL060-080. Im Süden bildet sich FEW/SCT flacher CU um\nFL055-065. Weiterhin zieht teils dichtere CI-Bewölkung oberhalb von\nFL245 durch.\n\nAm Abend trocknet die Quellbewölkung meist ab, es ist abgesehen von\nCI-Bewölkung dann wolkenfrei. In Norden und Nordwesten verbleiben\nlokal SCT/BKN LYR SC/AC zwischen 5000 FT AMSL und FL140.\n\nIn der Nacht zunächst wenig Änderungen, in der zweiten Nachthälfte\nund vor allem Ausgangs der Nacht zieht im äußersten Norden und\nNordwesten BKN/OVC SC/AC/AS/CI in 3000-4000 FT AMSL auf mit\nObergrenzen meist oberhalb von FL245 und es beginnt leicht bis mäßig\nzu regnen.\n\nSichtweite:\n30-70 km. Im leichten Niederschlag kaum reduziert, bei frontalem\nRegen in der Nacht 5 bis 15 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 41 - 47:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 210/10KT  15C | 220/05KT  18C |\n1500FT | 210/15KT  13C | 240/15KT  17C |\n2000FT | 220/15KT  12C | 250/15KT  17C |\n3000FT | 260/25KT  10C | 260/25KT  14C |\n5000FT | 250/25KT  09C | 260/30KT  09C |\nFL100  | 280/20KT  04C | 270/25KT  05C |\n\nGAFOR-Gebiete 50 - 53, 61:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 210/05KT  16C | 200/10KT  21C |\n1500FT | 220/15KT  15C | 220/10KT  20C |\n2000FT | 230/10KT  14C | 240/10KT  19C |\n3000FT | 240/10KT  11C | 260/15KT  16C |\n5000FT | 250/15KT  07C | 260/15KT  12C |\nFL100  | 310/10KT  03C | 280/15KT  06C |\n\nTurbulenz:\nNicht signifikant.\n\nVereisung:\nIn dichterer AC/AS-Bewölkung lokal mäßig oberhalb von FL110-120. In\nfrontaler Bewölkung in der Nacht auf Sonntag mäßig zwischen FL115 und\nFL220.\n\nNullgradgrenze:\nFL110-120, im Tagesverlauf ansteigend auf FL120-135, in der Nacht im\nNorden wieder leicht absinkend auf FL115.\n\nInversionen:\nAm Morgen im Süden lokale flache Bodeninversion, am Vormittag rasch\nauflösend und in der Nacht auf Sonntag bildet sich diese im Süden\nerneut aus.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nGießen  04.34 | 05.07 | 17.31 | 18.03\nKarlsruhe  04.36 | 05.08 | 17.31 | 18.03\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nFlugwetterzentrale Frankfurt/He",
+   "fullText": "160\nFBEU40 EDZF 190600\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Mitte\ngültig vom 19.09.2026, 06.00 UTC bis 20.09.2026, 03.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 41 bis 47, 50 bis 53, 61\n\nWetterlage und -entwicklung:\nDer Tag beginnt unter Zwischenhocheinfluss mit einer recht trockenen\nund stabil geschichteten Luftmasse. Bereits ab den Morgenstunden\nzieht eine kaum wetteraktive Warmfront eines Tiefs über dem Nordmeer\nmit einem Schwall feuchterer Luft von Nordwesten heran und verlagert\nsich bis zum Nachmittag südostwärts über den Vorhersagebereich. In\nder Nacht auf Sonntag nähert sich dann von Nordwesten die Kaltfront\ndes Tiefs, greift aber zum Berichtsende nur auf den äußersten Norden\nund Nordwesten des Vorhersagebereiches über.\n\nWettergeschehen:\nAm Morgen zeigt sich im gesamten Bereich SCT/BKN CI oberhalb von\nFL220-240. Im Westen und Nordwesten ist bereits BKN AC/AS zwischen\nFL110-180 aufgezogen und breitet sich am Vormittag südostwärts über\nHessen, Rheinland-Pfalz, das Saarland und den Norden\nBaden-Württembergs aus. Im äußersten Nordwesten sinkt dabei die Basis\nteils auf 5000 FT AMSL - FL080 ab und es kann zeitweise etwas regnen.\n\nAb etwa der Mittagszeit zieht die mittelhohe Bewölkung ostwärts ab,\ndie Bewölkung geht in Hessen und dem Norden von Rheinland-Pfalz in\nSCT/BKN CU/SC mit Basis in 3500-4500 FT AMSL über. Die Obergrenzen\nliegen bei FL060-080. Im Süden bildet sich FEW/SCT flacher CU um\nFL055-065. Weiterhin zieht teils dichtere CI-Bewölkung oberhalb von\nFL245 durch.\n\nAm Abend trocknet die Quellbewölkung meist ab, es ist abgesehen von\nCI-Bewölkung dann wolkenfrei. In Norden und Nordwesten verbleiben\nlokal SCT/BKN LYR SC/AC zwischen 5000 FT AMSL und FL140.\n\nIn der Nacht zunächst wenig Änderungen, in der zweiten Nachthälfte\nund vor allem Ausgangs der Nacht zieht im äußersten Norden und\nNordwesten BKN/OVC SC/AC/AS/CI in 3000-4000 FT AMSL auf mit\nObergrenzen meist oberhalb von FL245 und es beginnt leicht bis mäßig\nzu regnen.\n\nSichtweite:\n30-70 km. Im leichten Niederschlag kaum reduziert, bei frontalem\nRegen in der Nacht 5 bis 15 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 41 - 47:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 210/10KT  15C | 220/05KT  18C |\n1500FT | 210/15KT  13C | 240/15KT  17C |\n2000FT | 220/15KT  12C | 250/15KT  17C |\n3000FT | 260/25KT  10C | 260/25KT  14C |\n5000FT | 250/25KT  09C | 260/30KT  09C |\nFL100  | 280/20KT  04C | 270/25KT  05C |\n\nGAFOR-Gebiete 50 - 53, 61:\nAMSL  |  09 UTC  |  21 UTC  |\n1000FT | 210/05KT  16C | 200/10KT  21C |\n1500FT | 220/15KT  15C | 220/10KT  20C |\n2000FT | 230/10KT  14C | 240/10KT  19C |\n3000FT | 240/10KT  11C | 260/15KT  16C |\n5000FT | 250/15KT  07C | 260/15KT  12C |\nFL100  | 310/10KT  03C | 280/15KT  06C |\n\nTurbulenz:\nNicht signifikant.\n\nVereisung:\nIn dichterer AC/AS-Bewölkung lokal mäßig oberhalb von FL110-120. In\nfrontaler Bewölkung in der Nacht auf Sonntag mäßig zwischen FL115 und\nFL220.\n\nNullgradgrenze:\nFL110-120, im Tagesverlauf ansteigend auf FL120-135, in der Nacht im\nNorden wieder leicht absinkend auf FL115.\n\nInversionen:\nAm Morgen im Süden lokale flache Bodeninversion, am Vormittag rasch\nauflösend und in der Nacht auf Sonntag bildet sich diese im Süden\nerneut aus.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nGießen  04.34 | 05.07 | 17.31 | 18.03\nKarlsruhe  04.36 | 05.08 | 17.31 | 18.03\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nFlugwetterzentrale Frankfurt/He"
   },
   "EDZH": {
-   "bulletin": "FBEU40 EDZH 181800",
+   "bulletin": "FBEU40 EDZH 190600",
    "bereich": "Nord",
    "office": "EDZH",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_edzh_node.html",
-   "issued": "2026-09-18T18:00:00.000Z",
-   "validFrom": "2026-09-18T18:00:00.000Z",
-   "validTo": "2026-09-19T15:00:00.000Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "validFrom": "2026-09-19T06:00:00.000Z",
+   "validTo": "2026-09-20T03:00:00.000Z",
    "areas": [
     "00",
     "01",
@@ -1456,18 +1438,18 @@
     "09",
     "10"
    ],
-   "fetched": "2026-09-19T00:40:24.346Z",
-   "text": "Wetterlage und -entwicklung:\nAusgehend von einem ausgedehnten Tiefdruckgebiet zwischen Schottland\nund Irland erreicht in der Nacht zum Samstag eine Warmfront\nNorddeutschland. Damit fließt aus Nordwesten hochreichend feuchte,\nstabile Luft ein, die die zuvor eingeflossene trockenere, labile Luft\nverdrängt.\n\nWettergeschehen:\nZunächst zeigt sich in der Osthälfte verbreitet SCT/BKN CU, wobei\ndessen Untergrenzen bei 3500 FT AMSL bis FL060 liegen, die\nObergrenzen erreichen etwa FL080. Vereinzelt quillt dazwischen ISOL\nTCU hervor, deren Tops können auch FL100 erreichen. Daraus kommt es\nlokal zu schwachen Schauern. In der Westhälfte ist ebenfalls SCT/BKN\nCU mit ähnlichen Unter- und Obergrenzen präsent, allerdings treten\nhier keine Schauer auf. Darüber ist SCT/BKN AS/CI oberhalb FL180\naufgezogen. Über dem äußersten Nordwesten der Deutschen Bucht\nverdichtet sich die Bewölkung zu BKN/OVC CU/SC/AS/CI. Die\nUntergrenzen liegen dabei um 2500 FT AMSL, die Obergrenzen um FL245.\n\nIm Verlauf der Nacht dehnt sich diese Bewölkung auf den gesamten\nNordwesten aus. Allerdings schichtet dabei die Bewölkung aus, häufig\nist die vorherrschende Bewölkung dann SCT/BKN LYR CU/SC/AS, wobei die\nObergrenzen um FL180 liegen. Daraus fällt lokal Regen, der mit\nSprühregen vermischt ist, besonders über der Nordsee. In der zweiten\nNachthälfte verlagert sich der Niederschlagsschwerpunkt auf das\nFestland, insbesondere westlich der Weser ist verbreitet mit Regen\nund Sprühregen zu rechnen. Bei anhaltendem Regen geht der CU zumeist\nin SC über. Mit kräftigerem Niederschlag kann die Wolkenuntergrenze\nzeitweise auf 1200 FT AGL absinken, am frühen Morgen ist in einem\nbreiten Streifen von Ostfriesland bis zur Schlei auch mit 600 FT AGL\nzu rechnen.\n\nIm Verlauf des Samstagvormittages ändert sich an dieser Situation\nnichts Grundsätzliches, erst gegen Mittag lässt die\nNiederschlagstendenz etwas nach. Insbesondere in Schleswig-Holstein\nist allerdings weiterhin mit Regen und Sprühregen zu rechnen, dort\nbleiben Untergrenzen zwischen 800-1500 FT AGL erhalten. Wo der\nNiederschlag allerdings nachlässt kann sich SCT/BKN CU ausbilden,\nzumeist dann mit Untergrenzen um 2000 FT AMSL. Zum Berichtsende\nlassen die Niederschläge dann auch im Nordosten nach, die\nUntergrenzen steigen dabei auf 1500-2500 FT AMSL an.\n\nSichtweite:\nZunächst 40 km bis 60 km, im Schauer vereinzelt auf 3 km\nzurückgehend. In der Nacht überwiegend zwischen 10 und 30 km, im\nRegen mit Sprühregen auf 2-6 km zurückgehend. Tagsüber wieder auf 20\nbis 50 km anhebend\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 00 - 04:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 220/15KT  14C | 210/20KT  14C |\n1000FT | 230/25KT  13C | 220/25KT  13C |\n1500FT | 240/30KT  12C | 240/35KT  13C |\n2000FT | 250/30KT  11C | 250/40KT  12C |\n3000FT | 250/30KT  08C | 260/35KT  11C |\n5000FT | 260/25KT  06C | 260/30KT  09C |\nFL100  | 270/25KT M00C | 270/35KT  01C |\n\nGAFOR-Gebiete 05 - 10:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 230/15KT  15C | 220/15KT  16C |\n1000FT | 240/20KT  15C | 220/20KT  14C |\n1500FT | 250/25KT  13C | 240/30KT  12C |\n2000FT | 250/25KT  13C | 240/35KT  12C |\n3000FT | 260/25KT  10C | 260/30KT  12C |\n5000FT | 260/30KT  05C | 260/35KT  09C |\nFL100  | 270/25KT  01C | 270/30KT  02C |\n\nTurbulenz:\nVon Nordwesten her zeitweise mäßig unterhalb von 2000 FT AGL. Zum\nBerichtsende von Süden her nur sehr zögerlich nachlassend. Außerdem\nim Bereich von TCU.\n\nVereisung:\nIn der CU/SC/AS/CI-Bewölkung meist mäßig zwischen FZLVL und FL215,\nlokal auch stark bis FL165. Außerdem in TCU.\n\nNullgradgrenze:\nUm FL100, allerdings in der Osthälfte zu Beginn mit einer negativ\ntemperierten Schicht zwischen FL075 und FL095. In der zweiten\nNachthälfte von Westen her auf FL105-120 ansteigend.\n\nInversionen:\nZu Beginn zeigt sich eine Absinkinversion zwischen FL075 und FL095,\ndarunter hat sich bereits eine Bodeninversion unterhalb 1500 FT AMSL\nausgebildet. In der Nacht lösen sich beide Inversionen mit Ankunft\nder Warmfront auf, zeitweise kann sich aber immer wieder eine\nschwache Inversion zwischen FL060 und FL070 ausbilden.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nSchleswig  04.26 | 05.01 | 17.29 | 18.05\nHannover  04.28 | 05.02 | 17.27 | 18.00\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nLuftfahrtberatungszentrale Hamburg/VW",
-   "fullText": "504\nFBEU40 EDZH 181800\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Nord\ngültig vom 18.09.2026, 18.00 UTC bis 19.09.2026, 15.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 00 bis 10\n\nWetterlage und -entwicklung:\nAusgehend von einem ausgedehnten Tiefdruckgebiet zwischen Schottland\nund Irland erreicht in der Nacht zum Samstag eine Warmfront\nNorddeutschland. Damit fließt aus Nordwesten hochreichend feuchte,\nstabile Luft ein, die die zuvor eingeflossene trockenere, labile Luft\nverdrängt.\n\nWettergeschehen:\nZunächst zeigt sich in der Osthälfte verbreitet SCT/BKN CU, wobei\ndessen Untergrenzen bei 3500 FT AMSL bis FL060 liegen, die\nObergrenzen erreichen etwa FL080. Vereinzelt quillt dazwischen ISOL\nTCU hervor, deren Tops können auch FL100 erreichen. Daraus kommt es\nlokal zu schwachen Schauern. In der Westhälfte ist ebenfalls SCT/BKN\nCU mit ähnlichen Unter- und Obergrenzen präsent, allerdings treten\nhier keine Schauer auf. Darüber ist SCT/BKN AS/CI oberhalb FL180\naufgezogen. Über dem äußersten Nordwesten der Deutschen Bucht\nverdichtet sich die Bewölkung zu BKN/OVC CU/SC/AS/CI. Die\nUntergrenzen liegen dabei um 2500 FT AMSL, die Obergrenzen um FL245.\n\nIm Verlauf der Nacht dehnt sich diese Bewölkung auf den gesamten\nNordwesten aus. Allerdings schichtet dabei die Bewölkung aus, häufig\nist die vorherrschende Bewölkung dann SCT/BKN LYR CU/SC/AS, wobei die\nObergrenzen um FL180 liegen. Daraus fällt lokal Regen, der mit\nSprühregen vermischt ist, besonders über der Nordsee. In der zweiten\nNachthälfte verlagert sich der Niederschlagsschwerpunkt auf das\nFestland, insbesondere westlich der Weser ist verbreitet mit Regen\nund Sprühregen zu rechnen. Bei anhaltendem Regen geht der CU zumeist\nin SC über. Mit kräftigerem Niederschlag kann die Wolkenuntergrenze\nzeitweise auf 1200 FT AGL absinken, am frühen Morgen ist in einem\nbreiten Streifen von Ostfriesland bis zur Schlei auch mit 600 FT AGL\nzu rechnen.\n\nIm Verlauf des Samstagvormittages ändert sich an dieser Situation\nnichts Grundsätzliches, erst gegen Mittag lässt die\nNiederschlagstendenz etwas nach. Insbesondere in Schleswig-Holstein\nist allerdings weiterhin mit Regen und Sprühregen zu rechnen, dort\nbleiben Untergrenzen zwischen 800-1500 FT AGL erhalten. Wo der\nNiederschlag allerdings nachlässt kann sich SCT/BKN CU ausbilden,\nzumeist dann mit Untergrenzen um 2000 FT AMSL. Zum Berichtsende\nlassen die Niederschläge dann auch im Nordosten nach, die\nUntergrenzen steigen dabei auf 1500-2500 FT AMSL an.\n\nSichtweite:\nZunächst 40 km bis 60 km, im Schauer vereinzelt auf 3 km\nzurückgehend. In der Nacht überwiegend zwischen 10 und 30 km, im\nRegen mit Sprühregen auf 2-6 km zurückgehend. Tagsüber wieder auf 20\nbis 50 km anhebend\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 00 - 04:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 220/15KT  14C | 210/20KT  14C |\n1000FT | 230/25KT  13C | 220/25KT  13C |\n1500FT | 240/30KT  12C | 240/35KT  13C |\n2000FT | 250/30KT  11C | 250/40KT  12C |\n3000FT | 250/30KT  08C | 260/35KT  11C |\n5000FT | 260/25KT  06C | 260/30KT  09C |\nFL100  | 270/25KT M00C | 270/35KT  01C |\n\nGAFOR-Gebiete 05 - 10:\nAMSL  |  21 UTC  |  09 UTC  |\n 500FT | 230/15KT  15C | 220/15KT  16C |\n1000FT | 240/20KT  15C | 220/20KT  14C |\n1500FT | 250/25KT  13C | 240/30KT  12C |\n2000FT | 250/25KT  13C | 240/35KT  12C |\n3000FT | 260/25KT  10C | 260/30KT  12C |\n5000FT | 260/30KT  05C | 260/35KT  09C |\nFL100  | 270/25KT  01C | 270/30KT  02C |\n\nTurbulenz:\nVon Nordwesten her zeitweise mäßig unterhalb von 2000 FT AGL. Zum\nBerichtsende von Süden her nur sehr zögerlich nachlassend. Außerdem\nim Bereich von TCU.\n\nVereisung:\nIn der CU/SC/AS/CI-Bewölkung meist mäßig zwischen FZLVL und FL215,\nlokal auch stark bis FL165. Außerdem in TCU.\n\nNullgradgrenze:\nUm FL100, allerdings in der Osthälfte zu Beginn mit einer negativ\ntemperierten Schicht zwischen FL075 und FL095. In der zweiten\nNachthälfte von Westen her auf FL105-120 ansteigend.\n\nInversionen:\nZu Beginn zeigt sich eine Absinkinversion zwischen FL075 und FL095,\ndarunter hat sich bereits eine Bodeninversion unterhalb 1500 FT AMSL\nausgebildet. In der Nacht lösen sich beide Inversionen mit Ankunft\nder Warmfront auf, zeitweise kann sich aber immer wieder eine\nschwache Inversion zwischen FL060 und FL070 ausbilden.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nSchleswig  04.26 | 05.01 | 17.29 | 18.05\nHannover  04.28 | 05.02 | 17.27 | 18.00\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um\n02.00/05.00 UTC\n\nLuftfahrtberatungszentrale Hamburg/VW"
+   "fetched": "2026-09-19T05:09:02.184Z",
+   "text": "Wetterlage und -entwicklung:\nAusgehend von einem ausgedehnten Tief zwischen Schottland und Irland\nerstreckt sich ein breites Frontensystem NW einer Linie Groningen bis\nnach Angeln. Dieses Frontensystem trennt kalte, labile Atlantikluft\nim äußersten Nordwesten, von feuchter Warmluft im Südosten. Das\nFrontensystem kommt dabei auf einer Linie Ostfriesland - Kieler Förde\nliegen, ehe es im Laufe des Nachmittags auf den Südosten übergreift\nund zum Abend überwiegend wetterinaktiv wird. Dabei sickert die\nkühlere Luft nur langsam nach Südosten ein, ehe ein Trog von Westen\naufzieht und die Front auf einer Linie Emsland - Fehmarn wieder\nreaktiviert und leicht nach Südosten drückt.\n\nWettergeschehen:\nIm Bereich der Front zeigt sich kompakte BKN/OVC SC/AS/CI bei\nUntergrenzen in 1000-2000 FT AMSL und Obergrenzen zwischen FL180 und\nFL245. Dabei fällt ein Mix aus Regen und Sprühregen, wobei die\nUntergrenzen gebietsweise mit Bildung von SCT/BKN ST-Felder in\n500-1000 FT AGL absinken. Örtlich sind auch Felder in 300 FT AGL am\nVormittag gering wahrscheinlich.\nNach Südosten zeigt sich jene Bewölkung nicht nur ausgeschichteter,\nsondern die Untergrenzen in 3500-4500 FT AMSL auch höher. Überwiegend\nist es niederschlagsfrei, nur selten schaffen es ein paar Tropfen aus\nder Bewölkung zufallen.\nAm Vormittag breitet sich hohe und mittelhohe kompakte\nSC/AS/CI-Bewölkung südostwärts aus, dabei fällt dann auch dort Regen\noder Sprühregen, wobei die Untergrenzen im Niederschlag auf 2500-3500\nFT AMSL absinken können. Die eigentliche Front schiebt sich bis zum\nMittag auf eine Linie Emsland - Angeln, während die Obergrenze der\nBewölkung auf FL150-FL180 am Mittag und auf FL100-FL130 am Nachmittag\nabsinkt. Damit einhergehend nimmt der Sprühregenanteil am\nNiederschlag zu, was nicht zu einer Besserung der\nSichtflugbedingungen führt. Im äußersten Norden geht die Bewölkung\nbis zum Mittag in mehrfach geschichteter SCT/BKN CU/SC/AC/CI über und\ndie Untergrenzen steigen ein Müh auf 2000-3000 FT AMSL an, dabei\nbilden sich aber immer wieder TCU mit Tops um FL100-FL130, sodass\nSchauer mit Sprühregenanteilen von West nach Ost ziehen. Dabei folgt\nein Rückgang der Untergrenzen auf etwa 1000-1500 FT AMSL. Bis zum\nMittag bilden sich auch sonst SCT/BKN CU bei Basen in 2500-3500 FT\nAMSL und Obergrenzen um 5000-6000 FT AMSL. Dabei zieht die kompakte\nBewölkung zum späten Mittag ostwärts ab und die Niederschläge lassen\nim Südosten nach, im Bereich der Front nur zögerlich.\n\nZum Abend löst sich Quellbewölkung teils wieder auf oder geht in SC\nin 3500-4500 FT AMSL über, bevor sich die Bewölkung von Westen erneut\nzu BKN/OVC SC/AS/AC/CI bei Untergrenzen in 1500-2500 FT AMSL und\nObergrenzen um FL245 verdichtet. Es setzt Regen ein, welcher durch\neingelagerte TCU/CBs mit Tops zwischen FL160 und FL200. Selten sind\nkurze Gewitter an der Nordwestrand der Front nicht ausgeschlossen.\nDavon ausgeschlossen ist lediglich der Nordwesten. Der Schwerpunkt\nder Frontniederschläge liegt bis Mitternacht auf einem Streifen\nEmsland - Holstein und zieht nachfolgend auf eine Linie Osnabrücker\nLand - Wendland/Lün. Heide. Dabei sinken die Untergrenzen auf\n800-1200 FT AGL gebietsweise ab. Das Bergland wird dabei zunehmend in\nWolken gehüllt.\nIm Nordwesten zieht rückseitig SCT/BKN AS/CI oberhalb von FL160\ndurch, die CU/SC/AC sinken mit Tops auf FL080 ab bei ansteigenden\nUntergrenzen auf 2000-3000 FT AMSL. Jene Bedingungen folgen der Front\nbis auf eine Linie Kieler Förde - Ostfriesland.\n\nSichtweite:\nAbseits von Niederschlägen 20-40 km, bei Niederschlägen je nach Art\nund Intensität auf 3-8 km, bei hohen Sprühregenanteilen auf um 2 km\nzurückgehend. Zudem im Frontbereich Sichtweiten zwischen 5-10 km,\nerst im Laufe des Vormittags auf 10-20 km ansteigend.\nErst in der Nacht zum Sonntag von Nordwesten auf 30-60 km anhebend.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 00-04:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/20KT  15C | 240/25KT  17C |\n1000FT | 220/25KT  14C | 240/30KT  15C |\n1500FT | 240/35KT  13C | 240/35KT  14C |\n2000FT | 250/35KT  13C | 250/40KT  14C |\n3000FT | 250/35KT  11C | 260/40KT  11C |\n5000FT | 260/35KT  09C | 260/40KT  09C |\nFL100  | 260/35KT  01C | 260/40KT M01C |\n\nGAFOR-Gebiete 05-10:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 230/20KT  16C | 240/20KT  19C |\n1000FT | 230/25KT  14C | 240/25KT  17C |\n1500FT | 240/30KT  12C | 250/35KT  16C |\n2000FT | 240/35KT  12C | 250/40KT  15C |\n3000FT | 260/35KT  11C | 260/35KT  13C |\n5000FT | 260/35KT  09C | 270/30KT  11C |\nFL100  | 270/30KT  02C | 260/40KT  03C |\n\nTurbulenz:\nMäßig bis stark unterhalb von 2000-3000 FT AMSL, im Laufe der Nacht\nzum Sonntag von Nordwesten langsam nachlassend.\nAußerdem im Bereich von TCU/CB mäßig bis stark.\n\nVereisung:\nIn der kompakten Bewölkung meist mäßig zwischen Nullgradgrenze und\nFL220. Zudem in TCU/CB mäßig bis stark.\n\nNullgradgrenze:\nFL100-FL110, im Laufe des Tages auf FL105-FL120 ansteigend, in der\nkommenden Nacht von Nordwesten auf FL070-FL100 absinkend.\n\nInversionen:\nBodeninversion im Südosten unterhalb von 1000 FT AMSL, am Morgen\nauflösend. Außerdem im Südosten Sperrschicht in 4500 FT AMSL - FL060,\nam Vormittag zeitweilig auflösend, am Neuausbildend am Nachmittag und\nwieder auflösend in der Nacht zum Sonntag wieder auflösend. Bildung\neiner schwachen Bodeninversion über Land in der Nacht zum Sonntag\nunterhalb von 500 FT AGL im Nordwesten, zudem im Nordwesten\nAusbildung einer Sperrschicht in FL060-FL090.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nSchleswig  04.26 | 05.01 | 17.29 | 18.05\nHannover  04.28 | 05.02 | 17.27 | 18.00\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale Hamburg/RO",
+   "fullText": "162\nFBEU40 EDZH 190600\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Nord\ngültig vom 19.09.2026, 06.00 UTC bis 20.09.2026, 03.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 00 bis 10\n\nWetterlage und -entwicklung:\nAusgehend von einem ausgedehnten Tief zwischen Schottland und Irland\nerstreckt sich ein breites Frontensystem NW einer Linie Groningen bis\nnach Angeln. Dieses Frontensystem trennt kalte, labile Atlantikluft\nim äußersten Nordwesten, von feuchter Warmluft im Südosten. Das\nFrontensystem kommt dabei auf einer Linie Ostfriesland - Kieler Förde\nliegen, ehe es im Laufe des Nachmittags auf den Südosten übergreift\nund zum Abend überwiegend wetterinaktiv wird. Dabei sickert die\nkühlere Luft nur langsam nach Südosten ein, ehe ein Trog von Westen\naufzieht und die Front auf einer Linie Emsland - Fehmarn wieder\nreaktiviert und leicht nach Südosten drückt.\n\nWettergeschehen:\nIm Bereich der Front zeigt sich kompakte BKN/OVC SC/AS/CI bei\nUntergrenzen in 1000-2000 FT AMSL und Obergrenzen zwischen FL180 und\nFL245. Dabei fällt ein Mix aus Regen und Sprühregen, wobei die\nUntergrenzen gebietsweise mit Bildung von SCT/BKN ST-Felder in\n500-1000 FT AGL absinken. Örtlich sind auch Felder in 300 FT AGL am\nVormittag gering wahrscheinlich.\nNach Südosten zeigt sich jene Bewölkung nicht nur ausgeschichteter,\nsondern die Untergrenzen in 3500-4500 FT AMSL auch höher. Überwiegend\nist es niederschlagsfrei, nur selten schaffen es ein paar Tropfen aus\nder Bewölkung zufallen.\nAm Vormittag breitet sich hohe und mittelhohe kompakte\nSC/AS/CI-Bewölkung südostwärts aus, dabei fällt dann auch dort Regen\noder Sprühregen, wobei die Untergrenzen im Niederschlag auf 2500-3500\nFT AMSL absinken können. Die eigentliche Front schiebt sich bis zum\nMittag auf eine Linie Emsland - Angeln, während die Obergrenze der\nBewölkung auf FL150-FL180 am Mittag und auf FL100-FL130 am Nachmittag\nabsinkt. Damit einhergehend nimmt der Sprühregenanteil am\nNiederschlag zu, was nicht zu einer Besserung der\nSichtflugbedingungen führt. Im äußersten Norden geht die Bewölkung\nbis zum Mittag in mehrfach geschichteter SCT/BKN CU/SC/AC/CI über und\ndie Untergrenzen steigen ein Müh auf 2000-3000 FT AMSL an, dabei\nbilden sich aber immer wieder TCU mit Tops um FL100-FL130, sodass\nSchauer mit Sprühregenanteilen von West nach Ost ziehen. Dabei folgt\nein Rückgang der Untergrenzen auf etwa 1000-1500 FT AMSL. Bis zum\nMittag bilden sich auch sonst SCT/BKN CU bei Basen in 2500-3500 FT\nAMSL und Obergrenzen um 5000-6000 FT AMSL. Dabei zieht die kompakte\nBewölkung zum späten Mittag ostwärts ab und die Niederschläge lassen\nim Südosten nach, im Bereich der Front nur zögerlich.\n\nZum Abend löst sich Quellbewölkung teils wieder auf oder geht in SC\nin 3500-4500 FT AMSL über, bevor sich die Bewölkung von Westen erneut\nzu BKN/OVC SC/AS/AC/CI bei Untergrenzen in 1500-2500 FT AMSL und\nObergrenzen um FL245 verdichtet. Es setzt Regen ein, welcher durch\neingelagerte TCU/CBs mit Tops zwischen FL160 und FL200. Selten sind\nkurze Gewitter an der Nordwestrand der Front nicht ausgeschlossen.\nDavon ausgeschlossen ist lediglich der Nordwesten. Der Schwerpunkt\nder Frontniederschläge liegt bis Mitternacht auf einem Streifen\nEmsland - Holstein und zieht nachfolgend auf eine Linie Osnabrücker\nLand - Wendland/Lün. Heide. Dabei sinken die Untergrenzen auf\n800-1200 FT AGL gebietsweise ab. Das Bergland wird dabei zunehmend in\nWolken gehüllt.\nIm Nordwesten zieht rückseitig SCT/BKN AS/CI oberhalb von FL160\ndurch, die CU/SC/AC sinken mit Tops auf FL080 ab bei ansteigenden\nUntergrenzen auf 2000-3000 FT AMSL. Jene Bedingungen folgen der Front\nbis auf eine Linie Kieler Förde - Ostfriesland.\n\nSichtweite:\nAbseits von Niederschlägen 20-40 km, bei Niederschlägen je nach Art\nund Intensität auf 3-8 km, bei hohen Sprühregenanteilen auf um 2 km\nzurückgehend. Zudem im Frontbereich Sichtweiten zwischen 5-10 km,\nerst im Laufe des Vormittags auf 10-20 km ansteigend.\nErst in der Nacht zum Sonntag von Nordwesten auf 30-60 km anhebend.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 00-04:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 220/20KT  15C | 240/25KT  17C |\n1000FT | 220/25KT  14C | 240/30KT  15C |\n1500FT | 240/35KT  13C | 240/35KT  14C |\n2000FT | 250/35KT  13C | 250/40KT  14C |\n3000FT | 250/35KT  11C | 260/40KT  11C |\n5000FT | 260/35KT  09C | 260/40KT  09C |\nFL100  | 260/35KT  01C | 260/40KT M01C |\n\nGAFOR-Gebiete 05-10:\nAMSL  |  09 UTC  |  21 UTC  |\n 500FT | 230/20KT  16C | 240/20KT  19C |\n1000FT | 230/25KT  14C | 240/25KT  17C |\n1500FT | 240/30KT  12C | 250/35KT  16C |\n2000FT | 240/35KT  12C | 250/40KT  15C |\n3000FT | 260/35KT  11C | 260/35KT  13C |\n5000FT | 260/35KT  09C | 270/30KT  11C |\nFL100  | 270/30KT  02C | 260/40KT  03C |\n\nTurbulenz:\nMäßig bis stark unterhalb von 2000-3000 FT AMSL, im Laufe der Nacht\nzum Sonntag von Nordwesten langsam nachlassend.\nAußerdem im Bereich von TCU/CB mäßig bis stark.\n\nVereisung:\nIn der kompakten Bewölkung meist mäßig zwischen Nullgradgrenze und\nFL220. Zudem in TCU/CB mäßig bis stark.\n\nNullgradgrenze:\nFL100-FL110, im Laufe des Tages auf FL105-FL120 ansteigend, in der\nkommenden Nacht von Nordwesten auf FL070-FL100 absinkend.\n\nInversionen:\nBodeninversion im Südosten unterhalb von 1000 FT AMSL, am Morgen\nauflösend. Außerdem im Südosten Sperrschicht in 4500 FT AMSL - FL060,\nam Vormittag zeitweilig auflösend, am Neuausbildend am Nachmittag und\nwieder auflösend in der Nacht zum Sonntag wieder auflösend. Bildung\neiner schwachen Bodeninversion über Land in der Nacht zum Sonntag\nunterhalb von 500 FT AGL im Nordwesten, zudem im Nordwesten\nAusbildung einer Sperrschicht in FL060-FL090.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nSchleswig  04.26 | 05.01 | 17.29 | 18.05\nHannover  04.28 | 05.02 | 17.27 | 18.00\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale Hamburg/RO"
   },
   "EDZM": {
-   "bulletin": "FBEU40 EDZM 181800",
+   "bulletin": "FBEU40 EDZM 190600",
    "bereich": "Süd",
    "office": "EDZM",
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/luftsportberichte/fbeu40_edzm_node.html",
-   "issued": "2026-09-18T18:00:00.000Z",
-   "validFrom": "2026-09-18T18:00:00.000Z",
-   "validTo": "2026-09-19T15:00:00.000Z",
+   "issued": "2026-09-19T06:00:00.000Z",
+   "validFrom": "2026-09-19T06:00:00.000Z",
+   "validTo": "2026-09-20T03:00:00.000Z",
    "areas": [
     "54",
     "55",
@@ -1488,9 +1470,9 @@
     "83",
     "84"
    ],
-   "fetched": "2026-09-19T00:40:24.556Z",
-   "text": "Wetterlage und -entwicklung:\nIn der Nacht zum Samstag setzt sich Zwischenhocheinfluss durch, der\ndie mäßig warme Meeresluft zunehmend abtrocknet. Gebietsweise bildet\nsich eine feuchte bodennahe Schicht, die Samstagmorgen wieder\nabtrocknet. Am Samstag bleibt der Zwischenhocheinfluss erhalten. Nur\nin höheren Schichten strömt im Tagesverlauf aus Nordwesten etwas\nfeuchtere Luft ein.\n\nWettergeschehen:\nGebietsweise zeigt sich, besonders in einem breiten Streifen von der\nSchwäbisch-Fränkischen Alb und dem Oberpfälzer-/Bayerischen Wald\nSCT/BKN SC/AC-Bewölkung mit Untergrenzen in FL050-060 und Obergrenze\nbis FL080, am Alpenrand bis FL100. In der ersten Nachthälfte klart es\nvon Nordwesten etwa bis zu einer Linie Aalen-Weiden verbreitet auf;\nhier ziehen lediglich vereinzelte hohe CI-Felder oberhalb FL245\ndurch. Auch südlich einer Linie Memmingen-München-Burghausen klart es\nbis Mitternacht verbreitet auf. Dazwischen bleibt die SCT/BKN\nSC/AC-Bewölkung erhalten, wird aber dünner und liegt zwischen FL060\nund FL080. In den Auflockerungszonen können sich bereits örtlich\nerste flache Dunst-/Nebelfelder bilden.\n\nIn der zweiten Nachthälfte wird der Wolkenstreifen immer schmaler und\nerstreckt sich ungefähr von Oberschwaben über die Hallertau und\nDonauregion bis nach Niederbayern. Dabei wird die Schicht noch dünner\nund liegt morgens nur mehr zwischen FL070-080. In den\nAuflockerungszonen werden die flachen Dunst-/Nebelfelder häufiger und\nsind vor allem in Gewässernähe anzutreffen. Abseits davon bleibt es\nneben weiterhin dünnen CI-Feldern wolkenlos.\n\nIm Laufe des Morgens rasche Auflösung der Dunst- und Nebelfelder.\nAuch die SC/AC-Bewölkung löst sich weitestgehend auf. In deren\nehemaligem Bereich zwischen Schwaben und Niederbayern bildet sich\nvormittags aber wieder FEW/SCT CU bei 4000-5000 FT AMSL, bis zum\nMittag Anstieg auf FL050-060. TOPs bis FL070-080. Sonst überwiegt die\nhohe CI-Bewölkung oberhalb FL240, die sich im Tagesverlauf von\nNordwesten verdichtet und nachmittags nach Südosten ausbreitet. Die\nQuellbewölkung im Südosten löst sich bereits im Laufe des Nachmittags\nwieder auf.\n\nSichtweite:\nNachts 20-40 km. Im Dunst 2-5 km, bei Nebel unter 1 km.\nTagsüber Besserung auf 30-60 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 54 - 58, 63, 64:\nAMSL  |  21 UTC  |  09 UTC  |\n1500FT | 250/10KT  15C | 240/05KT  15C |\n2000FT | 260/10KT  15C | 240/05KT  15C |\n3000FT | 270/10KT  12C | 260/15KT  11C |\n5000FT | 260/15KT  07C | 250/15KT  07C |\nFL100  | 270/20KT  01C | 280/15KT  03C |\n\nGAFOR-Gebiete 62, 71 - 84:\nAMSL  |  21 UTC  |  09 UTC  |\n2000FT | 290/05KT  16C | 260/05KT  15C |\n3000FT | 280/05KT  13C | 250/05KT  12C |\n5000FT | 280/15KT  09C | 260/10KT  09C |\nFL100  | 260/15KT M02C | 280/15KT  02C |\n\nTurbulenz:\nEs wird keine mäßige oder starke Turbulenz erwartet.\n\nVereisung:\nEs wird keine mäßige oder starke Vereisung erwartet.\n\nNullgradgrenze:\nUm FL090-105. Nachts Anstieg auf FL105-115, die höheren Werte im\nSüdwesten. Tagsüber weiterer Anstieg auf FL115-125. Zum Berichtsende\nverbreitet zwischen FL105-FL110, in Oberschwaben um FL115.\n\nInversionen:\nIm Nordwesten Absinkinversion bei FL080-100. Nachts nach Südosten\nausbreitend und von Nordwesten auf FL060-080 sinkend. Darunter im\ngesamten Gebiet Bildung einer Bodeninversion mit Obergrenze zwischen\n2000 und 3000 FT AMSL. Am Samstagvormittag Auflösung der\nBodeninversion. Die Absinkinversion bleibt erhalten, sinkt aber im\nTagesverlauf ab auf 4000-6000 FT AMSL im Nordwesten und FL050-070 im\nSüdosten.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nNürnberg  04.26 | 04.57 | 17.21 | 17.52\nMünchen  04.23 | 04.55 | 17.17 | 17.47\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um 02.00\nUTC\n\nLuftfahrtberatungszentrale München/pv",
-   "fullText": "385\nFBEU40 EDZM 181800\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Süd\ngültig vom 18.09.2026, 18.00 UTC bis 19.09.2026, 15.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 54 - 58, 62 - 64, 71 - 76, 81 - 84\n\nWetterlage und -entwicklung:\nIn der Nacht zum Samstag setzt sich Zwischenhocheinfluss durch, der\ndie mäßig warme Meeresluft zunehmend abtrocknet. Gebietsweise bildet\nsich eine feuchte bodennahe Schicht, die Samstagmorgen wieder\nabtrocknet. Am Samstag bleibt der Zwischenhocheinfluss erhalten. Nur\nin höheren Schichten strömt im Tagesverlauf aus Nordwesten etwas\nfeuchtere Luft ein.\n\nWettergeschehen:\nGebietsweise zeigt sich, besonders in einem breiten Streifen von der\nSchwäbisch-Fränkischen Alb und dem Oberpfälzer-/Bayerischen Wald\nSCT/BKN SC/AC-Bewölkung mit Untergrenzen in FL050-060 und Obergrenze\nbis FL080, am Alpenrand bis FL100. In der ersten Nachthälfte klart es\nvon Nordwesten etwa bis zu einer Linie Aalen-Weiden verbreitet auf;\nhier ziehen lediglich vereinzelte hohe CI-Felder oberhalb FL245\ndurch. Auch südlich einer Linie Memmingen-München-Burghausen klart es\nbis Mitternacht verbreitet auf. Dazwischen bleibt die SCT/BKN\nSC/AC-Bewölkung erhalten, wird aber dünner und liegt zwischen FL060\nund FL080. In den Auflockerungszonen können sich bereits örtlich\nerste flache Dunst-/Nebelfelder bilden.\n\nIn der zweiten Nachthälfte wird der Wolkenstreifen immer schmaler und\nerstreckt sich ungefähr von Oberschwaben über die Hallertau und\nDonauregion bis nach Niederbayern. Dabei wird die Schicht noch dünner\nund liegt morgens nur mehr zwischen FL070-080. In den\nAuflockerungszonen werden die flachen Dunst-/Nebelfelder häufiger und\nsind vor allem in Gewässernähe anzutreffen. Abseits davon bleibt es\nneben weiterhin dünnen CI-Feldern wolkenlos.\n\nIm Laufe des Morgens rasche Auflösung der Dunst- und Nebelfelder.\nAuch die SC/AC-Bewölkung löst sich weitestgehend auf. In deren\nehemaligem Bereich zwischen Schwaben und Niederbayern bildet sich\nvormittags aber wieder FEW/SCT CU bei 4000-5000 FT AMSL, bis zum\nMittag Anstieg auf FL050-060. TOPs bis FL070-080. Sonst überwiegt die\nhohe CI-Bewölkung oberhalb FL240, die sich im Tagesverlauf von\nNordwesten verdichtet und nachmittags nach Südosten ausbreitet. Die\nQuellbewölkung im Südosten löst sich bereits im Laufe des Nachmittags\nwieder auf.\n\nSichtweite:\nNachts 20-40 km. Im Dunst 2-5 km, bei Nebel unter 1 km.\nTagsüber Besserung auf 30-60 km.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 54 - 58, 63, 64:\nAMSL  |  21 UTC  |  09 UTC  |\n1500FT | 250/10KT  15C | 240/05KT  15C |\n2000FT | 260/10KT  15C | 240/05KT  15C |\n3000FT | 270/10KT  12C | 260/15KT  11C |\n5000FT | 260/15KT  07C | 250/15KT  07C |\nFL100  | 270/20KT  01C | 280/15KT  03C |\n\nGAFOR-Gebiete 62, 71 - 84:\nAMSL  |  21 UTC  |  09 UTC  |\n2000FT | 290/05KT  16C | 260/05KT  15C |\n3000FT | 280/05KT  13C | 250/05KT  12C |\n5000FT | 280/15KT  09C | 260/10KT  09C |\nFL100  | 260/15KT M02C | 280/15KT  02C |\n\nTurbulenz:\nEs wird keine mäßige oder starke Turbulenz erwartet.\n\nVereisung:\nEs wird keine mäßige oder starke Vereisung erwartet.\n\nNullgradgrenze:\nUm FL090-105. Nachts Anstieg auf FL105-115, die höheren Werte im\nSüdwesten. Tagsüber weiterer Anstieg auf FL115-125. Zum Berichtsende\nverbreitet zwischen FL105-FL110, in Oberschwaben um FL115.\n\nInversionen:\nIm Nordwesten Absinkinversion bei FL080-100. Nachts nach Südosten\nausbreitend und von Nordwesten auf FL060-080 sinkend. Darunter im\ngesamten Gebiet Bildung einer Bodeninversion mit Obergrenze zwischen\n2000 und 3000 FT AMSL. Am Samstagvormittag Auflösung der\nBodeninversion. Die Absinkinversion bleibt erhalten, sinkt aber im\nTagesverlauf ab auf 4000-6000 FT AMSL im Nordwesten und FL050-070 im\nSüdosten.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nNürnberg  04.26 | 04.57 | 17.21 | 17.52\nMünchen  04.23 | 04.55 | 17.17 | 17.47\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung - morgen\nSA/SU   = Sonnenauf/untergang - morgen\n\nDie nächste planmäßige Aktualisierung erfolgt am 19.09.2026 um 02.00\nUTC\n\nLuftfahrtberatungszentrale München/pv"
+   "fetched": "2026-09-19T05:09:02.383Z",
+   "text": "Wetterlage und -entwicklung:\nSüddeutschland verbleibt zwischen einem Tief über der Nordsee und\neinem Azorenhochkeil über Südwesteuropa unter Zwischenhocheifluss.\nDie Luftmasse bleibt trocken und mild.\n\nWettergeschehen:\nIm Norden Frankens ziehen SCT/BKN AC/CI Wolkenfelder mit Untergrenze\num FL150 durch. Weiter im Süden meist wolkenlos, südlich der Donau\nhalten sich an einer Inversion örtlich dünne SC Wolkenfelder in\nFL060. Entlang der Donau, am Bodensee und in Ostbayern haben sich\nvereinzelt flache Nebelfelder gebildet, die sich rasch auflösen.\n\nVormittags Übergang zu FEW/SCT CU mit Basis um 3500-4000 FT AMSL,\nnachmittags auf 5000 FT AMSL ansteigend. Die Quellbewölkung bleibt\ndünn und trocknet ab dem späten Nachmittag langsam ab. Im Norden\nFrankens ziehen ganztags weiter wechselstarke AC/CI Wolkenfelder\noberhalb FL180 durch.\n\nIn der Nacht auf Sonntag nimmt auch im Süden Bayerns die hohe AC/CI\noberhalb FL240 Bewölkung langsam aus Westen zu. In Franken bleiben\ndarunter dünne AC Wolkenfelder in FL180 liegen. Bodennah bilden sich\nnach Mitternacht wieder lokal flache Nebelfelder aus.\n\nSichtweite:\nUm 30-50 km. In den flachen Nebelfeldern 400-800 m, schnell bessernd.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 54 - 58, 63, 64:\nAMSL  |  09 UTC  |  21 UTC  |\n1500FT | 240/05KT  16C | 230/10KT  18C |\n2000FT | 240/05KT  15C | 240/10KT  18C |\n3000FT | 260/15KT  11C | 260/15KT  15C |\n5000FT | 250/15KT  07C | 260/15KT  11C |\nFL100  | 280/15KT  03C | 280/15KT  06C |\n\nGAFOR-Gebiete 62, 71 - 84:\nAMSL  |  09 UTC  |  21 UTC  |\n2000FT | 230/05KT  16C | 230/05KT  19C |\n3000FT | 230/05KT  12C | 260/10KT  16C |\n5000FT | 260/10KT  09C | 260/10KT  12C |\nFL100  | 280/15KT  02C | 300/15KT  05C |\n\nTurbulenz:\nIm Norden Frankens leicht bis mäßig unterhalb FL060.\n\nVereisung:\nKeine.\n\nNullgradgrenze:\nUm FL110, bis zum Mittag auf FL125 ansteigend.\n\nInversionen:\nKräftige, teils markante Bodeninversion bis etwa 2000 FT AMSL. Wird\nvormittags abgebaut. Absinkinversion bei FL055 bis FL065.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nNürnberg  04.26 | 04.57 | 17.21 | 17.52\nMünchen  04.23 | 04.55 | 17.17 | 17.47\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale München/st",
+   "fullText": "171\nFBEU40 EDZM 190600\nDeutscher Wetterdienst\nFlugwetterübersicht Bereich Süd\ngültig vom 19.09.2026, 06.00 UTC bis 20.09.2026, 03.00 UTC\n\nVorhersagebereich: GAFOR-Gebiete 54 - 58, 62 - 64, 71 - 76, 81 - 84\n\nWetterlage und -entwicklung:\nSüddeutschland verbleibt zwischen einem Tief über der Nordsee und\neinem Azorenhochkeil über Südwesteuropa unter Zwischenhocheifluss.\nDie Luftmasse bleibt trocken und mild.\n\nWettergeschehen:\nIm Norden Frankens ziehen SCT/BKN AC/CI Wolkenfelder mit Untergrenze\num FL150 durch. Weiter im Süden meist wolkenlos, südlich der Donau\nhalten sich an einer Inversion örtlich dünne SC Wolkenfelder in\nFL060. Entlang der Donau, am Bodensee und in Ostbayern haben sich\nvereinzelt flache Nebelfelder gebildet, die sich rasch auflösen.\n\nVormittags Übergang zu FEW/SCT CU mit Basis um 3500-4000 FT AMSL,\nnachmittags auf 5000 FT AMSL ansteigend. Die Quellbewölkung bleibt\ndünn und trocknet ab dem späten Nachmittag langsam ab. Im Norden\nFrankens ziehen ganztags weiter wechselstarke AC/CI Wolkenfelder\noberhalb FL180 durch.\n\nIn der Nacht auf Sonntag nimmt auch im Süden Bayerns die hohe AC/CI\noberhalb FL240 Bewölkung langsam aus Westen zu. In Franken bleiben\ndarunter dünne AC Wolkenfelder in FL180 liegen. Bodennah bilden sich\nnach Mitternacht wieder lokal flache Nebelfelder aus.\n\nSichtweite:\nUm 30-50 km. In den flachen Nebelfeldern 400-800 m, schnell bessernd.\n\nHöhenwind und -temperatur:\nGAFOR-Gebiete 54 - 58, 63, 64:\nAMSL  |  09 UTC  |  21 UTC  |\n1500FT | 240/05KT  16C | 230/10KT  18C |\n2000FT | 240/05KT  15C | 240/10KT  18C |\n3000FT | 260/15KT  11C | 260/15KT  15C |\n5000FT | 250/15KT  07C | 260/15KT  11C |\nFL100  | 280/15KT  03C | 280/15KT  06C |\n\nGAFOR-Gebiete 62, 71 - 84:\nAMSL  |  09 UTC  |  21 UTC  |\n2000FT | 230/05KT  16C | 230/05KT  19C |\n3000FT | 230/05KT  12C | 260/10KT  16C |\n5000FT | 260/10KT  09C | 260/10KT  12C |\nFL100  | 280/15KT  02C | 300/15KT  05C |\n\nTurbulenz:\nIm Norden Frankens leicht bis mäßig unterhalb FL060.\n\nVereisung:\nKeine.\n\nNullgradgrenze:\nUm FL110, bis zum Mittag auf FL125 ansteigend.\n\nInversionen:\nKräftige, teils markante Bodeninversion bis etwa 2000 FT AMSL. Wird\nvormittags abgebaut. Absinkinversion bei FL055 bis FL065.\n\nZeiten in UTC: BDA  |  SA   |  SU   |  BDE\nNürnberg  04.26 | 04.57 | 17.21 | 17.52\nMünchen  04.23 | 04.55 | 17.17 | 17.47\nBDA/BDE = Anfang/Ende Bürgerliche Dämmerung\nSA/SU   = Sonnenauf/untergang\n\nDie nächste planmäßige Aktualisierung erfolgt um 11.00 UTC\n\nLuftfahrtberatungszentrale München/st"
   }
  },
  "balloon": {
@@ -1506,9 +1488,9 @@
     "lon": 9.47,
     "elevFt": 520
    },
-   "fetched": "2026-09-19T00:40:31.559Z",
+   "fetched": "2026-09-19T05:09:09.282Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/10.json"
   },
   "11": {
@@ -1523,9 +1505,9 @@
     "lon": 12.15,
     "elevFt": 70
    },
-   "fetched": "2026-09-19T00:40:32.063Z",
+   "fetched": "2026-09-19T05:09:09.619Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/11.json"
   },
   "12": {
@@ -1540,9 +1522,9 @@
     "lon": 13.38,
     "elevFt": 0
    },
-   "fetched": "2026-09-19T00:40:32.577Z",
+   "fetched": "2026-09-19T05:09:10.008Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/12.json"
   },
   "13": {
@@ -1557,9 +1539,9 @@
     "lon": 11.83,
     "elevFt": 180
    },
-   "fetched": "2026-09-19T00:40:33.090Z",
+   "fetched": "2026-09-19T05:09:10.434Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/13.json"
   },
   "14": {
@@ -1574,9 +1556,9 @@
     "lon": 13.08,
     "elevFt": 250
    },
-   "fetched": "2026-09-19T00:40:33.588Z",
+   "fetched": "2026-09-19T05:09:10.846Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/14.json"
   },
   "15": {
@@ -1591,9 +1573,9 @@
     "lon": 11.85,
     "elevFt": 110
    },
-   "fetched": "2026-09-19T00:40:34.074Z",
+   "fetched": "2026-09-19T05:09:11.221Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/15.json"
   },
   "16": {
@@ -1608,9 +1590,9 @@
     "lon": 13.05,
     "elevFt": 260
    },
-   "fetched": "2026-09-19T00:40:34.590Z",
+   "fetched": "2026-09-19T05:09:11.601Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/16.json"
   },
   "17": {
@@ -1625,9 +1607,9 @@
     "lon": 13.05,
     "elevFt": 140
    },
-   "fetched": "2026-09-19T00:40:34.957Z",
+   "fetched": "2026-09-19T05:09:11.954Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/17.json"
   },
   "18": {
@@ -1642,9 +1624,9 @@
     "lon": 13.9,
     "elevFt": 240
    },
-   "fetched": "2026-09-19T00:40:35.322Z",
+   "fetched": "2026-09-19T05:09:12.307Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/18.json"
   },
   "19": {
@@ -1659,9 +1641,9 @@
     "lon": 13.9,
     "elevFt": 170
    },
-   "fetched": "2026-09-19T00:40:35.671Z",
+   "fetched": "2026-09-19T05:09:12.828Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/19.json"
   },
   "20": {
@@ -1676,9 +1658,9 @@
     "lon": 11.23,
     "elevFt": 470
    },
-   "fetched": "2026-09-19T00:40:36.167Z",
+   "fetched": "2026-09-19T05:09:13.219Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/20.json"
   },
   "21": {
@@ -1693,9 +1675,9 @@
     "lon": 10.62,
     "elevFt": 2540
    },
-   "fetched": "2026-09-19T00:40:36.494Z",
+   "fetched": "2026-09-19T05:09:13.571Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/21.json"
   },
   "22": {
@@ -1710,9 +1692,9 @@
     "lon": 12.35,
     "elevFt": 330
    },
-   "fetched": "2026-09-19T00:40:36.836Z",
+   "fetched": "2026-09-19T05:09:13.941Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/22.json"
   },
   "23": {
@@ -1727,9 +1709,9 @@
     "lon": 14,
     "elevFt": 330
    },
-   "fetched": "2026-09-19T00:40:37.196Z",
+   "fetched": "2026-09-19T05:09:14.328Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/23.json"
   },
   "24": {
@@ -1744,9 +1726,9 @@
     "lon": 11.13,
     "elevFt": 480
    },
-   "fetched": "2026-09-19T00:40:37.687Z",
+   "fetched": "2026-09-19T05:09:14.682Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/24.json"
   },
   "25": {
@@ -1761,9 +1743,9 @@
     "lon": 12.8,
     "elevFt": 710
    },
-   "fetched": "2026-09-19T00:40:38.015Z",
+   "fetched": "2026-09-19T05:09:15.101Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/25.json"
   },
   "26": {
@@ -1778,9 +1760,9 @@
     "lon": 14.43,
     "elevFt": 660
    },
-   "fetched": "2026-09-19T00:40:38.380Z",
+   "fetched": "2026-09-19T05:09:15.456Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/26.json"
   },
   "27": {
@@ -1795,9 +1777,9 @@
     "lon": 10.93,
     "elevFt": 1680
    },
-   "fetched": "2026-09-19T00:40:38.724Z",
+   "fetched": "2026-09-19T05:09:15.813Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/27.json"
   },
   "28": {
@@ -1812,9 +1794,9 @@
     "lon": 13.17,
     "elevFt": 2210
    },
-   "fetched": "2026-09-19T00:40:39.068Z",
+   "fetched": "2026-09-19T05:09:16.187Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/28.json"
   },
   "31": {
@@ -1829,9 +1811,9 @@
     "lon": 6.57,
     "elevFt": 130
    },
-   "fetched": "2026-09-19T00:40:39.540Z",
+   "fetched": "2026-09-19T05:09:16.576Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/31.json"
   },
   "32": {
@@ -1846,9 +1828,9 @@
     "lon": 7.63,
     "elevFt": 200
    },
-   "fetched": "2026-09-19T00:40:40.028Z",
+   "fetched": "2026-09-19T05:09:16.933Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/32.json"
   },
   "33": {
@@ -1863,9 +1845,9 @@
     "lon": 7.47,
     "elevFt": 310
    },
-   "fetched": "2026-09-19T00:40:40.388Z",
+   "fetched": "2026-09-19T05:09:17.285Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/33.json"
   },
   "34": {
@@ -1880,9 +1862,9 @@
     "lon": 6.77,
     "elevFt": 320
    },
-   "fetched": "2026-09-19T00:40:40.891Z",
+   "fetched": "2026-09-19T05:09:17.801Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/34.json"
   },
   "35": {
@@ -1897,9 +1879,9 @@
     "lon": 7.57,
     "elevFt": 860
    },
-   "fetched": "2026-09-19T00:40:41.366Z",
+   "fetched": "2026-09-19T05:09:18.181Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/35.json"
   },
   "36": {
@@ -1914,9 +1896,9 @@
     "lon": 8.28,
     "elevFt": 1750
    },
-   "fetched": "2026-09-19T00:40:41.867Z",
+   "fetched": "2026-09-19T05:09:18.540Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/36.json"
   },
   "37": {
@@ -1931,9 +1913,9 @@
     "lon": 6.67,
     "elevFt": 1500
    },
-   "fetched": "2026-09-19T00:40:42.217Z",
+   "fetched": "2026-09-19T05:09:18.895Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/37.json"
   },
   "38": {
@@ -1948,9 +1930,9 @@
     "lon": 7.38,
     "elevFt": 460
    },
-   "fetched": "2026-09-19T00:40:42.570Z",
+   "fetched": "2026-09-19T05:09:19.251Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/38.json"
   },
   "39": {
@@ -1965,9 +1947,9 @@
     "lon": 7.95,
     "elevFt": 1500
    },
-   "fetched": "2026-09-19T00:40:42.930Z",
+   "fetched": "2026-09-19T05:09:19.625Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/39.json"
   },
   "41": {
@@ -1982,9 +1964,9 @@
     "lon": 7.27,
     "elevFt": 1390
    },
-   "fetched": "2026-09-19T00:40:43.293Z",
+   "fetched": "2026-09-19T05:09:19.976Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/41.json"
   },
   "42": {
@@ -1999,9 +1981,9 @@
     "lon": 8.25,
     "elevFt": 870
    },
-   "fetched": "2026-09-19T00:40:43.673Z",
+   "fetched": "2026-09-19T05:09:20.314Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/42.json"
   },
   "43": {
@@ -2016,9 +1998,9 @@
     "lon": 9.27,
     "elevFt": 980
    },
-   "fetched": "2026-09-19T00:40:44.016Z",
+   "fetched": "2026-09-19T05:09:20.844Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/43.json"
   },
   "44": {
@@ -2033,9 +2015,9 @@
     "lon": 7.77,
     "elevFt": 980
    },
-   "fetched": "2026-09-19T00:40:44.373Z",
+   "fetched": "2026-09-19T05:09:21.372Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/44.json"
   },
   "45": {
@@ -2050,9 +2032,9 @@
     "lon": 8.77,
     "elevFt": 430
    },
-   "fetched": "2026-09-19T00:40:44.732Z",
+   "fetched": "2026-09-19T05:09:21.864Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/45.json"
   },
   "46": {
@@ -2067,9 +2049,9 @@
     "lon": 8.97,
     "elevFt": 950
    },
-   "fetched": "2026-09-19T00:40:45.230Z",
+   "fetched": "2026-09-19T05:09:22.228Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/46.json"
   },
   "47": {
@@ -2084,9 +2066,9 @@
     "lon": 9.92,
     "elevFt": 2210
    },
-   "fetched": "2026-09-19T00:40:45.620Z",
+   "fetched": "2026-09-19T05:09:22.602Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/47.json"
   },
   "50": {
@@ -2101,9 +2083,9 @@
     "lon": 7.6,
     "elevFt": 660
    },
-   "fetched": "2026-09-19T00:40:45.981Z",
+   "fetched": "2026-09-19T05:09:22.947Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/50.json"
   },
   "51": {
@@ -2118,9 +2100,9 @@
     "lon": 8.37,
     "elevFt": 320
    },
-   "fetched": "2026-09-19T00:40:46.334Z",
+   "fetched": "2026-09-19T05:09:23.321Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/51.json"
   },
   "52": {
@@ -2135,9 +2117,9 @@
     "lon": 8.88,
     "elevFt": 670
    },
-   "fetched": "2026-09-19T00:40:46.678Z",
+   "fetched": "2026-09-19T05:09:23.683Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/52.json"
   },
   "53": {
@@ -2152,9 +2134,9 @@
     "lon": 9.13,
     "elevFt": 810
    },
-   "fetched": "2026-09-19T00:40:47.189Z",
+   "fetched": "2026-09-19T05:09:24.052Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/53.json"
   },
   "54": {
@@ -2169,9 +2151,9 @@
     "lon": 10.23,
     "elevFt": 880
    },
-   "fetched": "2026-09-19T00:40:47.566Z",
+   "fetched": "2026-09-19T05:09:24.442Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/54.json"
   },
   "55": {
@@ -2186,9 +2168,9 @@
     "lon": 9.75,
     "elevFt": 1270
    },
-   "fetched": "2026-09-19T00:40:47.899Z",
+   "fetched": "2026-09-19T05:09:24.811Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/55.json"
   },
   "56": {
@@ -2203,9 +2185,9 @@
     "lon": 11,
     "elevFt": 980
    },
-   "fetched": "2026-09-19T00:40:48.242Z",
+   "fetched": "2026-09-19T05:09:25.182Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/56.json"
   },
   "57": {
@@ -2220,9 +2202,9 @@
     "lon": 11.57,
     "elevFt": 1630
    },
-   "fetched": "2026-09-19T00:40:48.588Z",
+   "fetched": "2026-09-19T05:09:25.686Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/57.json"
   },
   "58": {
@@ -2237,9 +2219,9 @@
     "lon": 11.73,
     "elevFt": 1970
    },
-   "fetched": "2026-09-19T00:40:48.949Z",
+   "fetched": "2026-09-19T05:09:26.087Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/58.json"
   },
   "61": {
@@ -2254,9 +2236,9 @@
     "lon": 8.42,
     "elevFt": 2200
    },
-   "fetched": "2026-09-19T00:40:49.288Z",
+   "fetched": "2026-09-19T05:09:26.458Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/61.json"
   },
   "62": {
@@ -2271,9 +2253,9 @@
     "lon": 9.5,
     "elevFt": 2450
    },
-   "fetched": "2026-09-19T00:40:49.787Z",
+   "fetched": "2026-09-19T05:09:26.852Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/62.json"
   },
   "63": {
@@ -2288,9 +2270,9 @@
     "lon": 11.48,
     "elevFt": 1550
    },
-   "fetched": "2026-09-19T00:40:50.125Z",
+   "fetched": "2026-09-19T05:09:27.354Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/63.json"
   },
   "64": {
@@ -2305,9 +2287,9 @@
     "lon": 12.33,
     "elevFt": 1790
    },
-   "fetched": "2026-09-19T00:40:50.492Z",
+   "fetched": "2026-09-19T05:09:27.765Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/64.json"
   },
   "71": {
@@ -2322,9 +2304,9 @@
     "lon": 9.17,
     "elevFt": 1360
    },
-   "fetched": "2026-09-19T00:40:50.857Z",
+   "fetched": "2026-09-19T05:09:28.129Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/71.json"
   },
   "72": {
@@ -2339,9 +2321,9 @@
     "lon": 9.8,
     "elevFt": 1840
    },
-   "fetched": "2026-09-19T00:40:51.233Z",
+   "fetched": "2026-09-19T05:09:28.484Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/72.json"
   },
   "73": {
@@ -2349,16 +2331,16 @@
    "name": "Westliche Donauniederung",
    "refAltFt": 1700,
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_73",
-   "title": "Vorhersage ausgegeben 18.09.2026 23:00 UTC (ICON-EU 2026-09-18 18 UTC)",
+   "title": "Vorhersage ausgegeben 19.09.2026 05:00 UTC (ICON-EU 2026-09-19 00 UTC)",
    "station": {
     "name": "Neuburg/Donau",
     "lat": 48.73,
     "lon": 11.18,
     "elevFt": 1360
    },
-   "fetched": "2026-09-19T00:40:51.584Z",
+   "fetched": "2026-09-19T05:09:28.849Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/73.json"
   },
   "74": {
@@ -2366,16 +2348,16 @@
    "name": "Südbayerisches Hügelland",
    "refAltFt": 1800,
    "source": "https://www.dwd.de/DE/fachnutzer/luftfahrt/teaser/gebietsvorhersagen_ballonsport/node_74",
-   "title": "Vorhersage ausgegeben 18.09.2026 23:00 UTC (ICON-EU 2026-09-18 18 UTC)",
+   "title": "Vorhersage ausgegeben 19.09.2026 05:00 UTC (ICON-EU 2026-09-19 00 UTC)",
    "station": {
     "name": "Landshut",
     "lat": 48.55,
     "lon": 12.15,
     "elevFt": 1340
    },
-   "fetched": "2026-09-19T00:40:51.952Z",
+   "fetched": "2026-09-19T05:09:29.220Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/74.json"
   },
   "75": {
@@ -2390,9 +2372,9 @@
     "lon": 12.58,
     "elevFt": 1100
    },
-   "fetched": "2026-09-19T00:40:52.439Z",
+   "fetched": "2026-09-19T05:09:29.707Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/75.json"
   },
   "76": {
@@ -2407,9 +2389,9 @@
     "lon": 13.13,
     "elevFt": 1960
    },
-   "fetched": "2026-09-19T00:40:52.947Z",
+   "fetched": "2026-09-19T05:09:30.205Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/76.json"
   },
   "81": {
@@ -2424,9 +2406,9 @@
     "lon": 10.32,
     "elevFt": 2280
    },
-   "fetched": "2026-09-19T00:40:53.468Z",
+   "fetched": "2026-09-19T05:09:30.726Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/81.json"
   },
   "82": {
@@ -2441,9 +2423,9 @@
     "lon": 11.7,
     "elevFt": 2300
    },
-   "fetched": "2026-09-19T00:40:53.971Z",
+   "fetched": "2026-09-19T05:09:31.241Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/82.json"
   },
   "83": {
@@ -2458,9 +2440,9 @@
     "lon": 10.28,
     "elevFt": 3450
    },
-   "fetched": "2026-09-19T00:40:54.452Z",
+   "fetched": "2026-09-19T05:09:31.768Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/83.json"
   },
   "84": {
@@ -2475,9 +2457,9 @@
     "lon": 11.87,
     "elevFt": 2860
    },
-   "fetched": "2026-09-19T00:40:54.940Z",
+   "fetched": "2026-09-19T05:09:32.296Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/84.json"
   },
   "01": {
@@ -2492,9 +2474,9 @@
     "lon": 7.78,
     "elevFt": 10
    },
-   "fetched": "2026-09-19T00:40:27.801Z",
+   "fetched": "2026-09-19T05:09:05.629Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/01.json"
   },
   "02": {
@@ -2509,9 +2491,9 @@
     "lon": 8.7,
     "elevFt": 0
    },
-   "fetched": "2026-09-19T00:40:28.164Z",
+   "fetched": "2026-09-19T05:09:05.976Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/02.json"
   },
   "03": {
@@ -2526,9 +2508,9 @@
     "lon": 9.95,
     "elevFt": 70
    },
-   "fetched": "2026-09-19T00:40:28.509Z",
+   "fetched": "2026-09-19T05:09:06.350Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/03.json"
   },
   "04": {
@@ -2543,9 +2525,9 @@
     "lon": 10.42,
     "elevFt": 130
    },
-   "fetched": "2026-09-19T00:40:28.880Z",
+   "fetched": "2026-09-19T05:09:06.728Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/04.json"
   },
   "05": {
@@ -2560,9 +2542,9 @@
     "lon": 8.8,
     "elevFt": 10
    },
-   "fetched": "2026-09-19T00:40:29.328Z",
+   "fetched": "2026-09-19T05:09:07.105Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/05.json"
   },
   "06": {
@@ -2577,9 +2559,9 @@
     "lon": 10.57,
     "elevFt": 190
    },
-   "fetched": "2026-09-19T00:40:29.826Z",
+   "fetched": "2026-09-19T05:09:07.515Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/06.json"
   },
   "07": {
@@ -2594,9 +2576,9 @@
     "lon": 8.37,
     "elevFt": 110
    },
-   "fetched": "2026-09-19T00:40:30.171Z",
+   "fetched": "2026-09-19T05:09:08.015Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/07.json"
   },
   "08": {
@@ -2611,9 +2593,9 @@
     "lon": 10.23,
     "elevFt": 230
    },
-   "fetched": "2026-09-19T00:40:30.545Z",
+   "fetched": "2026-09-19T05:09:08.441Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/08.json"
   },
   "09": {
@@ -2628,9 +2610,9 @@
     "lon": 8.35,
     "elevFt": 290
    },
-   "fetched": "2026-09-19T00:40:31.060Z",
+   "fetched": "2026-09-19T05:09:08.956Z",
    "blocks": 4,
-   "cells": 333,
+   "cells": 261,
    "file": "data/dwd/balloon/09.json"
   }
  },
@@ -2652,10 +2634,10 @@
   }
  ],
  "metar": {
-  "generated": "2026-09-19T00:40:55.064Z",
+  "generated": "2026-09-19T05:09:32.420Z",
   "via": "awc",
-  "stations": 81,
-  "tafs": 69,
+  "stations": 82,
+  "tafs": 70,
   "file": "data/dwd/metar.json"
  }
 }
